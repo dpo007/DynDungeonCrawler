@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.13.35931.197
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DynDungeonCrawler.Generator", "DynDungeonCrawler.Generator\DynDungeonCrawler.Generator.csproj", "{76E0B86E-EAA2-0BE7-403D-F734161B5408}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DynDungeonCrawler.Engine", "DynDungeonCrawler.Engine\DynDungeonCrawler.Engine.csproj", "{76E0B86E-EAA2-0BE7-403D-F734161B5408}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DynDungeonCrawler.GeneratorApp", "DynDungeonCrawler.GeneratorApp\DynDungeonCrawler.GeneratorApp.csproj", "{5A834A94-2DFE-C70F-2902-FD0E2F90F97C}"
 EndProject
