@@ -1,4 +1,4 @@
-﻿namespace DynDungeonCrawler.Data
+﻿namespace DynDungeonCrawler.Engine.Data
 {
     public class DungeonData
     {

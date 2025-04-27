@@ -1,6 +1,6 @@
 ﻿using System.Text.Json;
 
-namespace DynDungeonCrawler.Configuration
+namespace DynDungeonCrawler.Engine.Configuration
 {
     public class Settings
     {

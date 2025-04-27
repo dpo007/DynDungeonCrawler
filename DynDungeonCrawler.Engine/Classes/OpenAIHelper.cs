@@ -1,9 +1,9 @@
-﻿using DynDungeonCrawler.Constants;
-using DynDungeonCrawler.Interfaces;
+﻿using DynDungeonCrawler.Engine.Constants;
+using DynDungeonCrawler.Engine.Interfaces;
 using System.Text;
 using System.Text.Json;
 
-namespace DynDungeonCrawler.Classes
+namespace DynDungeonCrawler.Engine.Classes
 {
     public class OpenAIHelper : ILLMClient
     {

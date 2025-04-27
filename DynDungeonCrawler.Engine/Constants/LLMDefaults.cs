@@ -1,4 +1,4 @@
-namespace DynDungeonCrawler.Constants
+namespace DynDungeonCrawler.Engine.Constants
 {
     public static class LLMDefaults
     {

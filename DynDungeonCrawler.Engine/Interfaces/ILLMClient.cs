@@ -1,6 +1,6 @@
-﻿using DynDungeonCrawler.Constants;
+﻿using DynDungeonCrawler.Engine.Constants;
 
-namespace DynDungeonCrawler.Interfaces
+namespace DynDungeonCrawler.Engine.Interfaces
 {
     public interface ILLMClient
     {

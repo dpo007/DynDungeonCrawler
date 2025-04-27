@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace DynDungeonCrawler.Classes
+﻿namespace DynDungeonCrawler.Engine.Classes
 {
     public class Adventurer : Entity
     {

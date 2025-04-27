@@ -1,9 +1,9 @@
-﻿using DynDungeonCrawler.Constants;
-using DynDungeonCrawler.Data;
-using DynDungeonCrawler.Interfaces;
+﻿using DynDungeonCrawler.Engine.Constants;
+using DynDungeonCrawler.Engine.Data;
+using DynDungeonCrawler.Engine.Interfaces;
 using System.Text.Json;
 
-namespace DynDungeonCrawler.Classes
+namespace DynDungeonCrawler.Engine.Classes
 {
     public enum TravelDirection
     {
@@ -666,7 +666,7 @@ namespace DynDungeonCrawler.Classes
                 dungeonData.Rooms.Add(roomData);
             }
 
-            return System.Text.Json.JsonSerializer.Serialize(dungeonData, new System.Text.Json.JsonSerializerOptions
+            return JsonSerializer.Serialize(dungeonData, new JsonSerializerOptions
             {
                 WriteIndented = true
             });
@@ -679,7 +679,7 @@ namespace DynDungeonCrawler.Classes
         public void SaveToJson(string filePath)
         {
             var json = ToJson();
-            System.IO.File.WriteAllText(filePath, json);
+            File.WriteAllText(filePath, json);
         }
 
         /// <summary>

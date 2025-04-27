@@ -1,6 +1,4 @@
-using System.ComponentModel;
-
-namespace DynDungeonCrawler.Constants
+namespace DynDungeonCrawler.Engine.Constants
 {
     public static class DungeonDefaults
     {

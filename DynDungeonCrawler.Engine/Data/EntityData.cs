@@ -1,6 +1,6 @@
-﻿using DynDungeonCrawler.Classes;
+﻿using DynDungeonCrawler.Engine.Classes;
 
-namespace DynDungeonCrawler.Data
+namespace DynDungeonCrawler.Engine.Data
 {
     public class EntityData
     {

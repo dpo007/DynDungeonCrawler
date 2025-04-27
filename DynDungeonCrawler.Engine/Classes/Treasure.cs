@@ -1,4 +1,4 @@
-﻿namespace DynDungeonCrawler.Classes
+﻿namespace DynDungeonCrawler.Engine.Classes
 {
     public enum TreasureType
     {

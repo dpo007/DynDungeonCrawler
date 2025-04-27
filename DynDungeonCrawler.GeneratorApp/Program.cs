@@ -1,7 +1,7 @@
-﻿using DynDungeonCrawler.Classes;
-using DynDungeonCrawler.Configuration;
-using DynDungeonCrawler.Constants;
-using DynDungeonCrawler.Interfaces;
+﻿using DynDungeonCrawler.Engine.Classes;
+using DynDungeonCrawler.Engine.Configuration;
+using DynDungeonCrawler.Engine.Constants;
+using DynDungeonCrawler.Engine.Interfaces;
 
 internal class Program
 {
