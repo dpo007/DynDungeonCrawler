@@ -1,76 +1,91 @@
 ﻿# DynDungeonCrawler
 
-**DynDungeonCrawler** is a dynamic, procedural dungeon generator and simulation engine written in C#.  
-It is designed for creating complex dungeon layouts, populating them with entities like enemies and treasures, and exporting the result to JSON for integration into games, visualization tools, or other projects.
+**DynDungeonCrawler** is a modular, dynamic dungeon generation engine built in C#.  
+It procedurally creates complex dungeon layouts, populates them with enemies and treasure, dynamically generates content using AI (LLMs), and exports fully structured JSON for integration into games, visualization tools, or other projects.
+
+---
 
 ## 🌟 Key Features
 
 - **Procedural Dungeon Generation**
-  - Generates a main path from Entrance to Exit.
-  - Adds random side branches and occasional loops.
-  - Configurable dungeon size and minimum path length.
+  - Creates a guaranteed solvable main path from Entrance ➔ Exit.
+  - Adds randomized side branches and occasional loops.
+  - Configurable maximum dungeon size (`MaxDungeonWidth`, `MaxDungeonHeight`) and minimum path length.
 
 - **Room System**
-  - Rooms are placed on a dynamic grid (size can scale as needed).
-  - Each room has a type (Entrance, Exit, Normal) and a unique ID.
-  - Connection metadata: tracks open passages north, south, east, west.
+  - Rooms have distinct types: Entrance, Exit, or Normal.
+  - Each room has a unique ID (GUID) for external linking.
+  - Tracks 4-way connectivity (north, south, east, west).
+  - Designed for future environmental theming.
 
 - **Entity System**
-  - Entities include Enemies, Treasure Chests, Traps, Keys, NPCs.
-  - Entities are extensible and assigned to rooms during population.
+  - Entities include Enemies and Treasure Chests (more easily extensible).
+  - Each Entity has a Name, Description, Type, and unique ID.
+  - Randomized placement of entities in appropriate rooms.
 
-- **Treasure Chests and Loot System**
-  - Chests can be locked or unlocked.
-  - Randomized loot generation (money, gold bars, jewels) with varying value ranges.
+- **Treasure and Loot System**
+  - Treasure Chests contain randomly generated loot (Money, Gold, Jewels).
+  - Loot value scales based on rarity.
 
-- **Serialization Support**
-  - Full dungeon state (rooms, entities, connections) can be exported as JSON.
-  - Designed for easy re-import and front-end consumption.
+- **LLM (AI) Integration**
+  - Uses OpenAI's GPT-4o-mini to dynamically generate fantasy enemy names based on dungeon theme.
+  - Built behind an `ILLMClient` interface for easy future AI swapping.
+
+- **Serialization and Export**
+  - Entire dungeon (rooms, entities, connections) serialized cleanly to JSON.
+  - DTOs (`DungeonData`, `RoomData`, `EntityData`) separate runtime logic from export format.
+  - Saved JSON enables easy integration into external front-end clients.
 
 - **Console Map Visualization**
-  - Prints dungeon layout to the console.
-  - Can toggle between basic structure view and entity view (showing treasures and enemies).
+  - Dual-mode console printer:
+    - Basic structural view (entrance, exit, path).
+    - Detailed entity view (showing treasures and enemies).
+
+- **Settings and Configuration**
+  - `settings.json` file manages API keys and project settings.
+  - Auto-creates default settings file if missing.
+
+---
+
+## 🏗️ Solution Structure
+
+| Project Folder | Purpose |
+|:---------------|:--------|
+| `Classes` | Core runtime classes (Dungeon, Room, Entity, Enemy, TreasureChest, etc.) |
+| `Data` | Serializable DTOs for export/import (DungeonData, RoomData, EntityData) |
+| `Configuration` | Settings loader (settings.json manager) |
+| `Interfaces` | `ILLMClient` for AI integration |
+| `Constants` | Default values for Dungeon generation and LLM prompts |
+
+---
 
 ## 🚀 Future Goals
 
 - **Player Movement and Exploration Mechanics**
-  - Adding a player object to explore the generated dungeon.
+- **Expanded Entities** (Bosses, Keys, NPCs, Traps, Magical Items)
+- **Procedural Room Descriptions** (flavor text generation)
+- **Dungeon Theming and Biomes** (lava caves, ice caverns, ancient ruins)
+- **Front-End Visualization** (Unity, WebGL, or custom rendering)
+- **Save/Load Systems** (full or partial dungeon reloads)
+- **Minimap and Smarter Pathfinding**
+- **Event-Driven Room Effects** (traps, puzzles, environmental hazards)
 
-- **Expanded Entity Types**
-  - Bosses, magical items, traps with effects, puzzles, friendly NPCs.
-
-- **Room Theme Variations**
-  - Environmental themes (ice caves, lava pits, ancient temples) that affect room behavior and visuals.
-
-- **Procedural Room Description Generation**
-  - Dynamic flavor text and descriptions based on room type, contents, and theme.
-
-- **Dungeon Theme Metadata**
-  - Dungeons will have an overarching "theme" (e.g., "Forgotten Catacombs of a Lost Civilization").
-
-- **Front-End Rendering Integration**
-  - Support for graphical front-end clients (e.g., Unity, web browsers).
-
-- **Enhanced Save/Load Systems**
-  - JSON import/export allowing persistent worlds and reloading partial dungeons.
-
-- **Minimap and Pathfinding Enhancements**
-  - Generation of player-friendly minimaps and smarter enemy movement.
+---
 
 ## 🔹 Getting Started
 
-> Note: Basic familiarity with C# and Visual Studio 2022 is recommended.
+> Basic familiarity with C# and Visual Studio 2022 recommended.
 
 1. Clone the repository.
-2. Open the solution in Visual Studio.
-3. Build and run the project to generate a random dungeon and display it in the console.
-4. Review the generated JSON file for dungeon data output.
+2. Open the solution (`DynDungeonCrawler.sln`) in Visual Studio.
+3. Build and run the project.
+4. Update your `settings.json` with your OpenAI API key if using LLM features.
+5. Generate a dungeon, explore the maps, and review the exported JSON!
 
 ---
 
-> **Project Status:** Actively evolving — foundational systems complete, expanding into gameplay and worldbuilding next!
+> **Project Status:** Foundational systems complete — expanding into gameplay mechanics, AI-driven storytelling, and worldbuilding next! 🚀
 
 ---
 
-✨ _Designed to turn grids into grand adventures!_ ✨
-
+✨ _Turning grids into grand adventures — one room at a time!_ ✨
