@@ -6,7 +6,8 @@
         TreasureChest,
         Key,
         NPC,
-        Trap
+        Trap,
+        Adventurer // Aka Players
         // etc. Easily expandable later
     }
 
