@@ -25,7 +25,6 @@
             if (amount > 0)
             {
                 Wealth += amount;
-                Console.WriteLine($"You gained {amount} gold! Total Wealth: {Wealth}");
             }
         }
     }
