@@ -14,5 +14,8 @@ namespace DynDungeonCrawler.Engine.Data
         public bool? IsOpened { get; set; }
         public TreasureType? TreasureType { get; set; }
         public int? TreasureValue { get; set; }
+
+        // Enemy specific properties
+        public int MoneyReward { get; set; } = 0;
     }
 }

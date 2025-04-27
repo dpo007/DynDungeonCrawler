@@ -641,25 +641,7 @@ namespace DynDungeonCrawler.Engine.Classes
 
                 foreach (var entity in room.Contents)
                 {
-                    var entityData = new EntityData
-                    {
-                        Id = entity.Id,
-                        Type = entity.Type,
-                        Name = entity.Name,
-                        Description = entity.Description
-                    };
-
-                    if (entity is TreasureChest chest)
-                    {
-                        entityData.IsLocked = chest.IsLocked;
-                        entityData.IsOpened = chest.IsOpened;
-                        if (chest.ContainedTreasure != null)
-                        {
-                            entityData.TreasureType = chest.ContainedTreasure.Type;
-                            entityData.TreasureValue = chest.ContainedTreasure.Value;
-                        }
-                    }
-
+                    var entityData = entity.ToEntityData();
                     roomData.Contents.Add(entityData);
                 }
 
@@ -671,6 +653,7 @@ namespace DynDungeonCrawler.Engine.Classes
                 WriteIndented = true
             });
         }
+
 
         /// <summary>
         /// Saves the dungeon to a JSON file at the specified file path.
