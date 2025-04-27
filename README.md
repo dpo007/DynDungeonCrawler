@@ -1,7 +1,7 @@
 ﻿# DynDungeonCrawler
 
-![.NET](https://img.shields.io/badge/.NET-9.0-blueviolet)
 ![Made with C#](https://img.shields.io/badge/Made%20with-C%23-239120)
+![.NET](https://img.shields.io/badge/.NET-9.0-blueviolet)
 
 **DynDungeonCrawler** is a modular, dynamic dungeon generation engine built in C#.  
 It procedurally creates complex dungeon layouts, populates them with enemies and treasures, dynamically generates content using AI (LLMs), and exports fully structured JSON for integration into games, visualization tools, or other projects.
@@ -52,19 +52,19 @@ It procedurally creates complex dungeon layouts, populates them with enemies and
 
 | Project | Purpose |
 |:--------|:--------|
-| **DynDungeonCrawler.Generator** | Core engine library: dungeon generation logic, entities, AI integration, serialization. |
-| **DynDungeonCrawler.GeneratorApp** | Console runner that generates, populates, prints, and exports dungeons to JSON. |
-| **DynDungeonCrawler.ConsoleApp** | Future console front-end for navigating, exploring, and playing generated dungeons interactively. |
+| **DynDungeonCrawler.Engine** | Core engine: dungeon generation logic, room/entity structures, AI integration, and serialization. |
+| **DynDungeonCrawler.GeneratorApp** | Console runner that generates, populates, prints, and exports dungeons to JSON (world generation tool). |
+| **DynDungeonCrawler.ConsoleApp** | Future console-based application for exploring, navigating, and playing dungeons interactively. |
 
-**DynDungeonCrawler.Generator Project Folders**:
+**DynDungeonCrawler.Engine Project Folders**:
 
 | Folder | Purpose |
 |:-------|:--------|
-| `Classes/` | Core classes (`Dungeon`, `Room`, `Entity`, `Enemy`, `TreasureChest`, etc.) |
-| `Data/` | DTOs for dungeon export/import |
-| `Configuration/` | `Settings.cs` for managing application settings |
-| `Constants/` | Default values for dungeon generation and LLM prompts |
-| `Interfaces/` | `ILLMClient` interface for LLM integration abstraction |
+| `Classes/` | Core classes (`Dungeon`, `Room`, `Entity`, `Enemy`, `TreasureChest`, `OpenAIHelper`, etc.) |
+| `Data/` | DTOs for dungeon export/import (`DungeonData`, `RoomData`, `EntityData`) |
+| `Configuration/` | `Settings.cs` for managing OpenAI keys and settings |
+| `Constants/` | Default values for dungeon generation and LLM prompts (`DungeonDefaults`, `LLMDefaults`) |
+| `Interfaces/` | `ILLMClient` interface for abstracting AI integrations |
 
 ---
 
@@ -74,7 +74,7 @@ It procedurally creates complex dungeon layouts, populates them with enemies and
 - **Expanded Entity Types** (Bosses, Keys, NPCs, Magical Items)
 - **Procedural Room Description Generation**
 - **Dungeon Biomes and Theming** (lava caves, ice caverns, ancient ruins)
-- **Front-End Visualization** (Unity, WebGL, custom renderers)
+- **Graphical Front-End Rendering** (Unity, WebGL, custom renderers)
 - **Enhanced Save/Load Systems** (partial or full dungeons)
 - **Minimap and Smarter Pathfinding**
 - **Interactive Events (Traps, Puzzles, Lore Drops)**
