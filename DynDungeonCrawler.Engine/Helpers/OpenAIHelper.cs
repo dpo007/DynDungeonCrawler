@@ -3,7 +3,7 @@ using DynDungeonCrawler.Engine.Interfaces;
 using System.Text;
 using System.Text.Json;
 
-namespace DynDungeonCrawler.Engine.Classes
+namespace DynDungeonCrawler.Engine.Helpers
 {
     public class OpenAIHelper : ILLMClient
     {
