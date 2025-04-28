@@ -6,7 +6,7 @@ using DynDungeonCrawler.Engine.Interfaces;
 
 internal class Program
 {
-    static async Task Main(string[] args)
+    private static async Task Main(string[] args)
     {
         // Load settings
         var settings = Settings.Load();

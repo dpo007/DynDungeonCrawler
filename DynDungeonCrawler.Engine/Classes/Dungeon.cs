@@ -26,61 +26,6 @@ namespace DynDungeonCrawler.Engine.Classes
         private List<Room> rooms = new List<Room>();
         private int minPathLength = DungeonDefaults.DefaultEscapePathLength; // Minimum rooms from Entrance to Exit
         private readonly ILLMClient _llmClient;
-        private List<string> enemyNames = new List<string>();
-
-        /// <summary>
-        /// Asynchronously loads enemy names from the LLM client based on the dungeon theme.
-        /// </summary>
-        /// <returns>A task representing the asynchronous operation.</returns>
-        private async Task LoadEnemyNamesAsync()
-        {
-            try
-            {
-                string userPrompt = $"Generate a simple JSON list (no explanations, no other text) of 10 fantasy-themed enemy types appropriate for the following dungeon theme: \"{theme}\".";
-
-                string response = await _llmClient.GetResponseAsync(userPrompt, "You are an enemy type name generator. You only respond with raw JSON list of names. Return only plain text, don't use markdown.");
-
-                // Clean up response if it has ``` markers
-                response = response.TrimStart();
-
-                if (response.StartsWith("```"))
-                {
-                    int firstNewline = response.IndexOf('\n');
-                    int lastBackticks = response.LastIndexOf("```");
-
-                    if (firstNewline >= 0 && lastBackticks >= 0 && lastBackticks > firstNewline)
-                    {
-                        response = response.Substring(firstNewline + 1, lastBackticks - firstNewline - 1).Trim();
-                    }
-                }
-
-                var parsed = JsonSerializer.Deserialize<List<string>>(response);
-
-                if (parsed != null && parsed.Count > 0)
-                {
-                    enemyNames = parsed;
-                }
-                else
-                {
-                    Console.WriteLine("Warning: LLM response parsing failed. Falling back to default names.");
-                    enemyNames = GetDefaultEnemyNames();
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error loading enemy names: {ex.Message}");
-                enemyNames = GetDefaultEnemyNames();
-            }
-        }
-
-        /// <summary>
-        /// Returns a list of default enemy names if LLM fails to provide them.
-        /// </summary>
-        /// <returns>A list of default enemy names.</returns>
-        private List<string> GetDefaultEnemyNames()
-        {
-            return new List<string> { "Goblin", "Orc", "Skeleton", "Zombie", "Spider", "Troll", "Bat", "Ghost", "Bandit", "Wraith" };
-        }
 
         /// <summary>
         /// Initializes a new instance of the Dungeon class with the specified width, height, theme, and LLM client.
@@ -159,7 +104,6 @@ namespace DynDungeonCrawler.Engine.Classes
 
             return connectedRooms;
         }
-
 
         /// <summary>
         /// Gets the Theme of the dungeon.
@@ -656,7 +600,6 @@ namespace DynDungeonCrawler.Engine.Classes
             });
         }
 
-
         /// <summary>
         /// Saves the dungeon to a JSON file at the specified file path.
         /// </summary>
@@ -672,9 +615,6 @@ namespace DynDungeonCrawler.Engine.Classes
         /// </summary>
         public async Task PopulateRoomContentsAsync()
         {
-            // Get possible enemy names from LLM (populates enemyNames)
-            await LoadEnemyNamesAsync();
-
             foreach (var room in rooms)
             {
                 if (room.Type == RoomType.Normal)
@@ -689,7 +629,7 @@ namespace DynDungeonCrawler.Engine.Classes
                     else if (roll < 0.2)
                     {
                         // Use the factory to create an enemy
-                        var enemy = EnemyFactory.CreateRandomEnemy(enemyNames, theme);
+                        var enemy = await EnemyFactory.CreateRandomEnemyAsync(_llmClient, theme);
                         room.Contents.Add(enemy);
                     }
                 }

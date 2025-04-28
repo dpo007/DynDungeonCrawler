@@ -1,10 +1,69 @@
 using DynDungeonCrawler.Engine.Classes;
+using DynDungeonCrawler.Engine.Constants;
+using DynDungeonCrawler.Engine.Interfaces;
+using System.Text.Json;
 
 namespace DynDungeonCrawler.Engine.Factories
 {
     public static class EnemyFactory
     {
         private static readonly Random random = new Random();
+
+        /// <summary>
+        /// Asynchronously loads enemy names from the LLM client based on the dungeon theme.
+        /// </summary>
+        /// <param name="theme">The dungeon theme to base the enemy types on.</param>
+        /// <param name="llmClient">The LLM client instance to use for generation.</param>
+        /// <returns>A Task representing the asynchronous operation, containing a list of enemy names.</returns>
+        public static async Task<List<string>> LoadEnemyNamesAsync(string theme, ILLMClient llmClient)
+        {
+            try
+            {
+                string userPrompt = $"Generate a simple JSON list (no explanations, no other text) of 10 fantasy-themed enemy types appropriate for the following dungeon theme: \"{theme}\".";
+
+                string response = await llmClient.GetResponseAsync(userPrompt, "You are an enemy type name generator. You only respond with raw JSON list of names. Return only plain text, don't use markdown.");
+
+                // Clean up response if it has ``` markers
+                response = response.TrimStart();
+
+                if (response.StartsWith("```"))
+                {
+                    int firstNewline = response.IndexOf('\n');
+                    int lastBackticks = response.LastIndexOf("```");
+
+                    if (firstNewline >= 0 && lastBackticks >= 0 && lastBackticks > firstNewline)
+                    {
+                        response = response.Substring(firstNewline + 1, lastBackticks - firstNewline - 1).Trim();
+                    }
+                }
+
+                var parsed = JsonSerializer.Deserialize<List<string>>(response);
+
+                if (parsed != null && parsed.Count > 0)
+                {
+                    return parsed;
+                }
+                else
+                {
+                    Console.WriteLine("Warning: LLM response parsing failed. Falling back to default names.");
+                    return GetDefaultEnemyNames();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading enemy names: {ex.Message}");
+                return GetDefaultEnemyNames();
+            }
+        }
+
+        /// <summary>
+        /// Returns a list of default enemy names if LLM fails to provide them.
+        /// </summary>
+        /// <returns>A list of default enemy names.</returns>
+        private static List<string> GetDefaultEnemyNames()
+        {
+            return new List<string> { "Goblin", "Orc", "Skeleton", "Zombie", "Spider", "Troll", "Bat", "Ghost", "Bandit", "Wraith" };
+        }
 
         /// <summary>
         /// Creates an enemy based on the given name and optional parameters.
@@ -34,13 +93,22 @@ namespace DynDungeonCrawler.Engine.Factories
         }
 
         /// <summary>
-        /// Creates a random enemy from a list of names.
+        /// Asynchronously creates a random enemy using the LLM client and a specified theme.
         /// </summary>
-        /// <param name="enemyNames">A list of possible enemy names.</param>
-        /// <param name="theme">The theme of the dungeon (optional).</param>
-        /// <returns>A new Enemy object.</returns>
-        public static Enemy CreateRandomEnemy(List<string> enemyNames, string? theme = null)
+        /// <param name="llmClient"></param>
+        /// <param name="theme"></param>
+        /// <returns>A Task representing the asynchronous operation, containing a new Enemy object.</returns>
+        public static async Task<Enemy> CreateRandomEnemyAsync(ILLMClient llmClient, string? theme = null)
         {
+            List<string> enemyNames;
+
+            // Ensure theme is not null by providing a default value
+            string resolvedTheme = theme ?? DungeonDefaults.DefaultDungeonDescription;
+
+            // Load enemy names using the resolved theme
+            enemyNames = await LoadEnemyNamesAsync(resolvedTheme, llmClient);
+
+            // Select a random enemy name and create the enemy
             string name = enemyNames[random.Next(enemyNames.Count)];
             return CreateEnemy(name, theme);
         }
