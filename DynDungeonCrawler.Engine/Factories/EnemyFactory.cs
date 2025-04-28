@@ -10,12 +10,12 @@ namespace DynDungeonCrawler.Engine.Factories
         private static readonly Random random = new Random();
 
         /// <summary>
-        /// Asynchronously loads enemy names from the LLM client based on the dungeon theme.
+        /// Asynchronously generates a list of enemy names based on the provided dungeon theme using an LLM client.
         /// </summary>
         /// <param name="theme">The dungeon theme to base the enemy types on.</param>
         /// <param name="llmClient">The LLM client instance to use for generation.</param>
         /// <returns>A Task representing the asynchronous operation, containing a list of enemy names.</returns>
-        public static async Task<List<string>> LoadEnemyNamesAsync(string theme, ILLMClient llmClient)
+        public static async Task<List<string>> GenerateEnemyNamesAsync(string theme, ILLMClient llmClient)
         {
             try
             {
@@ -106,7 +106,7 @@ namespace DynDungeonCrawler.Engine.Factories
             string resolvedTheme = theme ?? DungeonDefaults.DefaultDungeonDescription;
 
             // Load enemy names using the resolved theme
-            enemyNames = await LoadEnemyNamesAsync(resolvedTheme, llmClient);
+            enemyNames = await GenerateEnemyNamesAsync(resolvedTheme, llmClient);
 
             // Select a random enemy name and create the enemy
             string name = enemyNames[random.Next(enemyNames.Count)];
