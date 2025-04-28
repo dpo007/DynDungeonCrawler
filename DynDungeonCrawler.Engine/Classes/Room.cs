@@ -41,7 +41,11 @@
             Type = RoomType.Normal; // Default to Normal
         }
 
-        // Remove an Entity by its ID
+        /// <summary>
+        /// Removes an Entity from the room by its ID.
+        /// </summary>
+        /// <param name="entityId">The unique identifier of the Entity to remove.</param>
+        /// <returns>True if the Entity was found and removed; otherwise, false.</returns>
         public bool RemoveEntityById(Guid entityId)
         {
             var entity = Contents.FirstOrDefault(e => e.Id == entityId);
@@ -53,13 +57,21 @@
             return false;
         }
 
-        // Remove by Entity object
+        /// <summary>
+        /// Removes an Entity from the room by its object reference.
+        /// </summary>
+        /// <param name="entity">The Entity object to remove.</param>
+        /// <returns>True if the Entity was found and removed; otherwise, false.</returns>
         public bool RemoveEntity(Entity entity)
         {
             if (entity == null) return false;
             return Contents.Remove(entity);
         }
 
+        /// <summary>
+        /// Returns a string representation of the Room.
+        /// </summary>
+        /// <returns>A string describing the Room's type, ID, and coordinates.</returns>
         public override string ToString()
         {
             return $"{Type} Room [{Id}] at ({X}, {Y})";

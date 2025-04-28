@@ -28,7 +28,10 @@ namespace DynDungeonCrawler.Engine.Classes
             Name = name;
         }
 
-        // Method to convert this Entity into a DTO for saving
+        /// <summary>
+        /// Converts the entity to a data object for serialization.
+        /// </summary>
+        /// <returns>An EntityData object representing the entity.</returns>
         public virtual EntityData ToEntityData()
         {
             var data = new EntityData

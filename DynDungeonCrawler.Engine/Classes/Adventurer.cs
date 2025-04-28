@@ -20,6 +20,10 @@
             CurrentRoom = null;
         }
 
+        /// <summary>
+        /// Adds an amount to the adventurer's wealth.
+        /// </summary>
+        /// <param name="amount"></param>
         public void AddWealth(int amount)
         {
             if (amount > 0)
