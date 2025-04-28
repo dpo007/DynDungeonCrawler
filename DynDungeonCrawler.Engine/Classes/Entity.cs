@@ -11,7 +11,6 @@ namespace DynDungeonCrawler.Engine.Classes
         NPC,
         Trap,
         Adventurer // Aka Players
-        // etc. Easily expandable later
     }
 
     public class Entity
