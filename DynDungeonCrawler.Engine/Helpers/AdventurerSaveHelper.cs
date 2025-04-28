@@ -1,3 +1,4 @@
+using DynDungeonCrawler.Engine.Classes;
 using System.Text.Json;
 
 namespace DynDungeonCrawler.Engine.Helpers

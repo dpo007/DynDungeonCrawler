@@ -37,6 +37,7 @@ namespace DynDungeonCrawler.Engine.Classes
             try
             {
                 string userPrompt = $"Generate a simple JSON list (no explanations, no other text) of 10 fantasy-themed enemy types appropriate for the following dungeon theme: \"{theme}\".";
+
                 string response = await _llmClient.GetResponseAsync(userPrompt, "You are an enemy type name generator. You only respond with raw JSON list of names. Return only plain text, don't use markdown.");
 
                 // Clean up response if it has ``` markers
