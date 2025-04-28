@@ -1,5 +1,6 @@
 ﻿using DynDungeonCrawler.Engine.Constants;
 using DynDungeonCrawler.Engine.Data;
+using DynDungeonCrawler.Engine.Factories;
 using DynDungeonCrawler.Engine.Interfaces;
 using System.Text.Json;
 
@@ -670,7 +671,7 @@ namespace DynDungeonCrawler.Engine.Classes
         /// </summary>
         public async Task PopulateRoomContentsAsync()
         {
-            // Get enemy names from LLM
+            // Get possible enemy names from LLM (populates enemyNames)
             await LoadEnemyNamesAsync();
 
             foreach (var room in rooms)
@@ -686,8 +687,9 @@ namespace DynDungeonCrawler.Engine.Classes
                     }
                     else if (roll < 0.2)
                     {
-                        string enemyName = enemyNames[random.Next(enemyNames.Count)];
-                        room.Contents.Add(new Enemy(enemyName));
+                        // Use the factory to create an enemy
+                        var enemy = EnemyFactory.CreateRandomEnemy(enemyNames, theme);
+                        room.Contents.Add(enemy);
                     }
                 }
             }
