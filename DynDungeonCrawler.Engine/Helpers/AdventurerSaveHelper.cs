@@ -21,7 +21,8 @@ namespace DynDungeonCrawler.Engine.Helpers
         /// <param name="adventurer">The Adventurer to save.</param>
         public static void SaveAdventurer(Adventurer adventurer)
         {
-            string fileName = $"Adventurer_{adventurer.Name}.json";
+            // Use GUID and Name in the filename
+            string fileName = $"Adventurer_{adventurer.Id}_{adventurer.Name}.json";
             string filePath = Path.Combine(SaveDirectory, fileName);
 
             var options = new JsonSerializerOptions { WriteIndented = true };
@@ -31,22 +32,25 @@ namespace DynDungeonCrawler.Engine.Helpers
         }
 
         /// <summary>
-        /// Loads an Adventurer object from a JSON file.
+        /// Loads an Adventurer object from a JSON file using their GUID.
         /// </summary>
-        /// <param name="playerName">The name of the player to load.</param>
-        /// <returns>The loaded Adventurer object.</returns>
-        public static Adventurer? LoadAdventurer(string playerName)
+        /// <param name="adventurerId">The GUID of the adventurer to load.</param>
+        /// <returns>The loaded Adventurer object, or null if not found.</returns>
+        public static Adventurer? LoadAdventurer(Guid adventurerId)
         {
-            string fileName = $"Adventurer_{playerName}.json";
-            string filePath = Path.Combine(SaveDirectory, fileName);
+            // Search for a file matching the GUID
+            string[] files = Directory.GetFiles(SaveDirectory, $"Adventurer_{adventurerId}_*.json");
 
-            if (!File.Exists(filePath))
+            if (files.Length == 0)
             {
-                Console.WriteLine($"Save file for player '{playerName}' not found.");
+                Console.WriteLine($"Save file for adventurer with GUID '{adventurerId}' not found.");
                 return null;
             }
 
+            // Load the first matching file (there should only be one)
+            string filePath = files[0];
             string json = File.ReadAllText(filePath);
+
             return JsonSerializer.Deserialize<Adventurer>(json);
         }
     }
