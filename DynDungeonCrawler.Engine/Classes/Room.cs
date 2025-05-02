@@ -23,22 +23,21 @@
         public bool ConnectedSouth { get; set; }
         public bool ConnectedWest { get; set; }
 
-        // Optimized constructors
-        public Room(int x, int y, RoomType type = RoomType.Normal)
+        // Constructor with RoomType
+        public Room(int x, int y, RoomType type)
         {
-            Id = Guid.NewGuid(); // Automatically assign unique ID
+            if (x < 0) throw new ArgumentOutOfRangeException(nameof(x), "X must be ≥ 0.");
+            if (y < 0) throw new ArgumentOutOfRangeException(nameof(y), "Y must be ≥ 0.");
+
+            Id = Guid.NewGuid();
             X = x;
             Y = y;
             Type = type;
         }
 
         // Constructor without RoomType (defaults to Normal)
-        public Room(int x, int y)
+        public Room(int x, int y) : this(x, y, RoomType.Normal)
         {
-            Id = Guid.NewGuid(); // Automatically assign unique ID
-            X = x;
-            Y = y;
-            Type = RoomType.Normal; // Default to Normal
         }
 
         /// <summary>
