@@ -33,5 +33,14 @@
                 ContainedTreasure = new Treasure(TreasureType.Jewels, random.Next(1000, 10001));
             }
         }
+
+        public void Open()
+        {
+            if (IsOpened)
+                throw new InvalidOperationException("Cannot open: chest is already opened.");
+
+            IsOpened = true;
+        }
+
     }
 }
