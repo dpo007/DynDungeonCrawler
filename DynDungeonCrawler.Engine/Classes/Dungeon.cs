@@ -27,6 +27,9 @@ namespace DynDungeonCrawler.Engine.Classes
         private int minPathLength = DungeonDefaults.DefaultEscapePathLength; // Minimum rooms from Entrance to Exit
         private readonly ILLMClient _llmClient;
 
+        public const int MaxDungeonWidth = 1000;
+        public const int MaxDungeonHeight = 1000;
+
         /// <summary>
         /// Initializes a new instance of the Dungeon class with the specified width, height, theme, and LLM client.
         /// </summary>
@@ -36,9 +39,20 @@ namespace DynDungeonCrawler.Engine.Classes
         /// <param name="llmClient">The LLM client used for generating content.</param>
         public Dungeon(int width, int height, string theme, ILLMClient llmClient)
         {
+            if (width < 1 || width > MaxDungeonWidth)
+                throw new ArgumentOutOfRangeException(nameof(width),
+                    $"Width must be between 1 and {MaxDungeonWidth} (was {width}).");
+
+            if (height < 1 || height > MaxDungeonHeight)
+                throw new ArgumentOutOfRangeException(nameof(height),
+                    $"Height must be between 1 and {MaxDungeonHeight} (was {height}).");
+
+            if (string.IsNullOrWhiteSpace(theme))
+                throw new ArgumentException("Theme cannot be empty or whitespace.", nameof(theme));
+
             this.width = width;
             this.height = height;
-            this.theme = theme.Trim() ?? throw new ArgumentNullException(nameof(theme), "Theme cannot be null.");
+            this.theme = theme.Trim();
             _llmClient = llmClient ?? throw new ArgumentNullException(nameof(llmClient));
             grid = new Room[width, height];
         }
