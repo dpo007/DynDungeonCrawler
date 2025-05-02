@@ -99,6 +99,8 @@ namespace DynDungeonCrawler.Engine.Factories
         /// <returns>A Task representing the asynchronous operation, containing a new Enemy object.</returns>
         public static async Task<Enemy> CreateRandomEnemyAsync(ILLMClient llmClient, string theme)
         {
+            ArgumentNullException.ThrowIfNull(llmClient);
+
             if (string.IsNullOrWhiteSpace(theme))
             {
                 throw new ArgumentException("Theme is required and cannot be null or empty.", nameof(theme));
