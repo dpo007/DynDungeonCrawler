@@ -24,7 +24,6 @@ internal class Program
         var httpClient = new HttpClient();
         ILLMClient llmClient = new OpenAIHelper(httpClient, settings.OpenAIApiKey);
 
-
         // Create a new dungeon instance
         Dungeon dungeon = new Dungeon(DungeonDefaults.MaxDungeonWidth, DungeonDefaults.MaxDungeonHeight, llmClient);
 
