@@ -30,9 +30,9 @@ namespace DynDungeonCrawler.Engine.Classes
             if (roll < 0.7)
                 return 0; // 70% chance no money
             else if (roll < 0.9)
-                return random.Next(1, 11); // 1-10 gold
+                return random.Next(1, 101); // 1-100 gold
             else
-                return random.Next(10, 51); // 10-50 gold
+                return random.Next(100, 501); // 100-500 gold
         }
 
         /// <summary>
