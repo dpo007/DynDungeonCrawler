@@ -20,8 +20,10 @@ internal class Program
             return;
         }
 
-        // Create LLM client
-        ILLMClient llmClient = new OpenAIHelper(settings.OpenAIApiKey);
+        // Create LLM client with shared HttpClient
+        var httpClient = new HttpClient();
+        ILLMClient llmClient = new OpenAIHelper(httpClient, settings.OpenAIApiKey);
+
 
         // Create a new dungeon instance
         Dungeon dungeon = new Dungeon(DungeonDefaults.MaxDungeonWidth, DungeonDefaults.MaxDungeonHeight, llmClient);
