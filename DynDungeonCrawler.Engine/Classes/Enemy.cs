@@ -11,6 +11,11 @@
         public Enemy(string name = "Monster", int health = 10, int attack = 2)
             : base(EntityType.Enemy, name)
         {
+            if (health <= 0)
+                throw new ArgumentOutOfRangeException(nameof(health), "Health must be greater than zero.");
+            if (attack <= 0)
+                throw new ArgumentOutOfRangeException(nameof(attack), "Attack must be greater than zero.");
+
             Health = health;
             Attack = attack;
             MoneyReward = GenerateMoneyReward();
