@@ -1,4 +1,6 @@
-﻿namespace DynDungeonCrawler.Engine.Classes
+﻿using DynDungeonCrawler.Engine.Data;
+
+namespace DynDungeonCrawler.Engine.Classes
 {
     public class Enemy : Entity
     {
@@ -31,6 +33,19 @@
                 return random.Next(1, 11); // 1-10 gold
             else
                 return random.Next(10, 51); // 10-50 gold
+        }
+
+        /// <summary>
+        /// Converts the enemy to a data object for serialization.
+        /// </summary>
+        /// <returns>An EntityData object representing the enemy.</returns>
+        public override EntityData ToEntityData()
+        {
+            var data = base.ToEntityData();
+            data.Health = Health;
+            data.Attack = Attack;
+            data.MoneyReward = MoneyReward;
+            return data;
         }
     }
 }

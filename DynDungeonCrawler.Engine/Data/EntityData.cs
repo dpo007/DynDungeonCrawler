@@ -16,6 +16,8 @@ namespace DynDungeonCrawler.Engine.Data
         public int? TreasureValue { get; set; }
 
         // Enemy specific properties
+        public int? Health { get; set; }
+        public int? Attack { get; set; }
         public int MoneyReward { get; set; } = 0;
     }
 }
