@@ -595,14 +595,14 @@ namespace DynDungeonCrawler.Engine.Classes
                     ConnectedNorth = room.ConnectedNorth,
                     ConnectedEast = room.ConnectedEast,
                     ConnectedSouth = room.ConnectedSouth,
-                    ConnectedWest = room.ConnectedWest,
-                    Contents = new List<EntityData>()
+                    ConnectedWest = room.ConnectedWest
                 };
 
+                // Add entities to RoomData using AddEntity method
                 foreach (var entity in room.Contents)
                 {
                     var entityData = entity.ToEntityData();
-                    roomData.Contents.Add(entityData);
+                    roomData.AddEntity(entityData);
                 }
 
                 dungeonData.Rooms.Add(roomData);
@@ -613,6 +613,7 @@ namespace DynDungeonCrawler.Engine.Classes
                 WriteIndented = true
             });
         }
+
 
         /// <summary>
         /// Saves the dungeon to a JSON file at the specified file path.

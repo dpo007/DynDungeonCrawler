@@ -26,8 +26,13 @@
         // Constructor with RoomType
         public Room(int x, int y, RoomType type)
         {
+            // Validate coordinates
             if (x < 0) throw new ArgumentOutOfRangeException(nameof(x), "X must be ≥ 0.");
             if (y < 0) throw new ArgumentOutOfRangeException(nameof(y), "Y must be ≥ 0.");
+
+            // Validate RoomType
+            if (!Enum.IsDefined(type))
+                throw new ArgumentOutOfRangeException(nameof(type), "Invalid RoomType value.");
 
             Id = Guid.NewGuid();
             X = x;
