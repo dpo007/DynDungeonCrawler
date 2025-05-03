@@ -16,6 +16,8 @@ namespace DynDungeonCrawler.Engine.Factories
         /// <returns>A Task representing the asynchronous operation, containing a list of enemy names.</returns>
         public static async Task<List<string>> GenerateEnemyNamesAsync(string theme, ILLMClient llmClient)
         {
+            ArgumentNullException.ThrowIfNull(llmClient);
+
             try
             {
                 string userPrompt = $"Generate a simple JSON list (no explanations, no other text) of 10 fantasy-themed enemy types appropriate for the following dungeon theme: \"{theme}\".";
