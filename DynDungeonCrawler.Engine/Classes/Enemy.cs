@@ -6,7 +6,7 @@
         public int Attack { get; set; }
         public int MoneyReward { get; private set; } = 0;
 
-        private static readonly Random random = new Random();
+        private static readonly Random random = Random.Shared;
 
         public Enemy(string name = "Monster", int health = 10, int attack = 2)
             : base(EntityType.Enemy, name)

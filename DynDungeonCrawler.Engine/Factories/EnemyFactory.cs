@@ -6,7 +6,7 @@ namespace DynDungeonCrawler.Engine.Factories
 {
     public static class EnemyFactory
     {
-        private static readonly Random random = new Random();
+        private static readonly Random random = Random.Shared;
 
         /// <summary>
         /// Asynchronously generates a list of enemy names based on the provided dungeon theme using an LLM client.
@@ -17,6 +17,11 @@ namespace DynDungeonCrawler.Engine.Factories
         public static async Task<List<string>> GenerateEnemyNamesAsync(string theme, ILLMClient llmClient)
         {
             ArgumentNullException.ThrowIfNull(llmClient);
+
+            if (string.IsNullOrWhiteSpace(theme))
+            {
+                throw new ArgumentException("Theme is required and cannot be null or empty.", nameof(theme));
+            }
 
             try
             {
