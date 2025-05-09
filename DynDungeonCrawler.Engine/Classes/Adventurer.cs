@@ -54,5 +54,57 @@
                 Wealth = 0; // Set wealth to zero if the amount exceeds current wealth
             }
         }
+
+        /// <summary>
+        /// Drops an entity from the adventurer's inventory into the current room's contents.
+        /// </summary>
+        /// <param name="entity">The entity to drop.</param>
+        /// <returns>True if the entity was successfully dropped; otherwise, false.</returns>
+        public bool DropEntity(Entity entity)
+        {
+            if (entity == null)
+            {
+                throw new ArgumentNullException(nameof(entity), "Entity cannot be null.");
+            }
+
+            if (CurrentRoom == null)
+            {
+                throw new InvalidOperationException("The adventurer is not in a room.");
+            }
+
+            if (Inventory.Remove(entity))
+            {
+                CurrentRoom.Contents.Add(entity);
+                return true;
+            }
+
+            return false; // Entity was not in the inventory
+        }
+
+        /// <summary>
+        /// Picks up an entity from the current room's contents and adds it to the adventurer's inventory.
+        /// </summary>
+        /// <param name="entity">The entity to pick up.</param>
+        /// <returns>True if the entity was successfully picked up; otherwise, false.</returns>
+        public bool PickUpEntity(Entity entity)
+        {
+            if (entity == null)
+            {
+                throw new ArgumentNullException(nameof(entity), "Entity cannot be null.");
+            }
+
+            if (CurrentRoom == null)
+            {
+                throw new InvalidOperationException("The adventurer is not in a room.");
+            }
+
+            if (CurrentRoom.Contents.Remove(entity))
+            {
+                Inventory.Add(entity);
+                return true;
+            }
+
+            return false; // Entity was not found in the room's contents
+        }
     }
 }
