@@ -16,7 +16,7 @@ namespace DynDungeonCrawler.Engine.Classes
             if (health <= 0)
                 throw new ArgumentOutOfRangeException(nameof(health), "Health must be greater than zero.");
             if (attack <= 0)
-                throw new ArgumentOutOfRangeException(nameof(attack), "Attack must be greater than zero.");
+                throw new ArgumentOutOfRangeException(nameof(attack), "Strength must be greater than zero.");
 
             Health = health;
             Attack = attack;
