@@ -4,17 +4,17 @@
     {
         public int Health { get; set; }
         public int Strength { get; set; }
-        public int Toughness { get; set; }
+        public int Armour { get; set; }
         public int Wealth { get; private set; }
         public List<Entity> Inventory { get; private set; }
         public Room? CurrentRoom { get; set; }
 
-        public Adventurer(string name, int health = 100, int strength = 10, int toughness = 5)
+        public Adventurer(string name)
             : base(EntityType.Adventurer, name)
         {
-            Health = health;
-            Strength = strength;
-            Toughness = toughness;
+            Health = 100;
+            Strength = 5;
+            Armour = 0;
             Wealth = 0;
             Inventory = new List<Entity>();
             CurrentRoom = null;
