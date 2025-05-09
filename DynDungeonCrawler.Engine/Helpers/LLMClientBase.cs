@@ -55,7 +55,7 @@ namespace DynDungeonCrawler.Engine.Helpers
                 new { role = "user", content = userPrompt }
             };
 
-            // Some APIs require `max_tokens`; others ignore it.
+            // Some APIs require 'max_tokens'; others ignore it.
             return maxTokens.HasValue
                 ? new { model, messages, max_tokens = maxTokens.Value }
                 : new { model, messages };

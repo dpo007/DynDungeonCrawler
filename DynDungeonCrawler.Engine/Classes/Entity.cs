@@ -52,6 +52,8 @@ namespace DynDungeonCrawler.Engine.Classes
             else if (this is Enemy enemy)
             {
                 data.MoneyReward = enemy.MoneyReward;
+                data.Health = enemy.Health;
+                data.Strength = enemy.Strength;
             }
 
             return data;
