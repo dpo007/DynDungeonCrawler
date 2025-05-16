@@ -23,8 +23,9 @@ namespace DynDungeonCrawler.Engine.Classes
         private int height;
         private string theme;
         private Random random = new Random();
-        private List<Room> rooms = new List<Room>();
         private int minPathLength = DungeonDefaults.DefaultEscapePathLength; // Minimum rooms from Entrance to Exit
+        private List<Room> rooms = new List<Room>();
+        private List<EnemyTypeInfo>? enemyTypes;
         private readonly ILLMClient _llmClient;
 
         public const int MaxDungeonWidth = 1000;
@@ -630,6 +631,9 @@ namespace DynDungeonCrawler.Engine.Classes
         /// </summary>
         public async Task PopulateRoomContentsAsync()
         {
+            // Generate the master list once
+            enemyTypes = await EnemyFactory.GenerateEnemyTypesAsync(theme, _llmClient);
+
             foreach (var room in rooms)
             {
                 if (room.Type == RoomType.Normal)
@@ -643,8 +647,10 @@ namespace DynDungeonCrawler.Engine.Classes
                     }
                     else if (roll < 0.2)
                     {
-                        // Use the factory to create an enemy
-                        var enemy = await EnemyFactory.CreateRandomEnemyAsync(_llmClient, theme);
+                        // Pick a random enemy type from the master list
+                        var enemyType = enemyTypes[random.Next(enemyTypes.Count)];
+                        var enemy = EnemyFactory.CreateEnemy(enemyType.Name, theme);
+                        enemy.Description = enemyType.Description;
                         room.Contents.Add(enemy);
                     }
                 }

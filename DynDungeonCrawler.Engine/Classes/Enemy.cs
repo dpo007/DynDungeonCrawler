@@ -10,7 +10,7 @@ namespace DynDungeonCrawler.Engine.Classes
 
         private static readonly Random random = Random.Shared;
 
-        public Enemy(string name = "Monster", int health = 10, int strength = 2)
+        public Enemy(string name = "Monster", string description = "A scarey monster!", int health = 10, int strength = 2)
             : base(EntityType.Enemy, name)
         {
             if (health <= 0)
@@ -18,6 +18,7 @@ namespace DynDungeonCrawler.Engine.Classes
             if (strength <= 0)
                 throw new ArgumentOutOfRangeException(nameof(strength), "Strength must be greater than zero.");
 
+            Description = description;
             Health = health;
             Strength = strength;
             MoneyReward = GenerateMoneyReward();
