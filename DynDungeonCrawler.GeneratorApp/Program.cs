@@ -24,8 +24,17 @@ internal class Program
         var httpClient = new HttpClient();
         ILLMClient llmClient = new OpenAIHelper(httpClient, settings.OpenAIApiKey);
 
-        // Create a new dungeon instance
-        Dungeon dungeon = new Dungeon(DungeonDefaults.MaxDungeonWidth, DungeonDefaults.MaxDungeonHeight, DungeonDefaults.DefaultDungeonDescription, llmClient);
+        // Get dungeon theme from user
+        Console.Write("Enter a theme for the dungeon (or press Enter for default): ");
+        string? dungeonTheme = Console.ReadLine();
+        if (string.IsNullOrWhiteSpace(dungeonTheme))
+        {
+            dungeonTheme = DungeonDefaults.DefaultDungeonDescription;
+        }
+
+        // Initialize the dungeon with the specified theme
+        Console.WriteLine($"Initializing dungeon with theme: {dungeonTheme}");
+        Dungeon dungeon = new Dungeon(DungeonDefaults.MaxDungeonWidth, DungeonDefaults.MaxDungeonHeight, dungeonTheme, llmClient);
 
         // Generate the dungeon layout
         Console.WriteLine("Generating dungeon layout...");
