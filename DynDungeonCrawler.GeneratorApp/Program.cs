@@ -28,9 +28,11 @@ internal class Program
         Dungeon dungeon = new Dungeon(DungeonDefaults.MaxDungeonWidth, DungeonDefaults.MaxDungeonHeight, llmClient);
 
         // Generate the dungeon layout
+        Console.WriteLine("Generating dungeon layout...");
         dungeon.GenerateDungeon();
 
         // Populate rooms with treasure chests and enemies
+        Console.WriteLine("Populating rooms with treasure and enemies...");
         await dungeon.PopulateRoomContentsAsync();
 
         // Print maps
