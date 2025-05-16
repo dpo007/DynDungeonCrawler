@@ -25,7 +25,7 @@ internal class Program
         ILLMClient llmClient = new OpenAIHelper(httpClient, settings.OpenAIApiKey);
 
         // Create a new dungeon instance
-        Dungeon dungeon = new Dungeon(DungeonDefaults.MaxDungeonWidth, DungeonDefaults.MaxDungeonHeight, llmClient);
+        Dungeon dungeon = new Dungeon(DungeonDefaults.MaxDungeonWidth, DungeonDefaults.MaxDungeonHeight, DungeonDefaults.DefaultDungeonDescription, llmClient);
 
         // Generate the dungeon layout
         Console.WriteLine("Generating dungeon layout...");
