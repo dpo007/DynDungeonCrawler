@@ -6,6 +6,9 @@ namespace DynDungeonCrawler.Engine.Helpers
     {
         public void Log(string message)
         {
+            Console.ForegroundColor = ConsoleColor.DarkGray;
+            Console.Write("» ");
+            Console.ResetColor();
             Console.WriteLine(message);
         }
     }
