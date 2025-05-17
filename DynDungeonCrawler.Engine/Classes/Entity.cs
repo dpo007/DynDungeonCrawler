@@ -34,7 +34,7 @@ namespace DynDungeonCrawler.Engine.Classes
         /// <returns>An EntityData object representing the entity.</returns>
         public virtual EntityData ToEntityData()
         {
-            var data = new EntityData
+            EntityData data = new EntityData
             {
                 Id = this.Id,
                 Type = this.Type,

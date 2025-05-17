@@ -22,7 +22,7 @@ namespace DynDungeonCrawler.Engine.Classes
         private int width;
         private int height;
         private string theme;
-        private Random random = new Random();
+        private static readonly Random random = Random.Shared;
         private int minPathLength = DungeonDefaults.DefaultEscapePathLength; // Minimum rooms from Entrance to Exit
         private List<Room> rooms = new List<Room>();
         private List<EnemyTypeInfo>? enemyTypes;
@@ -53,12 +53,17 @@ namespace DynDungeonCrawler.Engine.Classes
             if (string.IsNullOrWhiteSpace(theme))
                 throw new ArgumentException("Theme cannot be empty or whitespace.", nameof(theme));
 
+            ArgumentNullException.ThrowIfNull(llmClient);
+            ArgumentNullException.ThrowIfNull(logger);
+            _llmClient = llmClient;
+            _logger = logger;
+
             this.width = width;
             this.height = height;
             this.theme = theme.Trim();
-            _llmClient = llmClient ?? throw new ArgumentNullException(nameof(llmClient));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             grid = new Room[width, height];
+
+            _logger.Log($"Dungeon space initialized with maximum dimensions of {width}x{height}.");
         }
 
         /// <summary>
@@ -162,12 +167,12 @@ namespace DynDungeonCrawler.Engine.Classes
             {
                 if (roomStack.Count == 0)
                 {
-                    Console.WriteLine("Warning: Could not reach the desired path length. Dungeon may be smaller than expected.");
+                    _logger.Log("Warning: Could not reach the desired path length. Dungeon may be smaller than expected.");
                     break;
                 }
 
                 Room currentRoom = roomStack.Peek();
-                var availableDirections = GetAvailableDirections(currentRoom);
+                List<(int dx, int dy, Action<Room> setExitFrom, Action<Room> setExitTo)> availableDirections = GetAvailableDirections(currentRoom);
 
                 if (availableDirections.Count == 0)
                 {
@@ -175,7 +180,7 @@ namespace DynDungeonCrawler.Engine.Classes
                     continue;
                 }
 
-                var chosen = availableDirections[random.Next(availableDirections.Count)];
+                (int dx, int dy, Action<Room> setExitFrom, Action<Room> setExitTo) chosen = availableDirections[random.Next(availableDirections.Count)];
                 int newX = currentRoom.X + chosen.dx;
                 int newY = currentRoom.Y + chosen.dy;
 
@@ -221,14 +226,14 @@ namespace DynDungeonCrawler.Engine.Classes
 
             for (int i = 0; i < branchLength; i++)
             {
-                var availableDirections = GetAvailableDirections(current);
+                List<(int dx, int dy, Action<Room> setExitFrom, Action<Room> setExitTo)> availableDirections = GetAvailableDirections(current);
 
                 if (availableDirections.Count == 0)
                 {
                     break; // Dead end
                 }
 
-                var chosen = availableDirections[random.Next(availableDirections.Count)];
+                (int dx, int dy, Action<Room> setExitFrom, Action<Room> setExitTo) chosen = availableDirections[random.Next(availableDirections.Count)];
                 int newX = current.X + chosen.dx;
                 int newY = current.Y + chosen.dy;
 
@@ -268,12 +273,12 @@ namespace DynDungeonCrawler.Engine.Classes
 
             for (int i = 0; i < branchLength; i++)
             {
-                var availableDirections = GetAvailableDirections(current);
+                List<(int dx, int dy, Action<Room> setExitFrom, Action<Room> setExitTo)> availableDirections = GetAvailableDirections(current);
 
                 if (availableDirections.Count == 0)
                     break;
 
-                var chosen = availableDirections[random.Next(availableDirections.Count)];
+                (int dx, int dy, Action<Room> setExitFrom, Action<Room> setExitTo) chosen = availableDirections[random.Next(availableDirections.Count)];
                 int newX = current.X + chosen.dx;
                 int newY = current.Y + chosen.dy;
 
@@ -296,7 +301,7 @@ namespace DynDungeonCrawler.Engine.Classes
         /// <param name="room">The room to attempt to connect to an existing room.</param>
         private void TryCreateLoop(Room room)
         {
-            var directions = new List<(int dx, int dy, Action<Room> setExitFrom, Action<Room> setExitTo)>();
+            List<(int dx, int dy, Action<Room> setExitFrom, Action<Room> setExitTo)> directions = new List<(int dx, int dy, Action<Room> setExitFrom, Action<Room> setExitTo)>();
 
             if (IsInBounds(room.X, room.Y - 1) && grid[room.X, room.Y - 1] != null)
                 directions.Add((0, -1, r => r.ConnectedNorth = true, r => r.ConnectedSouth = true));
@@ -309,7 +314,7 @@ namespace DynDungeonCrawler.Engine.Classes
 
             if (directions.Count > 0)
             {
-                var chosen = directions[random.Next(directions.Count)];
+                (int dx, int dy, Action<Room> setExitFrom, Action<Room> setExitTo) chosen = directions[random.Next(directions.Count)];
                 int targetX = room.X + chosen.dx;
                 int targetY = room.Y + chosen.dy;
 
@@ -330,7 +335,7 @@ namespace DynDungeonCrawler.Engine.Classes
         /// <returns>A list of available directions and actions to set connections.</returns>
         private List<(int dx, int dy, Action<Room> setExitFrom, Action<Room> setExitTo)> GetAvailableDirections(Room fromRoom)
         {
-            var available = new List<(int dx, int dy, Action<Room>, Action<Room>)>();
+            List<(int dx, int dy, Action<Room>, Action<Room>)> available = new List<(int dx, int dy, Action<Room>, Action<Room>)>();
 
             if (IsInBounds(fromRoom.X, fromRoom.Y - 1) && grid[fromRoom.X, fromRoom.Y - 1] == null)
                 available.Add((0, -1, r => r.ConnectedNorth = true, r => r.ConnectedSouth = true));
@@ -363,7 +368,7 @@ namespace DynDungeonCrawler.Engine.Classes
         {
             int minX = width, minY = height, maxX = 0, maxY = 0;
 
-            foreach (var room in rooms)
+            foreach (Room room in rooms)
             {
                 if (room.X < minX) minX = room.X;
                 if (room.Y < minY) minY = room.Y;
@@ -492,12 +497,12 @@ namespace DynDungeonCrawler.Engine.Classes
         /// <returns>True if the path to the exit is found; otherwise, false.</returns>
         private bool FindMainPath(Room currentRoom, Dictionary<(int, int), TravelDirection> mainPathDirections)
         {
-            var tempPath = new Dictionary<(int, int), TravelDirection>();
+            Dictionary<(int, int), TravelDirection> tempPath = new Dictionary<(int, int), TravelDirection>();
             bool found = FindMainPathRecursive(currentRoom, tempPath);
 
             if (found)
             {
-                foreach (var kvp in tempPath)
+                foreach (KeyValuePair<(int, int), TravelDirection> kvp in tempPath)
                 {
                     mainPathDirections[kvp.Key] = kvp.Value;
                 }
@@ -586,7 +591,7 @@ namespace DynDungeonCrawler.Engine.Classes
         /// <returns>A JSON string representing the dungeon.</returns>
         public string ToJson()
         {
-            var dungeonData = new DungeonData
+            DungeonData dungeonData = new DungeonData
             {
                 Width = width,
                 Height = height,
@@ -594,9 +599,9 @@ namespace DynDungeonCrawler.Engine.Classes
                 Rooms = new List<RoomData>()
             };
 
-            foreach (var room in rooms)
+            foreach (Room room in rooms)
             {
-                var roomData = new RoomData
+                RoomData roomData = new RoomData
                 {
                     Id = room.Id,
                     X = room.X,
@@ -610,9 +615,9 @@ namespace DynDungeonCrawler.Engine.Classes
                 };
 
                 // Add entities to RoomData using AddEntity method
-                foreach (var entity in room.Contents)
+                foreach (Entity entity in room.Contents)
                 {
-                    var entityData = entity.ToEntityData();
+                    EntityData entityData = entity.ToEntityData();
                     roomData.AddEntity(entityData);
                 }
 
@@ -631,9 +636,8 @@ namespace DynDungeonCrawler.Engine.Classes
         /// <param name="filePath">The file path to save the JSON file to.</param>
         public void SaveToJson(string filePath)
         {
-            var json = ToJson();
+            string json = ToJson();
             File.WriteAllText(filePath, json);
-            _logger.Log($"Dungeon saved to {filePath}.");
         }
 
         /// <summary>
@@ -645,7 +649,7 @@ namespace DynDungeonCrawler.Engine.Classes
             enemyTypes = await EnemyFactory.GenerateEnemyTypesAsync(theme, _llmClient, _logger);
 
             // Iterate through all rooms in the dungeon
-            foreach (var room in rooms)
+            foreach (Room room in rooms)
             {
                 // Only populate normal rooms (not entrance/exit)
                 if (room.Type == RoomType.Normal)
@@ -664,8 +668,8 @@ namespace DynDungeonCrawler.Engine.Classes
                     else if (roll < 0.2)
                     {
                         // Pick a random enemy type from the master list
-                        var enemyType = enemyTypes[random.Next(enemyTypes.Count)];
-                        var enemy = EnemyFactory.CreateEnemy(enemyType.Name, theme);
+                        EnemyTypeInfo enemyType = enemyTypes[random.Next(enemyTypes.Count)];
+                        Enemy enemy = EnemyFactory.CreateEnemy(enemyType.Name, theme);
                         enemy.Description = enemyType.Description; // Set enemy description
                         room.Contents.Add(enemy);
 

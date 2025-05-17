@@ -17,9 +17,9 @@ namespace DynDungeonCrawler.Engine.Helpers
         public override async Task<string> GetResponseAsync(string userPrompt, string systemPrompt)
         {
             // No max_tokens typically needed for Ollama
-            var body = CreateChatRequestBody(Model, systemPrompt, userPrompt);
+            object body = CreateChatRequestBody(Model, systemPrompt, userPrompt);
 
-            var response = await SendPostRequestAsync($"{ApiHost}/v1/chat/completions", body);
+            string response = await SendPostRequestAsync($"{ApiHost}/v1/chat/completions", body);
             return ParseChatCompletionContent(response);
         }
     }

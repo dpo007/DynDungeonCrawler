@@ -42,7 +42,7 @@ namespace DynDungeonCrawler.Engine.Classes
         /// <returns>An EntityData object representing the enemy.</returns>
         public override EntityData ToEntityData()
         {
-            var data = base.ToEntityData();
+            EntityData data = base.ToEntityData();
             data.Health = Health;
             data.Strength = Strength;
             data.MoneyReward = MoneyReward;

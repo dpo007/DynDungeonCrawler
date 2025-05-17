@@ -26,17 +26,17 @@ namespace DynDungeonCrawler.Engine.Helpers
         /// </summary>
         protected async Task<string> SendPostRequestAsync(string url, object requestBody)
         {
-            var content = new StringContent(
+            StringContent content = new StringContent(
                 JsonSerializer.Serialize(requestBody),
                 Encoding.UTF8,
                 "application/json"
             );
 
-            var response = await _httpClient.PostAsync(url, content);
+            HttpResponseMessage response = await _httpClient.PostAsync(url, content);
 
             if (!response.IsSuccessStatusCode)
             {
-                var error = await response.Content.ReadAsStringAsync();
+                string error = await response.Content.ReadAsStringAsync();
                 throw new Exception($"API call failed: {response.StatusCode} - {error}");
             }
 
@@ -66,12 +66,12 @@ namespace DynDungeonCrawler.Engine.Helpers
         /// </summary>
         protected static string ParseChatCompletionContent(string json)
         {
-            using var doc = JsonDocument.Parse(json);
+            using JsonDocument doc = JsonDocument.Parse(json);
 
-            if (doc.RootElement.TryGetProperty("choices", out var choices) &&
+            if (doc.RootElement.TryGetProperty("choices", out JsonElement choices) &&
                 choices.GetArrayLength() > 0 &&
-                choices[0].TryGetProperty("message", out var msg) &&
-                msg.TryGetProperty("content", out var content))
+                choices[0].TryGetProperty("message", out JsonElement msg) &&
+                msg.TryGetProperty("content", out JsonElement content))
             {
                 return content.GetString() ?? string.Empty;
             }

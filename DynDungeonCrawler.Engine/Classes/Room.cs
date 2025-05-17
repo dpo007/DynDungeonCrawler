@@ -53,7 +53,7 @@
         /// <returns>True if the Entity was found and removed; otherwise, false.</returns>
         public bool RemoveEntityById(Guid entityId)
         {
-            var entity = Contents.FirstOrDefault(e => e.Id == entityId);
+            Entity? entity = Contents.FirstOrDefault(e => e.Id == entityId);
             if (entity != null)
             {
                 Contents.Remove(entity);

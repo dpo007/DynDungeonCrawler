@@ -26,7 +26,7 @@ namespace DynDungeonCrawler.Engine.Helpers
             string fileName = $"Adventurer_{adventurer.Id}_{adventurer.Name}.json";
             string filePath = Path.Combine(SaveDirectory, fileName);
 
-            var options = new JsonSerializerOptions { WriteIndented = true };
+            JsonSerializerOptions options = new JsonSerializerOptions { WriteIndented = true };
             string json = JsonSerializer.Serialize(adventurer, options);
 
             File.WriteAllText(filePath, json);

@@ -13,7 +13,7 @@ namespace DynDungeonCrawler.Engine.Configuration
             if (!File.Exists(SettingsFilePath))
             {
                 // Create a default settings file
-                var defaultSettings = new Settings();
+                Settings defaultSettings = new Settings();
                 File.WriteAllText(SettingsFilePath, JsonSerializer.Serialize(defaultSettings, new JsonSerializerOptions { WriteIndented = true }));
                 Console.WriteLine("Settings file created. Please update 'settings.json' with your actual API key.");
                 Console.WriteLine("Press any key to exit.");
@@ -21,7 +21,7 @@ namespace DynDungeonCrawler.Engine.Configuration
                 Environment.Exit(0);
             }
 
-            var json = File.ReadAllText(SettingsFilePath);
+            string json = File.ReadAllText(SettingsFilePath);
             return JsonSerializer.Deserialize<Settings>(json) ?? new Settings();
         }
     }
