@@ -7,7 +7,7 @@
 
         public Treasure? ContainedTreasure { get; private set; } = null;
 
-        private static Random random = new Random();
+        private static readonly Random random = Random.Shared;
 
         public TreasureChest(string name = "Treasure Chest", bool isLocked = false)
             : base(EntityType.TreasureChest, name)
