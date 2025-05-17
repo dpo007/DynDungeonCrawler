@@ -221,16 +221,16 @@ Respond only with the description. Return only plain text, don't use markdown.";
         }
 
         /// <summary>
-        /// Creates a random enemy by selecting a random name and description from a pre-populated list of enemy types.
+        /// Creates a random enemy by selecting a random name and description from
+        /// a pre-populated list of enemy types.
         /// </summary>
-        /// <param name="llmClient">An instance of the LLM client (not used in this method, but kept for signature compatibility).</param>
         /// <param name="theme">The theme of the dungeon (required).</param>
         /// <param name="enemyTypes">A non-empty list of pre-generated <see cref="EnemyTypeInfo"/> objects.</param>
         /// <param name="logger">The logger instance to use for warnings and errors.</param>
-        /// <returns>A Task representing the asynchronous operation, containing a new Enemy object.</returns>
+        /// <returns>A new Enemy object.</returns>
         /// <exception cref="ArgumentException">Thrown if <paramref name="enemyTypes"/> is null or empty.</exception>
-        public static Task<Enemy> CreateRandomEnemyAsync(
-            ILLMClient llmClient, string theme, List<EnemyTypeInfo> enemyTypes, ILogger logger)
+        public static Enemy CreateRandomEnemy(
+            string theme, List<EnemyTypeInfo> enemyTypes, ILogger logger)
         {
             ArgumentNullException.ThrowIfNull(enemyTypes);
             ArgumentNullException.ThrowIfNull(logger);
@@ -241,8 +241,7 @@ Respond only with the description. Return only plain text, don't use markdown.";
                 throw new ArgumentException("Enemy types list must not be empty.", nameof(enemyTypes));
 
             EnemyTypeInfo chosen = enemyTypes[random.Next(enemyTypes.Count)];
-            Enemy enemy = CreateEnemy(chosen.Name, chosen.Description, theme);
-            return Task.FromResult(enemy);
+            return CreateEnemy(chosen.Name, chosen.Description, theme);
         }
 
         /// <summary>
