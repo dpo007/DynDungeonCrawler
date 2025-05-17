@@ -34,7 +34,9 @@ namespace DynDungeonCrawler.Engine.Factories
 
             try
             {
-                string userPrompt = $"Generate a simple JSON list (no explanations, no other text) of {count} fantasy-themed enemy types appropriate for the following dungeon theme: \"{theme}\".";
+                string userPrompt = $"Generate a simple JSON list (no explanations, no other text) of {count} fantasy-themed enemy types appropriate for the following dungeon theme: \"{theme}\"";
+
+                logger.Log($"Generating {count} enemy names for theme: \"{theme}\"");
 
                 string response = await llmClient.GetResponseAsync(userPrompt, "You are an enemy type name generator. You only respond with raw JSON list of names. Return only plain text, don't use markdown.");
 
@@ -134,8 +136,9 @@ namespace DynDungeonCrawler.Engine.Factories
         /// <param name="enemyName">The name of the enemy to describe.</param>
         /// <param name="theme">The theme of the dungeon.</param>
         /// <param name="llmClient">The LLM client instance to use for generation.</param>
+        /// <param name="logger">The logger instance to use for warnings and errors.</param>
         /// <returns>A Task representing the asynchronous operation, containing the generated description as a string.</returns>
-        public static async Task<string> GenerateEnemyDescriptionAsync(string enemyName, string theme, ILLMClient llmClient)
+        public static async Task<string> GenerateEnemyDescriptionAsync(string enemyName, string theme, ILLMClient llmClient, ILogger logger)
         {
             ArgumentNullException.ThrowIfNull(llmClient);
 
@@ -153,6 +156,8 @@ Creature Name: {enemyName}
 Dungeon Theme: {theme}
 
 Respond only with the description. Return only plain text, don't use markdown.";
+
+            logger.Log($"Generating description for enemy: \"{enemyName}\"");
 
             string response = await llmClient.GetResponseAsync(userPrompt);
 
@@ -229,7 +234,7 @@ Respond only with the description. Return only plain text, don't use markdown.";
 
             foreach (var name in names)
             {
-                string description = await GenerateEnemyDescriptionAsync(name, theme, llmClient);
+                string description = await GenerateEnemyDescriptionAsync(name, theme, llmClient, logger);
                 result.Add(new EnemyTypeInfo(name, description));
             }
 
