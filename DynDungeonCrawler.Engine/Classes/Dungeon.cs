@@ -660,7 +660,7 @@ namespace DynDungeonCrawler.Engine.Classes
                     if (roll < 0.1)
                     {
                         bool isLocked = random.NextDouble() < 0.3; // 30% of chests are locked
-                        room.Contents.Add(new TreasureChest(isLocked: isLocked));
+                        room.Contents.Add(TreasureChestFactory.CreateTreasureChest(isLocked: isLocked));
 
                         _logger.Log($"Treasure chest added to room at ({room.X}, {room.Y}) -  {(isLocked ? "Locked" : "Unlocked")}.");
                     }
