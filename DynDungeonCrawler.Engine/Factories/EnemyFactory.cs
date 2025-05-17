@@ -13,11 +13,14 @@ namespace DynDungeonCrawler.Engine.Factories
         /// </summary>
         /// <param name="theme">The dungeon theme to base the enemy types on.</param>
         /// <param name="llmClient">The LLM client instance to use for generation.</param>
+        /// <param name="logger">The logger instance to use for warnings and errors.</param>
         /// <param name="count">The number of enemy names to generate (must be 1 or more, defaults to 10).</param>
         /// <returns>A Task representing the asynchronous operation, containing a list of enemy names.</returns>
-        public static async Task<List<string>> GenerateEnemyNamesAsync(string theme, ILLMClient llmClient, int count = 10)
+        public static async Task<List<string>> GenerateEnemyNamesAsync(
+            string theme, ILLMClient llmClient, ILogger logger, int count = 10)
         {
             ArgumentNullException.ThrowIfNull(llmClient);
+            ArgumentNullException.ThrowIfNull(logger);
 
             if (string.IsNullOrWhiteSpace(theme))
             {
@@ -35,13 +38,13 @@ namespace DynDungeonCrawler.Engine.Factories
 
                 string response = await llmClient.GetResponseAsync(userPrompt, "You are an enemy type name generator. You only respond with raw JSON list of names. Return only plain text, don't use markdown.");
 
-                // Clean up response if it has &&& markers
+                // Clean up response if it has ``` markers
                 response = response.TrimStart();
 
-                if (response.StartsWith("&&&"))
+                if (response.StartsWith("```"))
                 {
                     int firstNewline = response.IndexOf('\n');
-                    int lastBackticks = response.LastIndexOf("&&&");
+                    int lastBackticks = response.LastIndexOf("```");
 
                     if (firstNewline >= 0 && lastBackticks >= 0 && lastBackticks > firstNewline)
                     {
@@ -60,13 +63,13 @@ namespace DynDungeonCrawler.Engine.Factories
                 }
                 else
                 {
-                    Console.WriteLine("Warning: LLM response parsing failed. Falling back to default names.");
+                    logger.Log("Warning: LLM response parsing failed. Falling back to default names.");
                     return GetDefaultEnemyNames(count);
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error loading enemy names: {ex.Message}");
+                logger.Log($"Error loading enemy names: {ex.Message}");
                 return GetDefaultEnemyNames(count);
             }
         }
@@ -149,7 +152,7 @@ Generate a vivid and engaging description of a creature or enemy for a dungeon c
 Creature Name: {enemyName}  
 Dungeon Theme: {theme}
 
-Respond only with the description.";
+Respond only with the description. Return only plain text, don't use markdown.";
 
             string response = await llmClient.GetResponseAsync(userPrompt);
 
@@ -185,26 +188,28 @@ Respond only with the description.";
         }
 
         /// <summary>
-        /// Asynchronously creates a random enemy using the LLM client and a specified theme.
+        /// Creates a random enemy by selecting a random name and description from a pre-populated list of enemy types.
         /// </summary>
-        /// <param name="llmClient"></param>
+        /// <param name="llmClient">An instance of the LLM client (not used in this method, but kept for signature compatibility).</param>
         /// <param name="theme">The theme of the dungeon (required).</param>
+        /// <param name="enemyTypes">A non-empty list of pre-generated <see cref="EnemyTypeInfo"/> objects.</param>
+        /// <param name="logger">The logger instance to use for warnings and errors.</param>
         /// <returns>A Task representing the asynchronous operation, containing a new Enemy object.</returns>
-        public static async Task<Enemy> CreateRandomEnemyAsync(ILLMClient llmClient, string theme)
+        /// <exception cref="ArgumentException">Thrown if <paramref name="enemyTypes"/> is null or empty.</exception>
+        public static Task<Enemy> CreateRandomEnemyAsync(
+            ILLMClient llmClient, string theme, List<EnemyTypeInfo> enemyTypes, ILogger logger)
         {
-            ArgumentNullException.ThrowIfNull(llmClient);
+            ArgumentNullException.ThrowIfNull(enemyTypes);
+            ArgumentNullException.ThrowIfNull(logger);
 
             if (string.IsNullOrWhiteSpace(theme))
-            {
                 throw new ArgumentException("Theme is required and cannot be null or empty.", nameof(theme));
-            }
+            if (enemyTypes.Count == 0)
+                throw new ArgumentException("Enemy types list must not be empty.", nameof(enemyTypes));
 
-            // Load enemy names using the provided theme
-            List<string> enemyNames = await GenerateEnemyNamesAsync(theme, llmClient);
-
-            // Select a random enemy name and create the enemy
-            string name = enemyNames[random.Next(enemyNames.Count)];
-            return CreateEnemy(name, theme);
+            EnemyTypeInfo chosen = enemyTypes[random.Next(enemyTypes.Count)];
+            Enemy enemy = CreateEnemy(chosen.Name, chosen.Description, theme);
+            return Task.FromResult(enemy);
         }
 
         /// <summary>
@@ -213,11 +218,13 @@ Respond only with the description.";
         /// </summary>
         /// <param name="theme">The dungeon theme to base the enemy types on.</param>
         /// <param name="llmClient">The LLM client instance to use for generation.</param>
+        /// <param name="logger">Logger instance to use for warnings and errors.</param>
         /// <param name="count">The number of enemy types to generate (must be 1 or more, defaults to 10).</param>
         /// <returns>A Task representing the asynchronous operation, containing a list of <see cref="EnemyTypeInfo"/> objects.</returns>
-        public static async Task<List<EnemyTypeInfo>> GenerateEnemyTypesAsync(string theme, ILLMClient llmClient, int count = 10)
+        public static async Task<List<EnemyTypeInfo>> GenerateEnemyTypesAsync(string theme, ILLMClient llmClient, ILogger logger, int count = 10)
         {
-            var names = await GenerateEnemyNamesAsync(theme, llmClient, count);
+            // Pass the logger instance as the third argument to GenerateEnemyNamesAsync
+            var names = await GenerateEnemyNamesAsync(theme, llmClient, logger, count);
             var result = new List<EnemyTypeInfo>(names.Count);
 
             foreach (var name in names)
@@ -228,22 +235,5 @@ Respond only with the description.";
 
             return result;
         }
-
-        /// <summary>
-        /// Creates a random enemy by selecting a random name and description from a pre-populated list of enemy types.
-        /// </summary>
-        /// <param name="enemyTypes">A non-empty list of pre-generated <see cref="EnemyTypeInfo"/> objects.</param>
-        /// <param name="theme">The theme of the dungeon (optional, used for stat adjustments).</param>
-        /// <returns>A new Enemy object.</returns>
-        /// <exception cref="ArgumentException">Thrown if <paramref name="enemyTypes"/> is null or empty.</exception>
-        public static Enemy CreateRandomEnemyFromList(List<EnemyTypeInfo> enemyTypes, string? theme = null)
-        {
-            if (enemyTypes == null || enemyTypes.Count == 0)
-                throw new ArgumentException("Enemy types list must not be null or empty.", nameof(enemyTypes));
-
-            var chosen = enemyTypes[random.Next(enemyTypes.Count)];
-            return CreateEnemy(chosen.Name, chosen.Description, theme);
-        }
-
     }
 }

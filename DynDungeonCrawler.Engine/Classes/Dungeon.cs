@@ -27,6 +27,7 @@ namespace DynDungeonCrawler.Engine.Classes
         private List<Room> rooms = new List<Room>();
         private List<EnemyTypeInfo>? enemyTypes;
         private readonly ILLMClient _llmClient;
+        private readonly ILogger _logger;
 
         public const int MaxDungeonWidth = 1000;
         public const int MaxDungeonHeight = 1000;
@@ -38,7 +39,8 @@ namespace DynDungeonCrawler.Engine.Classes
         /// <param name="height">The height of the dungeon grid.</param>
         /// <param name="theme">The theme of the dungeon.</param>
         /// <param name="llmClient">The LLM client used for generating content.</param>
-        public Dungeon(int width, int height, string theme, ILLMClient llmClient)
+        /// <param name="logger">The logger used for logging messages.</param>
+        public Dungeon(int width, int height, string theme, ILLMClient llmClient, ILogger logger)
         {
             if (width < 1 || width > MaxDungeonWidth)
                 throw new ArgumentOutOfRangeException(nameof(width),
@@ -55,6 +57,7 @@ namespace DynDungeonCrawler.Engine.Classes
             this.height = height;
             this.theme = theme.Trim();
             _llmClient = llmClient ?? throw new ArgumentNullException(nameof(llmClient));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             grid = new Room[width, height];
         }
 
@@ -65,8 +68,9 @@ namespace DynDungeonCrawler.Engine.Classes
         /// <param name="width">The width of the dungeon grid.</param>
         /// <param name="height">The height of the dungeon grid.</param>
         /// <param name="llmClient">The LLM client used for generating content.</param>
-        public Dungeon(int width, int height, ILLMClient llmClient)
-            : this(width, height, DungeonDefaults.DefaultDungeonDescription, llmClient)
+        /// <param name="logger">The logger used for logging messages.</param>
+        public Dungeon(int width, int height, ILLMClient llmClient, ILogger logger)
+            : this(width, height, DungeonDefaults.DefaultDungeonDescription, llmClient, logger)
         {
         }
 
@@ -615,7 +619,6 @@ namespace DynDungeonCrawler.Engine.Classes
             });
         }
 
-
         /// <summary>
         /// Saves the dungeon to a JSON file at the specified file path.
         /// </summary>
@@ -631,8 +634,8 @@ namespace DynDungeonCrawler.Engine.Classes
         /// </summary>
         public async Task PopulateRoomContentsAsync()
         {
-            // Generate the master list once
-            enemyTypes = await EnemyFactory.GenerateEnemyTypesAsync(theme, _llmClient);
+            // Generate a list of enemy types based on the dungeon theme
+            enemyTypes = await EnemyFactory.GenerateEnemyTypesAsync(theme, _llmClient, _logger);
 
             foreach (var room in rooms)
             {

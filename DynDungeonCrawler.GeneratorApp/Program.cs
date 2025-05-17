@@ -20,6 +20,9 @@ internal class Program
             return;
         }
 
+        // Initialize logging
+        ILogger logger = new ConsoleLogger(); // or new DebugLogger() for debugging
+
         // Create LLM client with shared HttpClient
         var httpClient = new HttpClient();
         ILLMClient llmClient = new OpenAIHelper(httpClient, settings.OpenAIApiKey);
@@ -34,7 +37,7 @@ internal class Program
 
         // Initialize the dungeon with the specified theme
         Console.WriteLine($"Initializing dungeon with theme: {dungeonTheme}");
-        Dungeon dungeon = new Dungeon(DungeonDefaults.MaxDungeonWidth, DungeonDefaults.MaxDungeonHeight, dungeonTheme, llmClient);
+        Dungeon dungeon = new Dungeon(DungeonDefaults.MaxDungeonWidth, DungeonDefaults.MaxDungeonHeight, dungeonTheme, llmClient, logger);
 
         // Generate the dungeon layout
         Console.WriteLine("Generating dungeon layout...");
