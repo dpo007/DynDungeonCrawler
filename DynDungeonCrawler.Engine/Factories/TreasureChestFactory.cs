@@ -31,7 +31,7 @@ namespace DynDungeonCrawler.Engine.Factories
             // Adjust lock chance based on theme
             if (!string.IsNullOrWhiteSpace(theme))
             {
-                if (theme.Contains("ancient", StringComparison.OrdinalIgnoreCase) || 
+                if (theme.Contains("ancient", StringComparison.OrdinalIgnoreCase) ||
                     theme.Contains("secure", StringComparison.OrdinalIgnoreCase) ||
                     theme.Contains("vault", StringComparison.OrdinalIgnoreCase))
                 {
@@ -72,7 +72,7 @@ namespace DynDungeonCrawler.Engine.Factories
             string userPrompt = $@"
 You are an expert fantasy game designer helping build immersive dungeon content.
 
-Generate a vivid and engaging description of a treasure chest for a dungeon crawler game. 
+Generate a vivid and engaging description of a treasure chest for a dungeon crawler game.
 Your description should fit the overall theme of the dungeon and match the characteristics of the chest.
 
 Chest details:
