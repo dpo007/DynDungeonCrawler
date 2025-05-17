@@ -152,7 +152,7 @@ You are an expert fantasy game designer helping build immersive dungeon content.
 
 Generate a vivid and engaging description of a creature or enemy for a dungeon crawler game. Your description should match the given creature name and fit the overall theme of the dungeon. The result should be flavorful, atmospheric, and game-appropriate (no more than 4-5 sentences). Avoid game stats or explicit mechanics — focus on personality, lore, appearance, and behavior.
 
-Creature Name: {enemyName}  
+Creature Name: {enemyName}
 Dungeon Theme: {theme}
 
 Respond only with the description. Return only plain text, don't use markdown.";

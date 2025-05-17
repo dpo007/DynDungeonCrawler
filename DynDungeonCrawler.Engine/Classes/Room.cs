@@ -19,6 +19,7 @@
         // Room connection flags
         // These can be used to determine if a room is connected to another room in a specific direction
         public bool ConnectedNorth { get; set; }
+
         public bool ConnectedEast { get; set; }
         public bool ConnectedSouth { get; set; }
         public bool ConnectedWest { get; set; }

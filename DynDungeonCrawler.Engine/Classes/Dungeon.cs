@@ -633,6 +633,7 @@ namespace DynDungeonCrawler.Engine.Classes
         {
             var json = ToJson();
             File.WriteAllText(filePath, json);
+            _logger.Log($"Dungeon saved to {filePath}.");
         }
 
         /// <summary>
@@ -657,7 +658,7 @@ namespace DynDungeonCrawler.Engine.Classes
                         bool isLocked = random.NextDouble() < 0.3; // 30% of chests are locked
                         room.Contents.Add(new TreasureChest(isLocked: isLocked));
 
-                        _logger.Log($"Treasure chest added to room at ({room.X}, {room.Y}) -  {(isLocked ? "locked" : "unlocked")}.");
+                        _logger.Log($"Treasure chest added to room at ({room.X}, {room.Y}) -  {(isLocked ? "Locked" : "Unlocked")}.");
                     }
                     // Next 10% chance (i.e., 10% to 20%) to add an enemy
                     else if (roll < 0.2)

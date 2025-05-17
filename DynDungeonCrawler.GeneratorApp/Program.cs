@@ -21,7 +21,7 @@ internal class Program
         }
 
         // Initialize logging
-        ILogger logger = new ConsoleLogger(); // or new DebugLogger() for debugging
+        ILogger logger = new ConsoleLogger();
 
         // Create LLM client with shared HttpClient
         var httpClient = new HttpClient();
