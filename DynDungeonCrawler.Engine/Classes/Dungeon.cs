@@ -150,8 +150,12 @@ namespace DynDungeonCrawler.Engine.Classes
             Stack<Room> roomStack = new Stack<Room>();
             roomStack.Push(entrance);
 
+            _logger.Log($"Dungeon entrance created at ({startX}, {startY}).");
+
             int roomsPlaced = 1;
             int targetPathLength = random.Next(minPathLength, minPathLength + 10);
+
+            _logger.Log($"Creating main path with target length: {targetPathLength} rooms.");
 
             // Generate the main path
             while (roomsPlaced < targetPathLength)
@@ -192,9 +196,11 @@ namespace DynDungeonCrawler.Engine.Classes
             {
                 Room exitRoom = roomStack.Peek();
                 exitRoom.Type = RoomType.Exit; // Explicitly set RoomType for the exit
+                _logger.Log($"Dungeon exit created at ({exitRoom.X}, {exitRoom.Y}).");
             }
 
             // Add side branches
+            _logger.Log($"Adding side branches...");
             int extraBranches = 30;
             for (int i = 0; i < extraBranches; i++)
             {
