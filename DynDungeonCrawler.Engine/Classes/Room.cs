@@ -9,7 +9,7 @@
 
     public class Room
     {
-        public Guid Id { get; private set; } // Unique ID for external linking
+        public Guid Id { get; internal set; } // Unique ID for external linking
         public int X { get; set; }            // Grid X coordinate
         public int Y { get; set; }            // Grid Y coordinate
         public RoomType Type { get; set; }    // Type of room

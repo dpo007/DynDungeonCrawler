@@ -433,5 +433,68 @@ namespace DynDungeonCrawler.Engine.Classes
             string json = ToJson();
             File.WriteAllText(filePath, json);
         }
+
+        /// <summary>
+        /// Loads a dungeon from a JSON file at the specified file path.
+        /// </summary>
+        /// <param name="filePath">The file path to load the JSON file from.</param>
+        /// <param name="llmClient">The LLM client used for generating content.</param>
+        /// <param name="logger">The logger used for logging messages.</param>
+        /// <returns>A Dungeon instance deserialized from the JSON file.</returns>
+        public static Dungeon LoadFromJson(string filePath, ILLMClient llmClient, ILogger logger)
+        {
+            if (string.IsNullOrWhiteSpace(filePath))
+                throw new ArgumentException("File path cannot be null or empty.", nameof(filePath));
+            if (!File.Exists(filePath))
+                throw new FileNotFoundException("Dungeon JSON file not found.", filePath);
+
+            ArgumentNullException.ThrowIfNull(llmClient);
+            ArgumentNullException.ThrowIfNull(logger);
+
+            var json = File.ReadAllText(filePath);
+            var dungeonData = JsonSerializer.Deserialize<DungeonData>(json)
+                              ?? throw new InvalidOperationException("Failed to deserialize dungeon data.");
+
+            // Create the dungeon instance
+            var dungeon = new Dungeon(dungeonData.Width, dungeonData.Height, dungeonData.Theme, llmClient, logger);
+
+            // Prepare grid and room list
+            var grid = dungeon.Grid;
+            var rooms = dungeon.Rooms as List<Room>;
+            if (rooms == null)
+                throw new InvalidOperationException("Dungeon.Rooms is not a List<Room>.");
+
+            // Reconstruct rooms
+            foreach (var roomData in dungeonData.Rooms)
+            {
+                var room = new Room(roomData.X, roomData.Y)
+                {
+                    Id = roomData.Id,
+                    Type = Enum.TryParse<RoomType>(roomData.Type, out var type) ? type : RoomType.Normal,
+                    Description = roomData.Description ?? string.Empty,
+                    ConnectedNorth = roomData.ConnectedNorth,
+                    ConnectedEast = roomData.ConnectedEast,
+                    ConnectedSouth = roomData.ConnectedSouth,
+                    ConnectedWest = roomData.ConnectedWest,
+                    Contents = new List<Entity>()
+                };
+
+                // Reconstruct entities
+                if (roomData.Contents != null)
+                {
+                    foreach (var entityData in roomData.Contents)
+                    {
+                        var entity = EntityFactory.FromEntityData(entityData);
+                        if (entity != null)
+                            room.Contents.Add(entity);
+                    }
+                }
+
+                grid[room.X, room.Y] = room;
+                rooms.Add(room);
+            }
+
+            return dungeon;
+        }
     }
 }

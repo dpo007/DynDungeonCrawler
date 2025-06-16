@@ -1,6 +1,6 @@
 ﻿namespace conDungeon
 {
-    internal class Program
+    internal class conDungeon
     {
         private static void Main(string[] args)
         {
