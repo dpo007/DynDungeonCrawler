@@ -2,7 +2,7 @@ using DynDungeonCrawler.Engine.Classes;
 using DynDungeonCrawler.Engine.Interfaces;
 using System.Text.Json;
 
-namespace DynDungeonCrawler.Engine.Factories
+namespace DynDungeonCrawler.GeneratorApp.Factories
 {
     public static class EnemyFactory
     {
@@ -218,30 +218,6 @@ Respond only with the description. Return only plain text, don't use markdown.";
             }
 
             return new Enemy(name, description, health, attack);
-        }
-
-        /// <summary>
-        /// Creates a random enemy by selecting a random name and description from
-        /// a pre-populated list of enemy types.
-        /// </summary>
-        /// <param name="theme">The theme of the dungeon (required).</param>
-        /// <param name="enemyTypes">A non-empty list of pre-generated <see cref="EnemyTypeInfo"/> objects.</param>
-        /// <param name="logger">The logger instance to use for warnings and errors.</param>
-        /// <returns>A new Enemy object.</returns>
-        /// <exception cref="ArgumentException">Thrown if <paramref name="enemyTypes"/> is null or empty.</exception>
-        public static Enemy CreateRandomEnemy(
-            string theme, List<EnemyTypeInfo> enemyTypes, ILogger logger)
-        {
-            ArgumentNullException.ThrowIfNull(enemyTypes);
-            ArgumentNullException.ThrowIfNull(logger);
-
-            if (string.IsNullOrWhiteSpace(theme))
-                throw new ArgumentException("Theme is required and cannot be null or empty.", nameof(theme));
-            if (enemyTypes.Count == 0)
-                throw new ArgumentException("Enemy types list must not be empty.", nameof(enemyTypes));
-
-            EnemyTypeInfo chosen = enemyTypes[random.Next(enemyTypes.Count)];
-            return CreateEnemy(chosen.Name, chosen.Description, theme);
         }
 
         /// <summary>

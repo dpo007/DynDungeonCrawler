@@ -1,7 +1,7 @@
 using DynDungeonCrawler.Engine.Classes;
 using DynDungeonCrawler.Engine.Interfaces;
 
-namespace DynDungeonCrawler.Engine.Factories
+namespace DynDungeonCrawler.GeneratorApp.Factories
 {
     public static class TreasureChestFactory
     {

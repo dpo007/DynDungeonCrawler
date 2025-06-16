@@ -1,6 +1,4 @@
-﻿using DynDungeonCrawler.Engine.Classes;
-
-namespace DynDungeonCrawler.Engine.Data
+﻿namespace DynDungeonCrawler.Engine.Data
 {
     public class RoomData
     {
@@ -9,7 +7,7 @@ namespace DynDungeonCrawler.Engine.Data
         public int Y { get; set; }              // Grid Y coordinate
         public string Type { get; set; } = "";  // Room type as string for serialization
         public string Description { get; set; } = ""; // Optional description
-        
+
         private readonly List<EntityData> _contents = new List<EntityData>();
         public IReadOnlyList<EntityData> Contents => _contents;
 

@@ -11,12 +11,14 @@ namespace DynDungeonCrawler.Engine.Data
 
         // TreasureChest specific properties
         public bool? IsLocked { get; set; }
+
         public bool? IsOpened { get; set; }
         public TreasureType? TreasureType { get; set; }
         public int? TreasureValue { get; set; }
 
         // Enemy specific properties
         public int? Health { get; set; }
+
         public int? Strength { get; set; }
         public int MoneyReward { get; set; } = 0;
     }

@@ -1,7 +1,7 @@
 ﻿using DynDungeonCrawler.Engine.Classes;
 using DynDungeonCrawler.Engine.Constants;
-using DynDungeonCrawler.Engine.Factories;
 using DynDungeonCrawler.Engine.Interfaces;
+using DynDungeonCrawler.GeneratorApp.Factories;
 
 namespace DynDungeonCrawler.GeneratorApp.Utilities
 {
@@ -314,8 +314,7 @@ namespace DynDungeonCrawler.GeneratorApp.Utilities
                     {
                         // Pick a random enemy type from the master list
                         var enemyType = enemyTypes[random.Next(enemyTypes.Count)];
-                        var enemy = EnemyFactory.CreateEnemy(enemyType.Name, theme);
-                        enemy.Description = enemyType.Description;
+                        var enemy = EnemyFactory.CreateEnemy(enemyType.Name, enemyType.Description, theme);
                         room.Contents.Add(enemy);
 
                         logger.Log($"Enemy '{enemy.Name}' added to room at ({room.X}, {room.Y}).");

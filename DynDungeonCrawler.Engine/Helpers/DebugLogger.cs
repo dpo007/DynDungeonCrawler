@@ -1,5 +1,5 @@
-using System.Diagnostics;
 using DynDungeonCrawler.Engine.Interfaces;
+using System.Diagnostics;
 
 namespace DynDungeonCrawler.Engine.Helpers
 {
