@@ -1,4 +1,13 @@
-﻿namespace DynDungeonCrawler.Engine.Classes;
+﻿using DynDungeonCrawler.Engine.Interfaces;
+
+namespace DynDungeonCrawler.Engine.Classes;
+
+public enum AdventurerGender
+{
+    Unspecified,
+    Male,
+    Female
+}
 
 public class Adventurer : Entity
 {
@@ -18,6 +27,42 @@ public class Adventurer : Entity
         Wealth = 0;
         Inventory = new List<Entity>();
         CurrentRoom = null;
+    }
+
+    /// <summary>
+    /// Uses the LLM to generate a fantasy adventurer name based on the dungeon theme and optional gender.
+    /// </summary>
+    /// <param name="llmClient">The LLM client to use for name generation.</param>
+    /// <param name="theme">The dungeon theme to inspire the name.</param>
+    /// <param name="gender">Optional: Male, Female, or Unspecified (default).</param>
+    /// <returns>A generated adventurer name.</returns>
+    public static async Task<string> GenerateNameAsync(
+        ILLMClient llmClient,
+        string theme,
+        AdventurerGender gender = AdventurerGender.Unspecified)
+    {
+        if (llmClient == null)
+            throw new ArgumentNullException(nameof(llmClient));
+        if (string.IsNullOrWhiteSpace(theme))
+            throw new ArgumentException("Theme must be provided.", nameof(theme));
+
+        string genderPrompt = gender switch
+        {
+            AdventurerGender.Male => "male",
+            AdventurerGender.Female => "female",
+            _ => "any gender"
+        };
+
+        string userPrompt = $"Generate a unique, fantasy-style {genderPrompt} adventurer name suitable for a dungeon themed '{theme}'. " +
+                            "Return only the name, no description or extra text.";
+
+        // Use a simple system prompt for consistency
+        string systemPrompt = "You are a creative fantasy name generator for RPG characters.";
+
+        string name = await llmClient.GetResponseAsync(userPrompt, systemPrompt);
+
+        // Clean up the name (remove quotes, trim whitespace)
+        return name?.Trim(' ', '\"', '\n', '\r') ?? "Adventurer";
     }
 
     /// <summary>
