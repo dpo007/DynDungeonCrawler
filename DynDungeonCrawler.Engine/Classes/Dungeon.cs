@@ -24,7 +24,6 @@ namespace DynDungeonCrawler.Engine.Classes
         private static readonly Random random = Random.Shared;
         private int minPathLength = DungeonDefaults.DefaultEscapePathLength; // Minimum rooms from Entrance to Exit
         private List<Room> rooms = new List<Room>();
-        private List<EnemyTypeInfo>? enemyTypes;
         private readonly ILLMClient _llmClient;
         private readonly ILogger _logger;
 

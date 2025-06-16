@@ -17,11 +17,9 @@ namespace DynDungeonCrawler.Engine.Classes
             if (entityData == null)
                 return null;
 
-            return new Entity
+            return new Entity(entityData.Type, entityData.Name)
             {
                 Id = entityData.Id,
-                Type = entityData.Type,
-                Name = entityData.Name,
                 Description = entityData.Description
             };
         }

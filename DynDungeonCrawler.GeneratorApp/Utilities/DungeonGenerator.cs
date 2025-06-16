@@ -29,8 +29,7 @@ namespace DynDungeonCrawler.GeneratorApp.Utilities
             Room[,] grid = dungeon.Grid;
 
             // Get the internal list of rooms from the dungeon (cast from IReadOnlyList)
-            List<Room> rooms = dungeon.Rooms as List<Room>;
-            if (rooms == null)
+            if (dungeon.Rooms is not List<Room> rooms)
             {
                 // Defensive: should not happen with current Dungeon implementation
                 throw new InvalidOperationException("Dungeon.Rooms is not a List<Room>.");

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Net.Http;
-using DynDungeonCrawler.Engine.Classes;
+﻿using DynDungeonCrawler.Engine.Classes;
 using DynDungeonCrawler.Engine.Configuration;
 using DynDungeonCrawler.Engine.Helpers;
 using DynDungeonCrawler.Engine.Interfaces;
@@ -31,6 +28,10 @@ namespace conDungeon
             // Load dungeon from JSON
             string filePath = "DungeonExports/MyDungeon.json";
             Dungeon dungeon = Dungeon.LoadFromJson(filePath, llmClient, logger);
+            Console.WriteLine("Dungeon loaded successfully.");
+
+            // Display the dungeon theme
+            Console.WriteLine($"Dungeon Theme: \"{dungeon.Theme}\"");
 
             // Ask user for their Name (optional)
             Console.Write("Enter your adventurer's name (or press Enter for a generated name): ");
