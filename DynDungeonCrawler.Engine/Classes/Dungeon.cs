@@ -1,6 +1,5 @@
 ﻿using DynDungeonCrawler.Engine.Constants;
 using DynDungeonCrawler.Engine.Data;
-using DynDungeonCrawler.Engine.Factories;
 using DynDungeonCrawler.Engine.Interfaces;
 using System.Text.Json;
 
@@ -135,219 +134,14 @@ namespace DynDungeonCrawler.Engine.Classes
         public string Theme => theme;
 
         /// <summary>
-        /// Generates the dungeon layout, including a main path from the entrance to the exit
-        /// and additional side branches.
+        /// Gets the grid of rooms in the dungeon.
         /// </summary>
-        public void GenerateDungeon()
-        {
-            int startX = width / 2;
-            int startY = height / 2;
-
-            // Create the entrance room
-            Room entrance = new Room(startX, startY)
-            {
-                Type = RoomType.Entrance // Explicitly set RoomType
-            };
-
-            grid[startX, startY] = entrance;
-            rooms.Add(entrance);
-
-            Stack<Room> roomStack = new Stack<Room>();
-            roomStack.Push(entrance);
-
-            _logger.Log($"Dungeon entrance created at ({startX}, {startY}).");
-
-            int roomsPlaced = 1;
-            int targetPathLength = random.Next(minPathLength, minPathLength + 10);
-
-            _logger.Log($"Creating main path with target length: {targetPathLength} rooms.");
-
-            // Generate the main path
-            while (roomsPlaced < targetPathLength)
-            {
-                if (roomStack.Count == 0)
-                {
-                    _logger.Log("Warning: Could not reach the desired path length. Dungeon may be smaller than expected.");
-                    break;
-                }
-
-                Room currentRoom = roomStack.Peek();
-                List<(int dx, int dy, Action<Room> setExitFrom, Action<Room> setExitTo)> availableDirections = GetAvailableDirections(currentRoom);
-
-                if (availableDirections.Count == 0)
-                {
-                    roomStack.Pop(); // Dead end, backtrack
-                    continue;
-                }
-
-                (int dx, int dy, Action<Room> setExitFrom, Action<Room> setExitTo) chosen = availableDirections[random.Next(availableDirections.Count)];
-                int newX = currentRoom.X + chosen.dx;
-                int newY = currentRoom.Y + chosen.dy;
-
-                // Create a new room with default RoomType (Normal)
-                Room newRoom = new Room(newX, newY);
-
-                chosen.setExitFrom(currentRoom);
-                chosen.setExitTo(newRoom);
-
-                grid[newX, newY] = newRoom;
-                rooms.Add(newRoom);
-                roomStack.Push(newRoom);
-
-                roomsPlaced++;
-            }
-
-            if (roomStack.Count > 0)
-            {
-                Room exitRoom = roomStack.Peek();
-                exitRoom.Type = RoomType.Exit; // Explicitly set RoomType for the exit
-                _logger.Log($"Dungeon exit created at ({exitRoom.X}, {exitRoom.Y}).");
-            }
-
-            // Add side branches
-            _logger.Log($"Adding side branches...");
-            int extraBranches = 30;
-            for (int i = 0; i < extraBranches; i++)
-            {
-                CreateBranchPath();
-            }
-        }
+        public Room[,] Grid => grid;
 
         /// <summary>
-        /// Creates a side branch of rooms starting from a random room in the dungeon.
+        /// Gets the list of rooms in the dungeon.
         /// </summary>
-        private void CreateBranchPath()
-        {
-            if (rooms.Count == 0) return;
-
-            Room fromRoom = rooms[random.Next(rooms.Count)];
-            int branchLength = random.Next(2, 6); // Branch of 2–5 rooms
-            Room current = fromRoom;
-
-            for (int i = 0; i < branchLength; i++)
-            {
-                List<(int dx, int dy, Action<Room> setExitFrom, Action<Room> setExitTo)> availableDirections = GetAvailableDirections(current);
-
-                if (availableDirections.Count == 0)
-                {
-                    break; // Dead end
-                }
-
-                (int dx, int dy, Action<Room> setExitFrom, Action<Room> setExitTo) chosen = availableDirections[random.Next(availableDirections.Count)];
-                int newX = current.X + chosen.dx;
-                int newY = current.Y + chosen.dy;
-
-                // Create a new room with default RoomType (Normal)
-                Room newRoom = new Room(newX, newY);
-
-                chosen.setExitFrom(current);
-                chosen.setExitTo(newRoom);
-
-                grid[newX, newY] = newRoom;
-                rooms.Add(newRoom);
-
-                current = newRoom;
-
-                // 20% chance to spawn a mini sub-branch
-                if (random.NextDouble() < 0.2)
-                {
-                    CreateBranchPathFrom(current);
-                }
-
-                // 30% chance to loop at the end of branch
-                if (i == branchLength - 1 && random.NextDouble() < 0.3)
-                {
-                    TryCreateLoop(current);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Creates a small sub-branch of rooms starting from the specified room.
-        /// </summary>
-        /// <param name="startRoom">The room to start the sub-branch from.</param>
-        private void CreateBranchPathFrom(Room startRoom)
-        {
-            int branchLength = random.Next(1, 4); // Small sub-branch (1–3 rooms)
-            Room current = startRoom;
-
-            for (int i = 0; i < branchLength; i++)
-            {
-                List<(int dx, int dy, Action<Room> setExitFrom, Action<Room> setExitTo)> availableDirections = GetAvailableDirections(current);
-
-                if (availableDirections.Count == 0)
-                    break;
-
-                (int dx, int dy, Action<Room> setExitFrom, Action<Room> setExitTo) chosen = availableDirections[random.Next(availableDirections.Count)];
-                int newX = current.X + chosen.dx;
-                int newY = current.Y + chosen.dy;
-
-                // Create a new room with default RoomType (Normal)
-                Room newRoom = new Room(newX, newY);
-
-                chosen.setExitFrom(current);
-                chosen.setExitTo(newRoom);
-
-                grid[newX, newY] = newRoom;
-                rooms.Add(newRoom);
-
-                current = newRoom;
-            }
-        }
-
-        /// <summary>
-        /// Attempts to create a loop by connecting the specified room to an existing room.
-        /// </summary>
-        /// <param name="room">The room to attempt to connect to an existing room.</param>
-        private void TryCreateLoop(Room room)
-        {
-            List<(int dx, int dy, Action<Room> setExitFrom, Action<Room> setExitTo)> directions = new List<(int dx, int dy, Action<Room> setExitFrom, Action<Room> setExitTo)>();
-
-            if (IsInBounds(room.X, room.Y - 1) && grid[room.X, room.Y - 1] != null)
-                directions.Add((0, -1, r => r.ConnectedNorth = true, r => r.ConnectedSouth = true));
-            if (IsInBounds(room.X + 1, room.Y) && grid[room.X + 1, room.Y] != null)
-                directions.Add((1, 0, r => r.ConnectedEast = true, r => r.ConnectedWest = true));
-            if (IsInBounds(room.X, room.Y + 1) && grid[room.X, room.Y + 1] != null)
-                directions.Add((0, 1, r => r.ConnectedSouth = true, r => r.ConnectedNorth = true));
-            if (IsInBounds(room.X - 1, room.Y) && grid[room.X - 1, room.Y] != null)
-                directions.Add((-1, 0, r => r.ConnectedWest = true, r => r.ConnectedEast = true));
-
-            if (directions.Count > 0)
-            {
-                (int dx, int dy, Action<Room> setExitFrom, Action<Room> setExitTo) chosen = directions[random.Next(directions.Count)];
-                int targetX = room.X + chosen.dx;
-                int targetY = room.Y + chosen.dy;
-
-                Room targetRoom = grid[targetX, targetY];
-
-                if (targetRoom != null)
-                {
-                    chosen.setExitFrom(room);
-                    chosen.setExitTo(targetRoom);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Determines the available directions for placing a new room from the specified room.
-        /// </summary>
-        /// <param name="fromRoom">The room to check for available directions.</param>
-        /// <returns>A list of available directions and actions to set connections.</returns>
-        private List<(int dx, int dy, Action<Room> setExitFrom, Action<Room> setExitTo)> GetAvailableDirections(Room fromRoom)
-        {
-            List<(int dx, int dy, Action<Room>, Action<Room>)> available = new List<(int dx, int dy, Action<Room>, Action<Room>)>();
-
-            if (IsInBounds(fromRoom.X, fromRoom.Y - 1) && grid[fromRoom.X, fromRoom.Y - 1] == null)
-                available.Add((0, -1, r => r.ConnectedNorth = true, r => r.ConnectedSouth = true));
-            if (IsInBounds(fromRoom.X + 1, fromRoom.Y) && grid[fromRoom.X + 1, fromRoom.Y] == null)
-                available.Add((1, 0, r => r.ConnectedEast = true, r => r.ConnectedWest = true));
-            if (IsInBounds(fromRoom.X, fromRoom.Y + 1) && grid[fromRoom.X, fromRoom.Y + 1] == null)
-                available.Add((0, 1, r => r.ConnectedSouth = true, r => r.ConnectedNorth = true));
-            if (IsInBounds(fromRoom.X - 1, fromRoom.Y) && grid[fromRoom.X - 1, fromRoom.Y] == null)
-                available.Add((-1, 0, r => r.ConnectedWest = true, r => r.ConnectedEast = true));
-
-            return available;
-        }
+        public IReadOnlyList<Room> Rooms => rooms;
 
         /// <summary>
         /// Checks if the specified coordinates are within the bounds of the dungeon grid.
@@ -638,45 +432,6 @@ namespace DynDungeonCrawler.Engine.Classes
         {
             string json = ToJson();
             File.WriteAllText(filePath, json);
-        }
-
-        /// <summary>
-        /// Populates the rooms with contents such as treasure chests and enemies.
-        /// </summary>
-        public async Task PopulateRoomContentsAsync()
-        {
-            // Generate a list of enemy types based on the dungeon theme
-            enemyTypes = await EnemyFactory.GenerateEnemyTypesAsync(theme, _llmClient, _logger);
-
-            // Iterate through all rooms in the dungeon
-            foreach (Room room in rooms)
-            {
-                // Only populate normal rooms (not entrance/exit)
-                if (room.Type == RoomType.Normal)
-                {
-                    double roll = random.NextDouble(); // Roll a random value between 0.0 and 1.0
-
-                    // 10% chance to add a treasure chest (possibly locked)
-                    if (roll < 0.1)
-                    {
-                        bool isLocked = random.NextDouble() < 0.3; // 30% of chests are locked
-                        room.Contents.Add(TreasureChestFactory.CreateTreasureChest(isLocked: isLocked));
-
-                        _logger.Log($"Treasure chest added to room at ({room.X}, {room.Y}) -  {(isLocked ? "Locked" : "Unlocked")}.");
-                    }
-                    // Next 10% chance (i.e., 10% to 20%) to add an enemy
-                    else if (roll < 0.2)
-                    {
-                        // Pick a random enemy type from the master list
-                        EnemyTypeInfo enemyType = enemyTypes[random.Next(enemyTypes.Count)];
-                        Enemy enemy = EnemyFactory.CreateEnemy(enemyType.Name, theme);
-                        enemy.Description = enemyType.Description; // Set enemy description
-                        room.Contents.Add(enemy);
-
-                        _logger.Log($"Enemy '{enemy.Name}' added to room at ({room.X}, {room.Y}).");
-                    }
-                }
-            }
         }
     }
 }

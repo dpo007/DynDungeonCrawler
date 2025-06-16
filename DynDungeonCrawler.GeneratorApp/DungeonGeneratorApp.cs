@@ -3,8 +3,9 @@ using DynDungeonCrawler.Engine.Configuration;
 using DynDungeonCrawler.Engine.Constants;
 using DynDungeonCrawler.Engine.Helpers;
 using DynDungeonCrawler.Engine.Interfaces;
+using DynDungeonCrawler.GeneratorApp.Utilities;
 
-internal class Program
+internal class DungeonGeneratorApp
 {
     private static async Task Main(string[] args)
     {
@@ -37,15 +38,21 @@ internal class Program
 
         // Initialize the dungeon with the specified theme
         Console.WriteLine($"Initializing dungeon with theme: {dungeonTheme}");
-        Dungeon dungeon = new Dungeon(DungeonDefaults.MaxDungeonWidth, DungeonDefaults.MaxDungeonHeight, dungeonTheme, llmClient, logger);
-
-        // Generate the dungeon layout
-        Console.WriteLine("Generating dungeon layout...");
-        dungeon.GenerateDungeon();
+        Dungeon dungeon = DungeonGenerator.GenerateDungeon(
+            DungeonDefaults.MaxDungeonWidth,
+            DungeonDefaults.MaxDungeonHeight,
+            dungeonTheme,
+            llmClient,
+            logger);
 
         // Populate rooms with treasure chests and enemies
         Console.WriteLine("Populating rooms with treasure and enemies...");
-        await dungeon.PopulateRoomContentsAsync();
+        await DungeonGenerator.PopulateRoomContentsAsync(
+              dungeon.Rooms.ToList(),
+              dungeonTheme,
+              llmClient,
+              logger,
+              Random.Shared);
 
         // Print maps
         Console.WriteLine("Dungeon Map (Paths Only):");
