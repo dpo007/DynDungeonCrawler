@@ -14,27 +14,39 @@ namespace DynDungeonCrawler.GeneratorApp.Utilities
             ILLMClient llmClient,
             ILogger logger)
         {
+            // Create a new Dungeon instance with the specified parameters
             var dungeon = new Dungeon(width, height, theme, llmClient, logger);
 
             int startX = width / 2;
             int startY = height / 2;
 
+            // Create the entrance room at the center of the grid
             Room entrance = new Room(startX, startY)
             {
                 Type = RoomType.Entrance
             };
 
             Room[,] grid = dungeon.Grid;
-            List<Room> rooms = dungeon.Rooms.ToList();
 
+            // Get the internal list of rooms from the dungeon (cast from IReadOnlyList)
+            List<Room> rooms = dungeon.Rooms as List<Room>;
+            if (rooms == null)
+            {
+                // Defensive: should not happen with current Dungeon implementation
+                throw new InvalidOperationException("Dungeon.Rooms is not a List<Room>.");
+            }
+
+            // Place the entrance room in the grid and add it to the rooms list
             grid[startX, startY] = entrance;
             rooms.Add(entrance);
 
+            // Stack for backtracking during main path generation
             Stack<Room> roomStack = new Stack<Room>();
             roomStack.Push(entrance);
 
             logger.Log($"Dungeon entrance created at ({startX}, {startY}).");
 
+            // Set up path length constraints and randomization
             int minPathLength = DungeonDefaults.DefaultEscapePathLength;
             int roomsPlaced = 1;
             var random = Random.Shared;
