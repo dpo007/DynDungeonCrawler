@@ -29,6 +29,11 @@ public class Adventurer : Entity
         CurrentRoom = null;
     }
 
+    public Adventurer(string name, Room currentRoom) : this(name)
+    {
+        CurrentRoom = currentRoom;
+    }
+
     /// <summary>
     /// Uses the LLM to generate a fantasy adventurer name based on the dungeon theme and optional gender.
     /// </summary>

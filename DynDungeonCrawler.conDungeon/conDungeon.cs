@@ -14,7 +14,7 @@ namespace conDungeon
         {
             Console.WriteLine("Welcome to the Dungeon Crawler!");
 
-            // 1. Load settings and check API key
+            // Load settings and check API key
             var settings = Settings.Load();
             if (string.IsNullOrEmpty(settings.OpenAIApiKey) || settings.OpenAIApiKey == "your-api-key-here")
             {
@@ -24,19 +24,42 @@ namespace conDungeon
                 return;
             }
 
-            // 2. Setup logger and LLM client
+            // Setup logger and LLM client
             ILogger logger = new ConsoleLogger();
             ILLMClient llmClient = new OpenAIHelper(new HttpClient(), settings.OpenAIApiKey);
 
-            // 3. Load dungeon from JSON
+            // Load dungeon from JSON
             string filePath = "DungeonExports/MyDungeon.json";
             Dungeon dungeon = Dungeon.LoadFromJson(filePath, llmClient, logger);
 
-            // 4. Find entrance and create adventurer
-            Room entrance = dungeon.Rooms.First(r => r.Type == RoomType.Entrance);
-            Adventurer player = new Adventurer(entrance);
+            // Ask user for their Name (optional)
+            Console.Write("Enter your adventurer's name (or press Enter for a generated name): ");
+            string playerName = Console.ReadLine()?.Trim() ?? string.Empty;
 
-            // 5. Main game loop (simplified)
+            // Ask user for their Gender (M/F, or press Enter for unspecified)
+            AdventurerGender gender = AdventurerGender.Unspecified;
+            Console.Write("Enter your adventurer's gender ([M]ale/[F]emale, or press Enter for unspecified): ");
+            ConsoleKeyInfo keyInfo = Console.ReadKey(intercept: true);
+            Console.WriteLine();
+
+            if (keyInfo.Key == ConsoleKey.M)
+                gender = AdventurerGender.Male;
+            else if (keyInfo.Key == ConsoleKey.F)
+                gender = AdventurerGender.Female;
+            // Any other key (including Enter) leaves gender as Unspecified
+
+            if (string.IsNullOrEmpty(playerName))
+            {
+                // Generate a name using the LLM, passing the theme and gender
+                playerName = Adventurer.GenerateNameAsync(llmClient, dungeon.Theme, gender).GetAwaiter().GetResult();
+                Console.WriteLine($"Generated adventurer name: {playerName}");
+            }
+
+            // Find entrance and create adventurer
+            Room entrance = dungeon.Rooms.First(r => r.Type == RoomType.Entrance);
+            Adventurer player = new Adventurer(playerName, entrance);
+
+            // Main game loop (simplified)
             while (true)
             {
                 // Display room info, prompt for action, process input...
