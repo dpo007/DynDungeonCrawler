@@ -74,7 +74,7 @@ namespace DynDungeonCrawler.ConDungeon
             Room entrance = dungeon.Rooms.First(r => r.Type == RoomType.Entrance);
             Adventurer player = new Adventurer(playerName, entrance);
 
-            // Main game loop (simplified)
+            // Main game loop
             while (true)
             {
                 // Check for game-ending conditions
@@ -89,12 +89,13 @@ namespace DynDungeonCrawler.ConDungeon
                     break;
                 }
 
-                // Display room info, including exits
                 if (player.CurrentRoom == null)
                 {
                     Console.WriteLine("You are lost in the void. Game over!");
                     break;
                 }
+
+                // Display room info, including exits
                 Console.WriteLine(player.CurrentRoom.Description);
                 Console.WriteLine("Exits:");
                 if (player.CurrentRoom.ConnectedNorth)

@@ -17,6 +17,7 @@ namespace DynDungeonCrawler.Engine.Classes
         public int Wealth { get; private set; }
         public List<Entity> Inventory { get; private set; }
         public Room? CurrentRoom { get; set; }
+        public HashSet<Guid> VisitedRoomIds { get; } = new();
 
         public Adventurer(string name)
             : base(EntityType.Adventurer, name)
@@ -32,6 +33,10 @@ namespace DynDungeonCrawler.Engine.Classes
         public Adventurer(string name, Room currentRoom) : this(name)
         {
             CurrentRoom = currentRoom;
+            if (currentRoom != null)
+            {
+                VisitedRoomIds.Add(currentRoom.Id);
+            }
         }
 
         /// <summary>
