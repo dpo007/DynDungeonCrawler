@@ -172,10 +172,16 @@ namespace DynDungeonCrawler.Engine.Classes
             // Build the user prompt for the LLM, instructing it to generate descriptions
             // and to always mention and describe available exits.
             string userPrompt = $@"
-    Given the following dungeon theme and room data in JSON, generate a vivid, concise fantasy description for each room.
-    For each room, always mention and briefly describe the available exits (directions) in the description.
-    Return the same JSON structure, but add a 'description' field to each room, generated based on the theme, room type, and exits.
-    Do not change the IDs or exits. Only return valid JSON, in plain text, no markdown.
+Given the following dungeon theme and room data in JSON, generate a vivid, concise fantasy description for each room.
+
+For each room:
+- Always mention the available exits (north, east, south, west).
+- For each exit, describe the **physical appearance** of the doorway, arch, gate, or passage — including material, style, damage, light, markings, etc.
+- Do **not** describe what lies beyond the exit — focus only on the portal itself.
+
+Return the same JSON structure, but add a 'description' field to each room, generated based on the theme, room type, and exits.
+
+Do not change the IDs or exits. Only return valid JSON, in plain text, with no markdown formatting.
 
     {inputJson}";
 

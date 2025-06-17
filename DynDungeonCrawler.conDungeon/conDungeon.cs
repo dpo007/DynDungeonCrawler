@@ -76,7 +76,7 @@ namespace conDungeon
                 }
 
                 // Display room info, including exits
-                Console.WriteLine($"You are in room ({player.CurrentRoom.X}, {player.CurrentRoom.Y}): {player.CurrentRoom.Description}");
+                Console.WriteLine(player.CurrentRoom.Description);
                 Console.WriteLine("Exits:");
                 if (player.CurrentRoom.ConnectedNorth)
                     Console.WriteLine(" - North");
