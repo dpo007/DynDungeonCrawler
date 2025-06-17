@@ -223,7 +223,7 @@ Do not change the IDs or exits. Only return valid JSON, in plain text, with no m
                 if (descById.TryGetValue(room.Id, out var desc) && !string.IsNullOrWhiteSpace(desc))
                 {
                     room.Description = desc.Trim();
-                    logger.Log($"Generated description for room {room.Id}: {room.Description}");
+                    logger.Log($"Generated description for room {room.Id}");
                 }
             }
         }

@@ -173,7 +173,7 @@ namespace DynDungeonCrawler.ConDungeon
                             List<Room> roomsToProcess = new List<Room> { nextRoom };
                             roomsToProcess.AddRange(nextRoom.GetAccessibleNeighbours(dungeon.Grid));
 
-                            // Generate descriptons for this list of rooms
+                            // Generate descriptons for that list of rooms
                             Room.GenerateRoomDescriptionsAsync(roomsToProcess, dungeon.Theme, llmClient, logger).GetAwaiter().GetResult();
                         }
 
