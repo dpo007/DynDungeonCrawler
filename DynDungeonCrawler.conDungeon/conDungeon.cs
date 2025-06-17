@@ -40,14 +40,28 @@ namespace conDungeon
             // Ask user for their Gender (M/F, or press Enter for unspecified)
             AdventurerGender gender = AdventurerGender.Unspecified;
             Console.Write("Enter your adventurer's gender ([M]ale/[F]emale, or press Enter for unspecified): ");
-            ConsoleKeyInfo keyInfo = Console.ReadKey(intercept: true);
-            Console.WriteLine();
-
-            if (keyInfo.Key == ConsoleKey.M)
-                gender = AdventurerGender.Male;
-            else if (keyInfo.Key == ConsoleKey.F)
-                gender = AdventurerGender.Female;
-            // Any other key (including Enter) leaves gender as Unspecified
+            while (true)
+            {
+                ConsoleKeyInfo keyInfo = Console.ReadKey(intercept: true);
+                if (keyInfo.Key == ConsoleKey.Enter)
+                {
+                    Console.WriteLine();
+                    break;
+                }
+                else if (keyInfo.Key == ConsoleKey.M)
+                {
+                    Console.WriteLine("M");
+                    gender = AdventurerGender.Male;
+                    break;
+                }
+                else if (keyInfo.Key == ConsoleKey.F)
+                {
+                    Console.WriteLine("F");
+                    gender = AdventurerGender.Female;
+                    break;
+                }
+                // Any other key: ignore and re-prompt
+            }
 
             if (string.IsNullOrEmpty(playerName))
             {
