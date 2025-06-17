@@ -87,9 +87,58 @@ namespace conDungeon
                 if (player.CurrentRoom.ConnectedWest)
                     Console.WriteLine(" - West");
 
+                // Build available directions string
+                List<string> directions = new();
+                if (player.CurrentRoom.ConnectedNorth) directions.Add("N");
+                if (player.CurrentRoom.ConnectedEast) directions.Add("E");
+                if (player.CurrentRoom.ConnectedSouth) directions.Add("S");
+                if (player.CurrentRoom.ConnectedWest) directions.Add("W");
+                string directionsPrompt = directions.Count > 0 ? string.Join("/", directions) : "";
                 // Ask for player input
-                Console.Write("Enter command (move [N/E/S/W], look, inventory, exit): ");
+                Console.Write($"Enter command (move [{directionsPrompt}], [L]ook, [I]nventory, e[X]it): ");
                 string command = Console.ReadLine()?.Trim().ToLower() ?? string.Empty;
+
+                // Handle player commands
+                if (command == "exit" || command == "x")
+                {
+                    Console.WriteLine("Exiting the game. Goodbye!");
+                    break;
+                }
+                else if (command == "look" || command == "l")
+                {
+                    Console.WriteLine(player.CurrentRoom.Description);
+                }
+                else if (command == "inventory" || command == "i")
+                {
+                    Console.WriteLine("Your inventory contains:");
+                    foreach (var item in player.Inventory)
+                    {
+                        Console.WriteLine($" - {item.Name}");
+                    }
+                }
+                //else if (directions.Contains(command.ToUpper()))
+                //{
+                //    // Handle movement
+                //    switch (command.ToUpper())
+                //    {
+                //        case "N":
+                //            player.CurrentRoom = player.CurrentRoom.GetNeighbor(RoomDirection.North);
+                //            break;
+                //        case "E":
+                //            player.CurrentRoom = player.CurrentRoom.GetNeighbor(RoomDirection.East);
+                //            break;
+                //        case "S":
+                //            player.CurrentRoom = player.CurrentRoom.GetNeighbor(RoomDirection.South);
+                //            break;
+                //        case "W":
+                //            player.CurrentRoom = player.CurrentRoom.GetNeighbor(RoomDirection.West);
+                //            break;
+                //    }
+                //}
+                else
+                {
+                    Console.WriteLine("Invalid command. Please try again.");
+                }
             }
         }
     }
