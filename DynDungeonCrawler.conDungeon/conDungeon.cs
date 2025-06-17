@@ -90,6 +90,11 @@ namespace DynDungeonCrawler.ConDungeon
                 }
 
                 // Display room info, including exits
+                if (player.CurrentRoom == null)
+                {
+                    Console.WriteLine("You are lost in the void. Game over!");
+                    break;
+                }
                 Console.WriteLine(player.CurrentRoom.Description);
                 Console.WriteLine("Exits:");
                 if (player.CurrentRoom.ConnectedNorth)
