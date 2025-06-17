@@ -83,10 +83,10 @@ namespace DynDungeonCrawler.Engine.Classes
         /// Connected* property is true).
         /// </summary>
         /// <param name="grid">The 2D array of rooms representing the dungeon layout.</param>
-        /// <returns>A list of directly accessible neighboring rooms.</returns>
-        public List<Room> GetAccessibleNeighbors(Room[,] grid)
+        /// <returns>A list of directly accessible neighbouring rooms.</returns>
+        public List<Room> GetAccessibleNeighbours(Room[,] grid)
         {
-            var neighbors = new List<Room>();
+            var neighbours = new List<Room>();
             int width = grid.GetLength(0);
             int height = grid.GetLength(1);
 
@@ -94,28 +94,43 @@ namespace DynDungeonCrawler.Engine.Classes
             if (ConnectedNorth && Y > 0)
             {
                 var north = grid[X, Y - 1];
-                if (north != null) neighbors.Add(north);
+                if (north != null) neighbours.Add(north);
             }
             // East
             if (ConnectedEast && X < width - 1)
             {
                 var east = grid[X + 1, Y];
-                if (east != null) neighbors.Add(east);
+                if (east != null) neighbours.Add(east);
             }
             // South
             if (ConnectedSouth && Y < height - 1)
             {
                 var south = grid[X, Y + 1];
-                if (south != null) neighbors.Add(south);
+                if (south != null) neighbours.Add(south);
             }
             // West
             if (ConnectedWest && X > 0)
             {
                 var west = grid[X - 1, Y];
-                if (west != null) neighbors.Add(west);
+                if (west != null) neighbours.Add(west);
             }
 
-            return neighbors;
+            return neighbours;
+        }
+
+        public Room? GetNeighbour(RoomDirection direction, Room[,] grid)
+        {
+            int width = grid.GetLength(0);
+            int height = grid.GetLength(1);
+
+            return direction switch
+            {
+                RoomDirection.North when ConnectedNorth && Y > 0 => grid[X, Y - 1],
+                RoomDirection.East when ConnectedEast && X < width - 1 => grid[X + 1, Y],
+                RoomDirection.South when ConnectedSouth && Y < height - 1 => grid[X, Y + 1],
+                RoomDirection.West when ConnectedWest && X > 0 => grid[X - 1, Y],
+                _ => null
+            };
         }
 
         /// <summary>

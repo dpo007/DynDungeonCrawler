@@ -153,22 +153,34 @@ namespace DynDungeonCrawler.ConDungeon
                 }
                 else if (directions.Contains(cmdChar.ToString().ToUpper()))
                 {
-                    // Handle movement
-                    //switch (cmdChar)
-                    //{
-                    //    case 'n':
-                    //        player.CurrentRoom = player.CurrentRoom.GetNeighbor(RoomDirection.North);
-                    //        break;
-                    //    case 'e':
-                    //        player.CurrentRoom = player.CurrentRoom.GetNeighbor(RoomDirection.East);
-                    //        break;
-                    //    case 's':
-                    //        player.CurrentRoom = player.CurrentRoom.GetNeighbor(RoomDirection.South);
-                    //        break;
-                    //    case 'w':
-                    //        player.CurrentRoom = player.CurrentRoom.GetNeighbor(RoomDirection.West);
-                    //        break;
-                    //}
+                    // Determine direction
+                    RoomDirection moveDir = cmdChar switch
+                    {
+                        'n' => RoomDirection.North,
+                        'e' => RoomDirection.East,
+                        's' => RoomDirection.South,
+                        'w' => RoomDirection.West,
+                        _ => throw new InvalidOperationException("Invalid direction")
+                    };
+
+                    // Attempt to move
+                    Room? nextRoom = player.CurrentRoom.GetNeighbour(moveDir, dungeon.Grid);
+                    if (nextRoom != null)
+                    {
+                        // Update player's current room and visited rooms
+                        player.CurrentRoom = nextRoom;
+                        player.VisitedRoomIds.Add(nextRoom.Id);
+                    }
+                    else
+                    {
+                        // Invalid move, room not connected in that direction
+                        Console.WriteLine("You can't go that way.");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Invalid command. Please try again.");
+                    continue; // Re-prompt for command
                 }
             }
         }
