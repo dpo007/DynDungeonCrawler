@@ -63,7 +63,33 @@ namespace conDungeon
             // Main game loop (simplified)
             while (true)
             {
-                // Display room info, prompt for action, process input...
+                // Check for game-ending conditions
+                if (player.Health <= 0)
+                {
+                    Console.WriteLine("You have perished in the dungeon. Game over!");
+                    break;
+                }
+                if (player.CurrentRoom?.Type == RoomType.Exit)
+                {
+                    Console.WriteLine("Congratulations! You have found the exit and escaped the dungeon!");
+                    break;
+                }
+
+                // Display room info, including exits
+                Console.WriteLine($"You are in room ({player.CurrentRoom.X}, {player.CurrentRoom.Y}): {player.CurrentRoom.Description}");
+                Console.WriteLine("Exits:");
+                if (player.CurrentRoom.ConnectedNorth)
+                    Console.WriteLine(" - North");
+                if (player.CurrentRoom.ConnectedEast)
+                    Console.WriteLine(" - East");
+                if (player.CurrentRoom.ConnectedSouth)
+                    Console.WriteLine(" - South");
+                if (player.CurrentRoom.ConnectedWest)
+                    Console.WriteLine(" - West");
+
+                // Ask for player input
+                Console.Write("Enter command (move [N/E/S/W], look, inventory, exit): ");
+                string command = Console.ReadLine()?.Trim().ToLower() ?? string.Empty;
             }
         }
     }

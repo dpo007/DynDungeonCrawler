@@ -1,4 +1,7 @@
-﻿namespace DynDungeonCrawler.Engine.Classes
+﻿using DynDungeonCrawler.Engine.Interfaces;
+using System.Text.Json;
+
+namespace DynDungeonCrawler.Engine.Classes
 {
     public enum RoomType
     {
@@ -71,6 +74,137 @@
         {
             if (entity == null) return false;
             return Contents.Remove(entity);
+        }
+
+        /// <summary>
+        /// Returns a list of rooms that are directly accessible from this room.
+        /// A room is considered directly accessible if it is adjacent in the grid
+        /// and there is an exit from this room to that room (i.e., the corresponding
+        /// Connected* property is true).
+        /// </summary>
+        /// <param name="grid">The 2D array of rooms representing the dungeon layout.</param>
+        /// <returns>A list of directly accessible neighboring rooms.</returns>
+        public List<Room> GetAccessibleNeighbors(Room[,] grid)
+        {
+            var neighbors = new List<Room>();
+            int width = grid.GetLength(0);
+            int height = grid.GetLength(1);
+
+            // North
+            if (ConnectedNorth && Y > 0)
+            {
+                var north = grid[X, Y - 1];
+                if (north != null) neighbors.Add(north);
+            }
+            // East
+            if (ConnectedEast && X < width - 1)
+            {
+                var east = grid[X + 1, Y];
+                if (east != null) neighbors.Add(east);
+            }
+            // South
+            if (ConnectedSouth && Y < height - 1)
+            {
+                var south = grid[X, Y + 1];
+                if (south != null) neighbors.Add(south);
+            }
+            // West
+            if (ConnectedWest && X > 0)
+            {
+                var west = grid[X - 1, Y];
+                if (west != null) neighbors.Add(west);
+            }
+
+            return neighbors;
+        }
+
+        /// <summary>
+        /// Generates vivid, concise fantasy descriptions for a list of rooms using an LLM client.
+        /// </summary>
+        /// <param name="rooms">The list of Room instances to generate descriptions for.</param>
+        /// <param name="theme">The dungeon theme to inspire the descriptions.</param>
+        /// <param name="llmClient">The LLM client used to generate the descriptions.</param>
+        /// <param name="logger">The logger for recording generation events.</param>
+        /// <param name="allowClobber">If true, will overwrite existing descriptions; otherwise, only rooms with empty descriptions are processed.</param>
+        /// <returns>A Task representing the asynchronous operation.</returns>
+        public static async Task GenerateRoomDescriptionsAsync(
+           List<Room> rooms,
+           string theme,
+           ILLMClient llmClient,
+           ILogger logger,
+           bool allowClobber = false)
+        {
+            // Determine which rooms need new descriptions.
+            // If allowClobber is true, process all rooms; otherwise, only those with empty descriptions.
+            var targetRooms = allowClobber
+                ? rooms
+                : rooms.Where(r => string.IsNullOrWhiteSpace(r.Description)).ToList();
+
+            // If there are no rooms to process, log and exit early.
+            if (targetRooms.Count == 0)
+            {
+                logger.Log("No rooms require description generation.");
+                return;
+            }
+
+            // Prepare the request object for the LLM, including theme and minimal room data.
+            // Each room includes its ID, type, and available exits.
+            var request = new
+            {
+                theme,
+                rooms = targetRooms.Select(r => new
+                {
+                    id = r.Id,
+                    type = r.Type.ToString(),
+                    exits = new
+                    {
+                        north = r.ConnectedNorth,
+                        east = r.ConnectedEast,
+                        south = r.ConnectedSouth,
+                        west = r.ConnectedWest
+                    }
+                }).ToList()
+            };
+
+            // Serialize the request object to JSON for the LLM prompt.
+            string inputJson = JsonSerializer.Serialize(request, new JsonSerializerOptions { WriteIndented = false });
+
+            // Build the user prompt for the LLM, instructing it to generate descriptions
+            // and to always mention and describe available exits.
+            string userPrompt = $@"
+    Given the following dungeon theme and room data in JSON, generate a vivid, concise fantasy description for each room.
+    For each room, always mention and briefly describe the available exits (directions) in the description.
+    Return the same JSON structure, but add a 'description' field to each room, generated based on the theme, room type, and exits.
+    Do not change the IDs or exits. Only return valid JSON, in plain text, no markdown.
+
+    {inputJson}";
+
+            // System prompt to guide the LLM's behavior.
+            string systemPrompt = "You are a creative fantasy room description generator for RPG dungeons.";
+
+            // Send the prompt to the LLM and await the generated response.
+            string llmResponse = await llmClient.GetResponseAsync(userPrompt, systemPrompt);
+
+            // Parse the LLM's JSON response.
+            using var doc = JsonDocument.Parse(llmResponse);
+            var responseRooms = doc.RootElement.GetProperty("rooms");
+
+            // Build a dictionary mapping room IDs to their generated descriptions.
+            var descById = responseRooms.EnumerateArray()
+                .ToDictionary(
+                    r => r.GetProperty("id").GetGuid(),
+                    r => r.TryGetProperty("description", out var desc) ? desc.GetString() ?? "" : ""
+                );
+
+            // Update each target room's Description property with the generated text, if available.
+            foreach (var room in targetRooms)
+            {
+                if (descById.TryGetValue(room.Id, out var desc) && !string.IsNullOrWhiteSpace(desc))
+                {
+                    room.Description = desc.Trim();
+                    logger.Log($"Generated description for room {room.Id}: {room.Description}");
+                }
+            }
         }
 
         /// <summary>

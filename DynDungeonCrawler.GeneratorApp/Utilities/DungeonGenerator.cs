@@ -120,6 +120,14 @@ namespace DynDungeonCrawler.GeneratorApp.Utilities
                 );
             }
 
+            // Generate a description for the entrance room using the LLM client
+            Room.GenerateRoomDescriptionsAsync(
+                new List<Room> { entrance },
+                theme,
+                llmClient,
+                logger
+            ).GetAwaiter().GetResult();
+
             return dungeon;
         }
 
