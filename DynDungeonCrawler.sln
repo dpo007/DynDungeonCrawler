@@ -14,7 +14,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		zipCS.ps1 = zipCS.ps1
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DynDungeonCrawler.conDungeon", "DynDungeonCrawler.conDungeon\DynDungeonCrawler.conDungeon.csproj", "{1A54F8AD-EFD3-1EB5-D580-C7DAE8478013}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DynDungeonCrawler.ConDungeon", "DynDungeonCrawler.conDungeon\DynDungeonCrawler.ConDungeon.csproj", "{1A54F8AD-EFD3-1EB5-D580-C7DAE8478013}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
