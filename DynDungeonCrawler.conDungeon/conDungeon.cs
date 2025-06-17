@@ -97,6 +97,31 @@ namespace DynDungeonCrawler.ConDungeon
 
                 // Display room info, including exits
                 Console.WriteLine(player.CurrentRoom.Description);
+
+                // Show room contents if any
+                if (player.CurrentRoom.Contents.Count > 0)
+                {
+                    Console.WriteLine("You notice the following in the room:");
+                    foreach (var entity in player.CurrentRoom.Contents)
+                    {
+                        switch (entity)
+                        {
+                            case TreasureChest chest:
+                                string chestState = chest.IsOpened ? "opened" : (chest.IsLocked ? "locked" : "unlocked");
+                                Console.WriteLine($" - {chest.Name} ({chestState})");
+                                break;
+
+                            default:
+                                // Use Name and Description if available
+                                if (!string.IsNullOrWhiteSpace(entity.Description))
+                                    Console.WriteLine($" - {entity.Name}: {entity.Description}");
+                                else
+                                    Console.WriteLine($" - {entity.Name}");
+                                break;
+                        }
+                    }
+                }
+
                 Console.WriteLine("Exits:");
                 if (player.CurrentRoom.ConnectedNorth)
                     Console.WriteLine(" - North");
