@@ -3,7 +3,7 @@ using DynDungeonCrawler.Engine.Configuration;
 using DynDungeonCrawler.Engine.Helpers;
 using DynDungeonCrawler.Engine.Interfaces;
 
-namespace DynDungeonCrawler.conDungeon
+namespace DynDungeonCrawler.ConDungeon
 {
     internal class ConDungeon
     {
