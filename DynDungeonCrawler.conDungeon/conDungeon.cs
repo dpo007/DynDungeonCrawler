@@ -167,6 +167,16 @@ namespace DynDungeonCrawler.ConDungeon
                     Room? nextRoom = player.CurrentRoom.GetNeighbour(moveDir, dungeon.Grid);
                     if (nextRoom != null)
                     {
+                        // If the next room doesn't have a description, create a list of it and its accessible neighbours
+                        if (string.IsNullOrWhiteSpace(nextRoom.Description))
+                        {
+                            List<Room> roomsToProcess = new List<Room> { nextRoom };
+                            roomsToProcess.AddRange(nextRoom.GetAccessibleNeighbours(dungeon.Grid));
+
+                            // Generate descriptons for this list of rooms
+                            Room.GenerateRoomDescriptionsAsync(roomsToProcess, dungeon.Theme, llmClient, logger).GetAwaiter().GetResult();
+                        }
+
                         // Update player's current room and visited rooms
                         player.CurrentRoom = nextRoom;
                         player.VisitedRoomIds.Add(nextRoom.Id);
