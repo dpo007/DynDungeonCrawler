@@ -151,7 +151,7 @@ namespace DynDungeonCrawler.Engine.Classes
         {
             // Determine which rooms need new descriptions.
             // If allowClobber is true, process all rooms; otherwise, only those with empty descriptions.
-            var targetRooms = allowClobber
+            List<Room> targetRooms = allowClobber
                 ? rooms
                 : rooms.Where(r => string.IsNullOrWhiteSpace(r.Description)).ToList();
 
@@ -207,20 +207,20 @@ Do not change the IDs or exits. Only return valid JSON, in plain text, with no m
             string llmResponse = await llmClient.GetResponseAsync(userPrompt, systemPrompt);
 
             // Parse the LLM's JSON response.
-            using var doc = JsonDocument.Parse(llmResponse);
-            var responseRooms = doc.RootElement.GetProperty("rooms");
+            using JsonDocument doc = JsonDocument.Parse(llmResponse);
+            JsonElement responseRooms = doc.RootElement.GetProperty("rooms");
 
             // Build a dictionary mapping room IDs to their generated descriptions.
-            var descById = responseRooms.EnumerateArray()
+            Dictionary<Guid, string> descById = responseRooms.EnumerateArray()
                 .ToDictionary(
                     r => r.GetProperty("id").GetGuid(),
-                    r => r.TryGetProperty("description", out var desc) ? desc.GetString() ?? "" : ""
+                    r => r.TryGetProperty("description", out JsonElement desc) ? desc.GetString() ?? "" : ""
                 );
 
             // Update each target room's Description property with the generated text, if available.
-            foreach (var room in targetRooms)
+            foreach (Room room in targetRooms)
             {
-                if (descById.TryGetValue(room.Id, out var desc) && !string.IsNullOrWhiteSpace(desc))
+                if (descById.TryGetValue(room.Id, out string? desc) && !string.IsNullOrWhiteSpace(desc))
                 {
                     room.Description = desc.Trim();
                     logger.Log($"Generated description for room {room.Id}");
