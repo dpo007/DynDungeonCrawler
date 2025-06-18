@@ -196,7 +196,7 @@ For each room:
 
 Return the same JSON structure, but add a 'description' field to each room, generated based on the theme, room type, and exits.
 
-Do not change the IDs or exits. Only return valid JSON, in plain text, with no markdown formatting.
+Do not change the IDs or exits. Only return valid JSON, with no markdown formatting.
 
     {inputJson}";
 
@@ -206,24 +206,52 @@ Do not change the IDs or exits. Only return valid JSON, in plain text, with no m
             // Send the prompt to the LLM and await the generated response.
             string llmResponse = await llmClient.GetResponseAsync(userPrompt, systemPrompt);
 
-            // Parse the LLM's JSON response.
-            using JsonDocument doc = JsonDocument.Parse(llmResponse);
-            JsonElement responseRooms = doc.RootElement.GetProperty("rooms");
-
-            // Build a dictionary mapping room IDs to their generated descriptions.
-            Dictionary<Guid, string> descById = responseRooms.EnumerateArray()
-                .ToDictionary(
-                    r => r.GetProperty("id").GetGuid(),
-                    r => r.TryGetProperty("description", out JsonElement desc) ? desc.GetString() ?? "" : ""
-                );
-
-            // Update each target room's Description property with the generated text, if available.
-            foreach (Room room in targetRooms)
+            // Parse the LLM's JSON response with up to 5 retries if parsing fails.
+            const int maxParseAttempts = 5;
+            int attempt = 0;
+            JsonDocument? doc = null;
+            while (attempt < maxParseAttempts)
             {
-                if (descById.TryGetValue(room.Id, out string? desc) && !string.IsNullOrWhiteSpace(desc))
+                try
                 {
-                    room.Description = desc.Trim();
-                    logger.Log($"Generated description for room {room.Id}");
+                    doc = JsonDocument.Parse(llmResponse);
+                    break; // Success
+                }
+                catch (JsonException ex)
+                {
+                    attempt++;
+                    if (attempt >= maxParseAttempts)
+                    {
+                        logger.Log($"Failed to parse LLM response after {maxParseAttempts} attempts: {ex.Message}");
+                        throw;
+                    }
+                    logger.Log($"JSON parse failed (attempt {attempt}): {ex.Message}. Retrying...");
+                    await Task.Delay(100 * attempt); // Optional: backoff before retrying
+                }
+            }
+
+            if (doc == null)
+                throw new InvalidOperationException("Failed to parse LLM response after retries.");
+
+            using (doc)
+            {
+                JsonElement responseRooms = doc.RootElement.GetProperty("rooms");
+
+                // Build a dictionary mapping room IDs to their generated descriptions.
+                Dictionary<Guid, string> descById = responseRooms.EnumerateArray()
+                    .ToDictionary(
+                        r => r.GetProperty("id").GetGuid(),
+                        r => r.TryGetProperty("description", out JsonElement desc) ? desc.GetString() ?? "" : ""
+                    );
+
+                // Update each target room's Description property with the generated text, if available.
+                foreach (Room room in targetRooms)
+                {
+                    if (descById.TryGetValue(room.Id, out string? desc) && !string.IsNullOrWhiteSpace(desc))
+                    {
+                        room.Description = desc.Trim();
+                        logger.Log($"Generated description for room {room.Id}");
+                    }
                 }
             }
         }
