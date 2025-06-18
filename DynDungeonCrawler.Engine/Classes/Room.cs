@@ -225,6 +225,8 @@ Do not change the IDs or exits. Only return valid JSON, with no markdown formatt
                         logger.Log($"Failed to parse LLM response after {maxParseAttempts} attempts: {ex.Message}");
                         throw;
                     }
+
+                    // Log the error and retry after a short delay
                     logger.Log($"JSON parse failed (attempt {attempt}): {ex.Message}. Retrying...");
                     await Task.Delay(100 * attempt); // Optional: backoff before retrying
                 }
