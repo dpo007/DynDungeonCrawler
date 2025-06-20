@@ -16,7 +16,7 @@
         public override async Task<string> GetResponseAsync(string userPrompt, string systemPrompt)
         {
             // Construct request body using base helper
-            object body = CreateChatRequestBody("gpt-4o-mini", systemPrompt, userPrompt, maxTokens: 500);
+            object body = CreateChatRequestBody("gpt-4o-mini", systemPrompt, userPrompt);
 
             // Send request and parse content
             string response = await SendPostRequestAsync("https://api.openai.com/v1/chat/completions", body);
