@@ -22,7 +22,7 @@ namespace DynDungeonCrawler.ConDungeon
             }
 
             // Setup logger and LLM client
-            ILogger logger = new ConsoleLogger();
+            ILogger logger = new FileLogger(@"C:\temp\ConDungeon.log");
             ILLMClient llmClient = new OpenAIHelper(new HttpClient(), settings.OpenAIApiKey);
 
             // Load dungeon from JSON

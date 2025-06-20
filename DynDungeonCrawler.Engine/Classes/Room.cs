@@ -223,6 +223,9 @@ Do not change the IDs or exits. Only return valid JSON, with no markdown formatt
                     if (attempt >= maxParseAttempts)
                     {
                         logger.Log($"Failed to parse LLM response after {maxParseAttempts} attempts: {ex.Message}");
+                        // log promtps and response for debugging
+                        logger.Log($"User Prompt: {userPrompt}");
+                        logger.Log($"LLM Response: {llmResponse}");
                         throw;
                     }
 
