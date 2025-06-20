@@ -3,7 +3,7 @@
 ![Made with C#](https://img.shields.io/badge/Made%20with-C%23-239120)
 ![.NET](https://img.shields.io/badge/.NET-9.0-blueviolet)
 
-**DynDungeonCrawler** is a modular C# engine for procedural dungeon generation.  
+**DynDungeonCrawler** is a modular C# engine for procedural dungeon generation and interactive console exploration.  
 It creates complex, solvable dungeon layouts, populates them with AI-generated enemies and treasures, and exports structured JSON for integration into games, visualization tools, or other projects.  
 The engine is highly configurable, supports multiple LLM providers, and features robust logging and configuration management.
 
@@ -20,6 +20,7 @@ The engine is highly configurable, supports multiple LLM providers, and features
   - Distinct room types: Entrance, Exit, Normal
   - Each room has a unique GUID for external linking
   - 4-way connectivity (north, south, east, west)
+  - LLM-powered room descriptions generated on demand during exploration
 
 - **Entity & Loot System**
   - Supports Enemies and Treasure Chests (easily extensible)
@@ -32,6 +33,7 @@ The engine is highly configurable, supports multiple LLM providers, and features
   - **OpenAI GPT-4o-mini**: Generates fantasy enemy names and descriptions based on dungeon theme
   - **Ollama Compatibility**: Easily switch to local LLMs via the `ILLMClient` interface
   - LLM integration is fully abstracted, allowing future expansion or swapping of AI providers
+  - Room and adventurer names/descriptions are also LLM-generated
 
 - **Serialization and Export**
   - Full dungeon (rooms, entities, connections) serialized to JSON
@@ -43,6 +45,11 @@ The engine is highly configurable, supports multiple LLM providers, and features
     - Detailed entity view (Treasures and Enemies)
   - Color-coded map legend for clarity
 
+- **Interactive Console Dungeon Crawler**
+  - Playable console game: load a dungeon, create an adventurer, and explore room by room
+  - Player movement, inventory, and room/entity interaction
+  - Room descriptions and names generated on-the-fly as you explore
+
 - **Settings and Configuration**
   - `settings.json` manages API keys, LLM provider selection, and global settings
   - Auto-generates a default settings file if missing
@@ -50,29 +57,29 @@ The engine is highly configurable, supports multiple LLM providers, and features
 
 - **Robust Logging**
   - Pluggable logging via the `ILogger` interface
-  - Console logging included by default; easily extendable for file or remote logging
+  - Console and file logging included; easily extendable for other targets
   - Logs key events: dungeon generation steps, entity placement, LLM usage, and errors
 
 ---
 
 ## 🏗️ Solution Structure
 
-| Project                             | Purpose                                                                 |
-|:-------------------------------------|:------------------------------------------------------------------------|
-| **DynDungeonCrawler.Engine**         | Core engine: dungeon generation, room/entity structures, AI, serialization, logging |
-| **DynDungeonCrawler.GeneratorApp**   | Console runner: generates, populates, prints, and exports dungeons to JSON |
-| **DynDungeonCrawler.ConsoleApp**     | (Planned) Console-based application for interactive dungeon exploration   |
+| Project                                 | Purpose                                                                 |
+|:-----------------------------------------|:------------------------------------------------------------------------|
+| **DynDungeonCrawler.Engine**             | Core engine: dungeon generation, room/entity structures, AI, serialization, logging |
+| **DynDungeonCrawler.GeneratorApp**       | Console runner: generates, populates, prints, and exports dungeons to JSON |
+| **DynDungeonCrawler.ConDungeon**         | Interactive console dungeon crawler: play through a generated dungeon    |
 
 **DynDungeonCrawler.Engine Project Folders**:
 
 | Folder           | Purpose                                                                                  |
 |:-----------------|:----------------------------------------------------------------------------------------|
-| `Classes/`       | Core classes (`Dungeon`, `Room`, `Entity`, `Enemy`, `TreasureChest`, `OpenAIHelper`, etc.) |
+| `Classes/`       | Core classes (`Dungeon`, `Room`, `Entity`, `Enemy`, `TreasureChest`, `Adventurer`, etc.)|
 | `Data/`          | DTOs for dungeon export/import (`DungeonData`, `RoomData`, `EntityData`)                |
 | `Configuration/` | `Settings.cs` for managing OpenAI/Ollama keys and settings                              |
 | `Constants/`     | Default values for dungeon generation and LLM prompts (`DungeonDefaults`, `LLMDefaults`)|
 | `Interfaces/`    | `ILLMClient`, `ILogger` interfaces for AI and logging abstraction                       |
-| `Helpers/`       | Logging and LLM integration helpers (e.g., `ConsoleLogger`, `LLMClientBase`)            |
+| `Helpers/`       | Logging and LLM integration helpers (e.g., `ConsoleLogger`, `FileLogger`, `LLMClientBase`) |
 
 **DynDungeonCrawler.GeneratorApp Project Folders**:
 
@@ -90,7 +97,7 @@ The engine is highly configurable, supports multiple LLM providers, and features
   - **OpenAI:** Out-of-the-box support for GPT-4o-mini (API key required)
   - **Ollama:** Easily add or switch to local LLMs (such as Llama 3) by implementing the interface
 - **Usage:**  
-  LLMs are used to generate enemy names and descriptions, and can be extended for room descriptions or other content
+  LLMs are used to generate enemy names and descriptions, room descriptions, and adventurer names
 - **Configuration:**  
   Select and configure your LLM provider in `settings.json`
 
@@ -100,8 +107,8 @@ The engine is highly configurable, supports multiple LLM providers, and features
 
 - **ILogger Interface:**  
   All logging is routed through the `ILogger` interface
-- **ConsoleLogger:**  
-  Default implementation logs to the console, including color-coded messages for key events
+- **ConsoleLogger and FileLogger:**  
+  Console and file logging implementations included
 - **Extensibility:**  
   Swap in your own logger (file, remote, etc.) by implementing `ILogger`
 - **Coverage:**  
@@ -109,11 +116,21 @@ The engine is highly configurable, supports multiple LLM providers, and features
 
 ---
 
+## 🕹️ Interactive Console Dungeon Crawler
+
+- **Play through a generated dungeon in the console**
+- **Create or generate an adventurer (with LLM-powered names)**
+- **Move between rooms, view descriptions, interact with treasures and enemies**
+- **Room descriptions are generated on demand as you explore**
+- **Inventory and basic player stats supported**
+- **Game ends on player death or escape**
+
+---
+
 ## 🚀 Future Goals
 
-- Player movement and exploration mechanics
 - Expanded entity types (Bosses, Keys, NPCs, Magical Items)
-- Procedural room description generation (LLM-powered)
+- More advanced procedural room and entity description generation
 - Dungeon biomes and theming (lava caves, ice caverns, ancient ruins)
 - Graphical front-end rendering (Unity, WebGL, custom renderers)
 - Enhanced save/load systems (partial or full dungeons)
@@ -130,22 +147,27 @@ The engine is highly configurable, supports multiple LLM providers, and features
 1. Clone the repository.
 2. Open the solution (`DynDungeonCrawler.sln`) in Visual Studio 2022 or newer.
 3. Build the entire solution.
-4. Set `DynDungeonCrawler.GeneratorApp` as the startup project.
+4. Set either `DynDungeonCrawler.GeneratorApp` (for generation/export) or `DynDungeonCrawler.ConDungeon` (for interactive play) as the startup project.
 5. Update your `settings.json`:
     - Set your OpenAI API key, or
     - Configure Ollama/local LLM settings as needed.
-6. Run the console app to generate a dungeon, view maps, and export to JSON.
+6. Run the selected console app to generate a dungeon, play through it, or export to JSON.
 
 ---
 
 ## 🗺️ Example Usage
 
-When you run the generator app, you will be prompted for a dungeon theme.  
-The app will generate a dungeon, populate it with AI-generated enemies and treasures, print two map views (paths only, and with entities), and export the dungeon to a JSON file in the `DungeonExports` folder.
+- **Dungeon Generation:**  
+  Run the generator app, enter a dungeon theme, and export a dungeon to JSON.  
+  View two map modes: structure-only and with entities.
+
+- **Interactive Play:**  
+  Run the ConDungeon app, load a generated dungeon, create or generate an adventurer, and explore room by room.  
+  Room descriptions and names are generated as you explore, and you can interact with treasures and enemies.
 
 ---
 
-> **Project Status:** Foundational systems complete — expanding into gameplay mechanics, AI-driven storytelling, and worldbuilding next! 🚀
+> **Project Status:** Foundational systems complete — now featuring interactive exploration and LLM-powered content generation. Expanding into deeper gameplay mechanics, AI-driven storytelling, and worldbuilding next! 🚀
 
 ---
 
