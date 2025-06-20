@@ -34,7 +34,7 @@ namespace DynDungeonCrawler.ConDungeon
             Console.WriteLine($"Dungeon Theme: \"{dungeon.Theme}\"");
 
             // Ask user for their Name (optional)
-            Console.Write("Enter your adventurer's name (or press Enter for a generated name): ");
+            Console.Write("Enter your adventurer's name (or press Enter to generate one): ");
             string playerName = Console.ReadLine()?.Trim() ?? string.Empty;
 
             // Ask user for their Gender (M/F, or press Enter for unspecified)
@@ -152,10 +152,13 @@ namespace DynDungeonCrawler.ConDungeon
                     if (cmdChar == 'x' || cmdChar == 'l' || cmdChar == 'i' ||
                         directions.Contains(cmdChar.ToString().ToUpper()))
                     {
+                        // Valid command entered
+                        // Show the accepted character
+                        Console.Write(char.ToUpper(cmdKeyInfo.KeyChar));
                         Console.WriteLine();
-                        break; // Valid command entered
+                        break;
                     }
-                    // Otherwise, re-prompt
+                    // Otherwise, ignore and re-prompt (do not display the character)
                 }
 
                 // Handle player commands
