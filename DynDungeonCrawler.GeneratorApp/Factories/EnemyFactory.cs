@@ -159,38 +159,62 @@ Each name must:
         }
 
         /// <summary>
-        /// Asynchronously generates a vivid description for a given enemy name and dungeon theme using the LLM client.
+        /// Asynchronously generates vivid descriptions for a list of enemy names and a dungeon theme using the LLM client.
         /// </summary>
-        /// <param name="enemyName">The name of the enemy to describe.</param>
+        /// <param name="enemyNames">The list of enemy names to describe.</param>
         /// <param name="theme">The theme of the dungeon.</param>
         /// <param name="llmClient">The LLM client instance to use for generation.</param>
         /// <param name="logger">The logger instance to use for warnings and errors.</param>
-        /// <returns>A Task representing the asynchronous operation, containing the generated description as a string.</returns>
-        public static async Task<string> GenerateEnemyDescriptionAsync(string enemyName, string theme, ILLMClient llmClient, ILogger logger)
+        /// <returns>A Task representing the asynchronous operation, containing a dictionary mapping enemy names to descriptions.</returns>
+        public static async Task<Dictionary<string, string>> GenerateEnemyDescriptionsAsync(
+            List<string> enemyNames, string theme, ILLMClient llmClient, ILogger logger)
         {
             ArgumentNullException.ThrowIfNull(llmClient);
+            ArgumentNullException.ThrowIfNull(logger);
 
-            if (string.IsNullOrWhiteSpace(enemyName))
-                throw new ArgumentException("Enemy name is required and cannot be null or empty.", nameof(enemyName));
+            if (enemyNames == null || enemyNames.Count == 0)
+                throw new ArgumentException("Enemy names list cannot be null or empty.", nameof(enemyNames));
             if (string.IsNullOrWhiteSpace(theme))
                 throw new ArgumentException("Theme is required and cannot be null or empty.", nameof(theme));
 
+            string namesJson = JsonSerializer.Serialize(enemyNames);
             string userPrompt = $@"
-You are an expert fantasy game designer helping build immersive dungeon content.
+Given the following list of enemy names and the dungeon theme ""{theme}"", generate a vivid, atmospheric description (3-5 sentences) for each enemy.
+Return a JSON object where each key is the enemy name and the value is its description.
+Do not include any extra text or markdown, only valid JSON.
 
-Generate a vivid and engaging description of a creature or enemy for a dungeon crawler game. Your description should match the given creature name and fit the overall theme of the dungeon. The result should be flavorful, atmospheric, and game-appropriate (no more than 4-5 sentences). Avoid game stats or explicit mechanics — focus on personality, lore, appearance, and behavior.
+Enemy names: {namesJson}
+";
 
-Creature Name: {enemyName}
-Dungeon Theme: {theme}
-
-Respond only with the description. Return only plain text, don't use markdown.";
-
-            logger.Log($"Generating description for enemy: \"{enemyName}\"");
+            logger.Log($"Generating descriptions for {enemyNames.Count} enemies in batch.");
 
             string response = await llmClient.GetResponseAsync(userPrompt);
 
-            // Optionally trim and clean up the response
-            return response.Trim();
+            // Clean up response if it has ``` markers
+            response = response.TrimStart();
+            if (response.StartsWith("```"))
+            {
+                int firstNewline = response.IndexOf('\n');
+                int lastBackticks = response.LastIndexOf("```");
+                if (firstNewline >= 0 && lastBackticks >= 0 && lastBackticks > firstNewline)
+                {
+                    response = response.Substring(firstNewline + 1, lastBackticks - firstNewline - 1).Trim();
+                }
+            }
+
+            try
+            {
+                var dict = JsonSerializer.Deserialize<Dictionary<string, string>>(response);
+                if (dict == null || dict.Count == 0)
+                    throw new Exception("No descriptions returned.");
+                return dict;
+            }
+            catch (Exception ex)
+            {
+                logger.Log($"Failed to parse batch enemy descriptions: {ex.Message}");
+                // Fallback: generate empty descriptions
+                return enemyNames.ToDictionary(n => n, n => "A mysterious enemy.");
+            }
         }
 
         /// <summary>
@@ -235,9 +259,13 @@ Respond only with the description. Return only plain text, don't use markdown.";
             List<string> names = await GenerateEnemyNamesAsync(theme, llmClient, logger, count);
             List<EnemyTypeInfo> result = new List<EnemyTypeInfo>(names.Count);
 
+            // Use batch description generation for efficiency
+            Dictionary<string, string> descriptions = await GenerateEnemyDescriptionsAsync(names, theme, llmClient, logger);
+
+            // Create EnemyTypeInfo objects for each name and its corresponding description
             foreach (string name in names)
             {
-                string description = await GenerateEnemyDescriptionAsync(name, theme, llmClient, logger);
+                string description = descriptions.TryGetValue(name, out var desc) ? desc : "A mysterious enemy.";
                 result.Add(new EnemyTypeInfo(name, description));
             }
 
