@@ -5,7 +5,7 @@ using DynDungeonCrawler.Engine.Interfaces;
 
 namespace DynDungeonCrawler.ConDungeon
 {
-    internal class ConDungeon
+    internal class ConDungeon1
     {
         private static void Main(string[] args)
         {
