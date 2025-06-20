@@ -255,21 +255,24 @@ Enemy names: {namesJson}
         /// <returns>A Task representing the asynchronous operation, containing a list of <see cref="EnemyTypeInfo"/> objects.</returns>
         public static async Task<List<EnemyTypeInfo>> GenerateEnemyTypesAsync(string theme, ILLMClient llmClient, ILogger logger, int count = 6)
         {
-            // Pass the logger instance as the third argument to GenerateEnemyNamesAsync
+            // Generate a list of enemy names using the LLM, based on the dungeon theme and requested count
             List<string> names = await GenerateEnemyNamesAsync(theme, llmClient, logger, count);
-            List<EnemyTypeInfo> result = new List<EnemyTypeInfo>(names.Count);
 
-            // Use batch description generation for efficiency
+            // Prepare a list to hold the final enemy type info objects
+            List<EnemyTypeInfo> enemyTypeList = new List<EnemyTypeInfo>(names.Count);
+
+            // Generate descriptions for all enemy names in a single batch LLM call for efficiency
             Dictionary<string, string> descriptions = await GenerateEnemyDescriptionsAsync(names, theme, llmClient, logger);
 
-            // Create EnemyTypeInfo objects for each name and its corresponding description
+            // For each generated enemy name, pair it with its description (or a fallback if missing),
+            // and add the result to the list as an EnemyTypeInfo object
             foreach (string name in names)
             {
                 string description = descriptions.TryGetValue(name, out var desc) ? desc : "A mysterious enemy.";
-                result.Add(new EnemyTypeInfo(name, description));
+                enemyTypeList.Add(new EnemyTypeInfo(name, description));
             }
 
-            return result;
+            return enemyTypeList;
         }
     }
 }
