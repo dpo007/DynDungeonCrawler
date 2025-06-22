@@ -43,8 +43,8 @@ namespace DynDungeonCrawler.Engine.Helpers
         public void WriteRule(string? text = null)
         {
             Rule rule = text is not null
-                ? new Rule(text) { Style = Style.Parse("gray dim") }
-                : new Rule() { Style = Style.Parse("gray dim") };
+                ? new Rule(text) { Style = Style.Parse("grey dim") }
+                : new Rule() { Style = Style.Parse("grey dim") };
 
             AnsiConsole.Write(rule);
         }

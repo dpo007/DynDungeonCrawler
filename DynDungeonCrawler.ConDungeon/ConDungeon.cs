@@ -41,39 +41,40 @@ namespace DynDungeonCrawler.ConDungeon
             ui.Write("Enter your adventurer's name [gray](or press Enter to generate one)[/]: ");
             string playerName = ui.ReadLine().Trim();
 
-            // Ask user for their Gender (M/F, or press Enter for unspecified)
-            AdventurerGender gender = AdventurerGender.Unspecified;
-            ui.Write("Enter your adventurer's gender ([M]ale/[F]emale, [gray]or press Enter for unspecified[/]): ");
-            while (true)
-            {
-                var key = ui.ReadKey(intercept: true);
-                if (key == ConsoleKey.Enter)
-                {
-                    ui.WriteLine();
-                    break;
-                }
-                else if (key == ConsoleKey.M)
-                {
-                    ui.WriteLine("M");
-                    gender = AdventurerGender.Male;
-                    break;
-                }
-                else if (key == ConsoleKey.F)
-                {
-                    ui.WriteLine("F");
-                    gender = AdventurerGender.Female;
-                    break;
-                }
-                // Any other key: ignore and re-prompt
-            }
-
             if (string.IsNullOrEmpty(playerName))
             {
+                // Ask user for their Gender
+                AdventurerGender gender = AdventurerGender.Unspecified;
+                ui.Write("Enter your adventurer's gender ([[[deepskyblue1]M[/]]]ale/[[[hotpink]F[/]]]emale, [gray]or press Enter for unspecified[/]): ");
+                while (true)
+                {
+                    var key = ui.ReadKey(intercept: true);
+                    if (key == ConsoleKey.Enter)
+                    {
+                        ui.WriteLine();
+                        break;
+                    }
+                    else if (key == ConsoleKey.M)
+                    {
+                        ui.WriteLine("[deepskyblue1]M[/]");
+                        gender = AdventurerGender.Male;
+                        break;
+                    }
+                    else if (key == ConsoleKey.F)
+                    {
+                        ui.WriteLine("[hotpink]F[/]");
+                        gender = AdventurerGender.Female;
+                        break;
+                    }
+                    // Any other key: ignore and re-prompt
+                }
+
                 // Generate a name using the LLM, passing the theme and gender
                 playerName = Adventurer.GenerateNameAsync(llmClient, dungeon.Theme, gender).GetAwaiter().GetResult();
-                ui.WriteLine();
-                ui.WriteLine($"Generated adventurer name: [bold]{playerName}[/]");
             }
+
+            ui.WriteLine($"Welcome to the dungeon [bold]{playerName}[/]!");
+            ui.WriteLine();
 
             // Find entrance and create adventurer
             Room entrance = dungeon.Rooms.First(r => r.Type == RoomType.Entrance);
@@ -100,33 +101,35 @@ namespace DynDungeonCrawler.ConDungeon
                     break;
                 }
 
-                // Display room info, including exits
-                ui.WriteRule("Room");
+                // Display room info.
+                ui.WriteRule();
                 ui.WriteLine(player.CurrentRoom.Description);
 
                 // Show room contents if any
                 if (player.CurrentRoom.Contents.Count > 0)
                 {
-                    ui.WriteLine("You notice the following in the room:");
+                    ui.WriteLine();
+                    ui.WriteLine("You notice the following things in the room:");
                     foreach (var entity in player.CurrentRoom.Contents)
                     {
                         switch (entity)
                         {
                             case TreasureChest chest:
                                 string chestState = chest.IsOpened ? "opened" : (chest.IsLocked ? "locked" : "unlocked");
-                                ui.WriteLine($" - {chest.Name} ({chestState})");
+                                ui.WriteLine($"[dim]-[/] [bold]{chest.Name}[/] ({chestState})");
                                 break;
 
                             default:
                                 if (!string.IsNullOrWhiteSpace(entity.Description))
-                                    ui.WriteLine($" - {entity.Name}: {entity.Description}");
+                                    ui.WriteLine($"[dim]-[/] [bold]{entity.Name}[/]: {entity.Description}");
                                 else
-                                    ui.WriteLine($" - {entity.Name}");
+                                    ui.WriteLine($"[dim]-[/] [bold]{entity.Name}[/]");
                                 break;
                         }
                     }
                 }
 
+                ui.WriteRule();
                 ui.WriteLine();
 
                 // Build available directions string
