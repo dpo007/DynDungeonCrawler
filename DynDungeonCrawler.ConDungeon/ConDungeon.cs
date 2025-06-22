@@ -9,7 +9,7 @@ namespace DynDungeonCrawler.ConDungeon
     {
         private static void Main(string[] args)
         {
-            IUserInterface ui = new ConsoleUserInterface();
+            IUserInterface ui = new SpectreConsoleUserInterface();
 
             ui.WriteLine("*** [bold]Dynamic Dungeon Crawler![/] ***");
 

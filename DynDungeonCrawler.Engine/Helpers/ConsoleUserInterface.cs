@@ -1,52 +1,49 @@
 ﻿using DynDungeonCrawler.Engine.Interfaces;
-using Spectre.Console;
 
 namespace DynDungeonCrawler.Engine.Helpers
 {
     public class ConsoleUserInterface : IUserInterface
     {
-        public void Write(string message) => SafeMarkup(message, newline: false);
+        public void Write(string message) => Console.Write(message);
 
-        public void WriteLine(string message) => SafeMarkup(message, newline: true);
+        public void WriteLine(string message) => Console.WriteLine(message);
 
-        public void WriteLine() => AnsiConsole.MarkupLine(string.Empty);
+        public void WriteLine() => Console.WriteLine();
+
+        public void WriteRule(string? text = null)
+        {
+            int width;
+            try
+            {
+                width = Console.WindowWidth;
+            }
+            catch
+            {
+                width = 80; // Fallback if not available
+            }
+
+            if (!string.IsNullOrEmpty(text))
+            {
+                // Remove any newlines from text
+                text = text.Replace(Environment.NewLine, " ");
+
+                // Calculate padding
+                int textLength = text.Length + 2; // spaces around text
+                int dashes = Math.Max(0, width - textLength);
+                int left = dashes / 2;
+                int right = dashes - left;
+                Console.WriteLine(new string('-', left) + " " + text + " " + new string('-', right));
+            }
+            else
+            {
+                Console.WriteLine(new string('-', width));
+            }
+        }
 
         public string ReadLine() => Console.ReadLine() ?? string.Empty;
 
         public ConsoleKey ReadKey(bool intercept = false) => Console.ReadKey(intercept).Key;
 
-        public void Clear() => AnsiConsole.Clear();
-
-        private void SafeMarkup(string message, bool newline)
-        {
-            try
-            {
-                if (newline)
-                    AnsiConsole.MarkupLine(message);
-                else
-                    AnsiConsole.Markup(message);
-            }
-            catch (InvalidOperationException)
-            {
-                // Fallback to escaped version for unknown style/color
-                var escaped = EscapeMarkup(message);
-                if (newline)
-                    AnsiConsole.MarkupLine(escaped);
-                else
-                    AnsiConsole.Markup(escaped);
-            }
-        }
-
-        private static string EscapeMarkup(string input) =>
-            input.Replace("[", "[[").Replace("]", "]]");
-
-        public void WriteRule(string? text = null)
-        {
-            Rule rule = text is not null
-                ? new Rule(text) { Style = Style.Parse("grey dim") }
-                : new Rule() { Style = Style.Parse("grey dim") };
-
-            AnsiConsole.Write(rule);
-        }
+        public void Clear() => Console.Clear();
     }
 }
