@@ -475,17 +475,16 @@ namespace DynDungeonCrawler.Engine.Classes
                     ConnectedEast = roomData.ConnectedEast,
                     ConnectedSouth = roomData.ConnectedSouth,
                     ConnectedWest = roomData.ConnectedWest,
-                    Contents = new List<Entity>()
                 };
 
-                // Reconstruct entities
+                // Reconstruct entities. Use AddEntity for validation and encapsulation
                 if (roomData.Contents is not null && roomData.Contents.Count > 0)
                 {
                     foreach (var entityData in roomData.Contents)
                     {
                         var entity = EntityFactory.FromEntityData(entityData);
                         if (entity != null)
-                            room.Contents.Add(entity);
+                            room.AddEntity(entity);
                     }
                 }
 

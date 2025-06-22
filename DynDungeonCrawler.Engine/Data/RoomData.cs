@@ -1,6 +1,4 @@
-﻿using System.Text.Json.Serialization;
-
-namespace DynDungeonCrawler.Engine.Data
+﻿namespace DynDungeonCrawler.Engine.Data
 {
     public class RoomData
     {
@@ -16,6 +14,13 @@ namespace DynDungeonCrawler.Engine.Data
         /// </summary>
         public List<EntityData> Contents { get; set; } = new();
 
+        /// <summary>
+        /// Adds an <see cref="EntityData"/> to the room's contents list for serialization purposes.
+        /// Throws an exception if the entity is null or if an entity with the same ID already exists in the room.
+        /// </summary>
+        /// <param name="entity">The entity to add to the room.</param>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="entity"/> is null.</exception>
+        /// <exception cref="InvalidOperationException">Thrown if an entity with the same ID already exists in the room.</exception>
         public void AddEntity(EntityData entity)
         {
             if (entity == null)
