@@ -105,11 +105,11 @@ public partial class MainWindow : Window
             return;
         }
         var docPaths = BuildColoredMapDocument(_dungeon, false);
-        docPaths.PageWidth = 200; // Use a smaller static value for max map width
+        docPaths.PageWidth = 420; // Use a smaller static value for max map width
         RtbMapDisplayPaths.Document = docPaths;
 
         var docEntities = BuildColoredMapDocument(_dungeon, true);
-        docEntities.PageWidth = 200;
+        docEntities.PageWidth = 420;
         RtbMapDisplayEntities.Document = docEntities;
     }
 
