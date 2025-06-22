@@ -40,7 +40,7 @@ namespace DynDungeonCrawler.GeneratorApp
 
             // Initialize the dungeon with the specified theme
             Console.WriteLine($"Initializing dungeon with theme: {dungeonTheme}");
-            Dungeon dungeon = DungeonGenerator.GenerateDungeon(
+            Dungeon dungeon = await DungeonGenerator.GenerateDungeon(
                 DungeonDefaults.MaxDungeonWidth,
                 DungeonDefaults.MaxDungeonHeight,
                 dungeonTheme,

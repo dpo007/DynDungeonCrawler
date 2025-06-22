@@ -7,7 +7,7 @@ namespace DynDungeonCrawler.GeneratorApp.Utilities
 {
     public static class DungeonGenerator
     {
-        public static Dungeon GenerateDungeon(
+        public static async Task<Dungeon> GenerateDungeon(
             int width,
             int height,
             string theme,
@@ -121,12 +121,12 @@ namespace DynDungeonCrawler.GeneratorApp.Utilities
             }
 
             // Generate a description for the entrance room using the LLM client
-            Room.GenerateRoomDescriptionsAsync(
+            await Room.GenerateRoomDescriptionsAsync(
                 new List<Room> { entrance },
                 theme,
                 llmClient,
                 logger
-            ).GetAwaiter().GetResult();
+            );
 
             return dungeon;
         }
