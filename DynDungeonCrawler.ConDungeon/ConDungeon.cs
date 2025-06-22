@@ -33,7 +33,7 @@ namespace DynDungeonCrawler.ConDungeon
             ui.WriteLine("[dim]Dungeon loaded successfully.[/]");
 
             // Display some information about the dungeon
-            ui.WriteLine($"Dungeon Theme: [white]\"{dungeon.Theme}\"[/]");
+            ui.WriteLine($"Dungeon Theme: \"[white]{dungeon.Theme}[/]\"");
             ui.WriteLine($"Total Rooms: [yellow]{dungeon.Rooms.Count}[/]");
             ui.WriteLine();
 
