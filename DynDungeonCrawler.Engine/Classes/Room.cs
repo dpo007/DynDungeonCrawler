@@ -17,7 +17,7 @@ namespace DynDungeonCrawler.Engine.Classes
         public int Y { get; set; }            // Grid Y coordinate
         public RoomType Type { get; set; }    // Type of room
         public string Description { get; set; } = string.Empty;
-        public List<Entity> Contents { get; set; } = new List<Entity>();
+        public List<Entity> Contents { get; } = new();
 
         // Room connection flags
         // These can be used to determine if a room is connected to another room in a specific direction
@@ -47,6 +47,21 @@ namespace DynDungeonCrawler.Engine.Classes
         // Constructor without RoomType (defaults to Normal)
         public Room(int x, int y) : this(x, y, RoomType.Normal)
         {
+        }
+
+        /// <summary>
+        /// Adds an Entity to the room, enforcing validation rules.
+        /// Throws an exception if the entity is null or if an entity with the same ID already exists in the room.
+        /// </summary>
+        /// <param name="entity">The Entity to add to the room.</param>
+        /// <exception cref="ArgumentNullException">Thrown if the entity is null.</exception>
+        /// <exception cref="InvalidOperationException">Thrown if an entity with the same ID already exists in the room.</exception>
+        public void AddEntity(Entity entity)
+        {
+            ArgumentNullException.ThrowIfNull(entity);
+            if (Contents.Any(e => e.Id == entity.Id))
+                throw new InvalidOperationException("Entity with the same ID already exists in the room.");
+            Contents.Add(entity);
         }
 
         /// <summary>

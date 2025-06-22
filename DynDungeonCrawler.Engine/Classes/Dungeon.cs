@@ -479,7 +479,7 @@ namespace DynDungeonCrawler.Engine.Classes
                 };
 
                 // Reconstruct entities
-                if (roomData.Contents != null)
+                if (roomData.Contents is not null && roomData.Contents.Count > 0)
                 {
                     foreach (var entityData in roomData.Contents)
                     {

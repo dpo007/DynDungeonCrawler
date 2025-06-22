@@ -1,4 +1,6 @@
-﻿namespace DynDungeonCrawler.Engine.Data
+﻿using System.Text.Json.Serialization;
+
+namespace DynDungeonCrawler.Engine.Data
 {
     public class RoomData
     {
@@ -8,16 +10,19 @@
         public string Type { get; set; } = "";  // Room type as string for serialization
         public string Description { get; set; } = ""; // Optional description
 
-        private readonly List<EntityData> _contents = new List<EntityData>();
-        public IReadOnlyList<EntityData> Contents => _contents;
+        /// <summary>
+        /// List of entities in the room. Used for serialization/deserialization only.
+        /// Do not use for runtime logic; use Room.Contents in the main model.
+        /// </summary>
+        public List<EntityData> Contents { get; set; } = new();
 
         public void AddEntity(EntityData entity)
         {
             if (entity == null)
                 throw new ArgumentNullException(nameof(entity), "Entity cannot be null.");
-            if (_contents.Any(e => e.Id == entity.Id))
+            if (Contents.Any(e => e.Id == entity.Id))
                 throw new InvalidOperationException("Entity with the same ID already exists in the room.");
-            _contents.Add(entity);
+            Contents.Add(entity);
         }
 
         public bool ConnectedNorth { get; set; }
