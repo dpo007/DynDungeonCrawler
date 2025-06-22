@@ -9,15 +9,17 @@ namespace DynDungeonCrawler.ConDungeon
     {
         private static void Main(string[] args)
         {
-            Console.WriteLine("Welcome to the Dungeon Crawler!");
+            IUserInterface ui = new ConsoleUserInterface();
+
+            ui.WriteLine("Welcome to the Dungeon Crawler!");
 
             // Load settings and check API key
             var settings = Settings.Load();
             if (string.IsNullOrEmpty(settings.OpenAIApiKey) || settings.OpenAIApiKey == "your-api-key-here")
             {
-                Console.WriteLine("OpenAI API key is not set. Please update 'settings.json' with your actual API key.");
-                Console.WriteLine("Press any key to exit.");
-                Console.ReadKey();
+                ui.WriteLine("OpenAI API key is not set. Please update 'settings.json' with your actual API key.");
+                ui.WriteLine("Press any key to exit.");
+                ui.ReadKey();
                 return;
             }
 
@@ -28,35 +30,35 @@ namespace DynDungeonCrawler.ConDungeon
             // Load dungeon from JSON
             string filePath = "DungeonExports/MyDungeon.json";
             Dungeon dungeon = Dungeon.LoadFromJson(filePath, llmClient, logger);
-            Console.WriteLine("Dungeon loaded successfully.");
+            ui.WriteLine("Dungeon loaded successfully.");
 
             // Display the dungeon theme
-            Console.WriteLine($"Dungeon Theme: \"{dungeon.Theme}\"");
+            ui.WriteLine($"Dungeon Theme: \"{dungeon.Theme}\"");
 
             // Ask user for their Name (optional)
-            Console.Write("Enter your adventurer's name (or press Enter to generate one): ");
-            string playerName = Console.ReadLine()?.Trim() ?? string.Empty;
+            ui.Write("Enter your adventurer's name (or press Enter to generate one): ");
+            string playerName = ui.ReadLine().Trim();
 
             // Ask user for their Gender (M/F, or press Enter for unspecified)
             AdventurerGender gender = AdventurerGender.Unspecified;
-            Console.Write("Enter your adventurer's gender ([M]ale/[F]emale, or press Enter for unspecified): ");
+            ui.Write("Enter your adventurer's gender ([M]ale/[F]emale, or press Enter for unspecified): ");
             while (true)
             {
-                ConsoleKeyInfo keyInfo = Console.ReadKey(intercept: true);
-                if (keyInfo.Key == ConsoleKey.Enter)
+                var key = ui.ReadKey(intercept: true);
+                if (key == ConsoleKey.Enter)
                 {
-                    Console.WriteLine();
+                    ui.WriteLine("");
                     break;
                 }
-                else if (keyInfo.Key == ConsoleKey.M)
+                else if (key == ConsoleKey.M)
                 {
-                    Console.WriteLine("M");
+                    ui.WriteLine("M");
                     gender = AdventurerGender.Male;
                     break;
                 }
-                else if (keyInfo.Key == ConsoleKey.F)
+                else if (key == ConsoleKey.F)
                 {
-                    Console.WriteLine("F");
+                    ui.WriteLine("F");
                     gender = AdventurerGender.Female;
                     break;
                 }
@@ -67,7 +69,7 @@ namespace DynDungeonCrawler.ConDungeon
             {
                 // Generate a name using the LLM, passing the theme and gender
                 playerName = Adventurer.GenerateNameAsync(llmClient, dungeon.Theme, gender).GetAwaiter().GetResult();
-                Console.WriteLine($"Generated adventurer name: {playerName}");
+                ui.WriteLine($"Generated adventurer name: {playerName}");
             }
 
             // Find entrance and create adventurer
@@ -80,57 +82,56 @@ namespace DynDungeonCrawler.ConDungeon
                 // Check for game-ending conditions
                 if (player.Health <= 0)
                 {
-                    Console.WriteLine("You have perished in the dungeon. Game over!");
+                    ui.WriteLine("You have perished in the dungeon. Game over!");
                     break;
                 }
                 if (player.CurrentRoom?.Type == RoomType.Exit)
                 {
-                    Console.WriteLine("Congratulations! You have found the exit and escaped the dungeon!");
+                    ui.WriteLine("Congratulations! You have found the exit and escaped the dungeon!");
                     break;
                 }
 
                 if (player.CurrentRoom == null)
                 {
-                    Console.WriteLine("You are lost in the void. Game over!");
+                    ui.WriteLine("You are lost in the void. Game over!");
                     break;
                 }
 
                 // Display room info, including exits
-                Console.WriteLine(player.CurrentRoom.Description);
+                ui.WriteLine(player.CurrentRoom.Description);
 
                 // Show room contents if any
                 if (player.CurrentRoom.Contents.Count > 0)
                 {
-                    Console.WriteLine("You notice the following in the room:");
+                    ui.WriteLine("You notice the following in the room:");
                     foreach (var entity in player.CurrentRoom.Contents)
                     {
                         switch (entity)
                         {
                             case TreasureChest chest:
                                 string chestState = chest.IsOpened ? "opened" : (chest.IsLocked ? "locked" : "unlocked");
-                                Console.WriteLine($" - {chest.Name} ({chestState})");
+                                ui.WriteLine($" - {chest.Name} ({chestState})");
                                 break;
 
                             default:
-                                // Use Name and Description if available
                                 if (!string.IsNullOrWhiteSpace(entity.Description))
-                                    Console.WriteLine($" - {entity.Name}: {entity.Description}");
+                                    ui.WriteLine($" - {entity.Name}: {entity.Description}");
                                 else
-                                    Console.WriteLine($" - {entity.Name}");
+                                    ui.WriteLine($" - {entity.Name}");
                                 break;
                         }
                     }
                 }
 
-                Console.WriteLine("Exits:");
+                ui.WriteLine("Exits:");
                 if (player.CurrentRoom.ConnectedNorth)
-                    Console.WriteLine(" - North");
+                    ui.WriteLine(" - North");
                 if (player.CurrentRoom.ConnectedEast)
-                    Console.WriteLine(" - East");
+                    ui.WriteLine(" - East");
                 if (player.CurrentRoom.ConnectedSouth)
-                    Console.WriteLine(" - South");
+                    ui.WriteLine(" - South");
                 if (player.CurrentRoom.ConnectedWest)
-                    Console.WriteLine(" - West");
+                    ui.WriteLine(" - West");
 
                 // Build available directions string
                 List<string> directions = new();
@@ -141,21 +142,20 @@ namespace DynDungeonCrawler.ConDungeon
                 string directionsPrompt = directions.Count > 0 ? string.Join("/", directions) : "";
 
                 // Ask for player input (single letter only) in a loop until a valid command is entered
-                Console.Write($"Enter command (move [{directionsPrompt}], [L]ook, [I]nventory, e[X]it): ");
+                ui.Write($"Enter command (move [{directionsPrompt}], [L]ook, [I]nventory, e[X]it): ");
                 char cmdChar;
                 while (true)
                 {
-                    ConsoleKeyInfo cmdKeyInfo = Console.ReadKey(intercept: true);
-                    cmdChar = char.ToLower(cmdKeyInfo.KeyChar);
+                    var cmdKey = ui.ReadKey(intercept: true);
+                    cmdChar = char.ToLower((char)cmdKey);
 
                     // Validate command
                     if (cmdChar == 'x' || cmdChar == 'l' || cmdChar == 'i' ||
                         directions.Contains(cmdChar.ToString().ToUpper()))
                     {
                         // Valid command entered
-                        // Show the accepted character
-                        Console.Write(char.ToUpper(cmdKeyInfo.KeyChar));
-                        Console.WriteLine();
+                        ui.Write(char.ToUpper(cmdChar).ToString());
+                        ui.WriteLine("");
                         break;
                     }
                     // Otherwise, ignore and re-prompt (do not display the character)
@@ -164,19 +164,19 @@ namespace DynDungeonCrawler.ConDungeon
                 // Handle player commands
                 if (cmdChar == 'x')
                 {
-                    Console.WriteLine("Exiting the game. Goodbye!");
+                    ui.WriteLine("Exiting the game. Goodbye!");
                     break;
                 }
                 else if (cmdChar == 'l')
                 {
-                    Console.WriteLine(player.CurrentRoom.Description);
+                    ui.WriteLine(player.CurrentRoom.Description);
                 }
                 else if (cmdChar == 'i')
                 {
-                    Console.WriteLine("Your inventory contains:");
+                    ui.WriteLine("Your inventory contains:");
                     foreach (var item in player.Inventory)
                     {
-                        Console.WriteLine($" - {item.Name}");
+                        ui.WriteLine($" - {item.Name}");
                     }
                 }
                 else if (directions.Contains(cmdChar.ToString().ToUpper()))
@@ -195,29 +195,24 @@ namespace DynDungeonCrawler.ConDungeon
                     Room? nextRoom = player.CurrentRoom.GetNeighbour(moveDir, dungeon.Grid);
                     if (nextRoom != null)
                     {
-                        // If the next room doesn't have a description, create a list of it and its accessible neighbours
                         if (string.IsNullOrWhiteSpace(nextRoom.Description))
                         {
                             List<Room> roomsToProcess = new List<Room> { nextRoom };
                             roomsToProcess.AddRange(nextRoom.GetAccessibleNeighbours(dungeon.Grid));
-
-                            // Generate descriptons for that list of rooms
                             Room.GenerateRoomDescriptionsAsync(roomsToProcess, dungeon.Theme, llmClient, logger).GetAwaiter().GetResult();
                         }
 
-                        // Update player's current room and visited rooms
                         player.CurrentRoom = nextRoom;
                         player.VisitedRoomIds.Add(nextRoom.Id);
                     }
                     else
                     {
-                        // Invalid move, room not connected in that direction
-                        Console.WriteLine("You can't go that way.");
+                        ui.WriteLine("You can't go that way.");
                     }
                 }
                 else
                 {
-                    Console.WriteLine("Invalid command. Please try again.");
+                    ui.WriteLine("Invalid command. Please try again.");
                     continue; // Re-prompt for command
                 }
             }
