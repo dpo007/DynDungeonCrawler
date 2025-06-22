@@ -20,10 +20,24 @@
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
             <GroupBox Header="Paths Only" Grid.Column="0" Margin="0,0,5,0">
-                <RichTextBox x:Name="RtbMapDisplayPaths" FontFamily="Consolas" FontSize="16" IsReadOnly="True" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Background="Black" Foreground="White" />
+                <RichTextBox x:Name="RtbMapDisplayPaths"
+                             FontFamily="Consolas"
+                             FontSize="16"
+                             IsReadOnly="True"
+                             VerticalScrollBarVisibility="Auto"
+                             HorizontalScrollBarVisibility="Auto"
+                             Background="Black"
+                             Foreground="White" />
             </GroupBox>
             <GroupBox Header="With Entities" Grid.Column="1" Margin="5,0,0,0">
-                <RichTextBox x:Name="RtbMapDisplayEntities" FontFamily="Consolas" FontSize="16" IsReadOnly="True" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Background="Black" Foreground="White" />
+                <RichTextBox x:Name="RtbMapDisplayEntities"
+                             FontFamily="Consolas"
+                             FontSize="16"
+                             IsReadOnly="True"
+                             VerticalScrollBarVisibility="Auto"
+                             HorizontalScrollBarVisibility="Auto"
+                             Background="Black"
+                             Foreground="White" />
             </GroupBox>
         </Grid>
     </Grid>

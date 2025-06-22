@@ -96,7 +96,6 @@ public partial class MainWindow : Window
 
     private void ShowMaps()
     {
-        // Prevent null reference if controls are not yet initialized
         if (RtbMapDisplayPaths == null || RtbMapDisplayEntities == null)
             return;
         if (_dungeon == null)
@@ -105,8 +104,13 @@ public partial class MainWindow : Window
             RtbMapDisplayEntities.Document = new FlowDocument(new Paragraph(new Run("No dungeon loaded.")));
             return;
         }
-        RtbMapDisplayPaths.Document = BuildColoredMapDocument(_dungeon, false);
-        RtbMapDisplayEntities.Document = BuildColoredMapDocument(_dungeon, true);
+        var docPaths = BuildColoredMapDocument(_dungeon, false);
+        docPaths.PageWidth = 200; // Use a smaller static value for max map width
+        RtbMapDisplayPaths.Document = docPaths;
+
+        var docEntities = BuildColoredMapDocument(_dungeon, true);
+        docEntities.PageWidth = 200;
+        RtbMapDisplayEntities.Document = docEntities;
     }
 
     private static FlowDocument BuildColoredMapDocument(Dungeon dungeon, bool showEntities)
