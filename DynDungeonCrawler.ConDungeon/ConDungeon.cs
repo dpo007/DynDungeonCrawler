@@ -11,7 +11,7 @@ namespace DynDungeonCrawler.ConDungeon
         {
             IUserInterface ui = new ConsoleUserInterface();
 
-            ui.WriteLine("Welcome to the Dungeon Crawler!");
+            ui.WriteLine("Welcome to the [bold]Dynamic Dungeon Crawler![/]");
 
             // Load settings and check API key
             var settings = Settings.Load();
@@ -32,16 +32,18 @@ namespace DynDungeonCrawler.ConDungeon
             Dungeon dungeon = Dungeon.LoadFromJson(filePath, llmClient, logger);
             ui.WriteLine("Dungeon loaded successfully.");
 
-            // Display the dungeon theme
-            ui.WriteLine($"Dungeon Theme: \"{dungeon.Theme}\"");
+            // Display some information about the dungeon
+            ui.WriteLine($"Dungeon Theme: [white]\"{dungeon.Theme}\"[/]");
+            ui.WriteLine($"Total Rooms: [yellow]{dungeon.Rooms.Count}[/]");
+            ui.WriteLine();
 
             // Ask user for their Name (optional)
-            ui.Write("Enter your adventurer's name (or press Enter to generate one): ");
+            ui.Write("Enter your adventurer's name [gray](or press Enter to generate one)[/]: ");
             string playerName = ui.ReadLine().Trim();
 
             // Ask user for their Gender (M/F, or press Enter for unspecified)
             AdventurerGender gender = AdventurerGender.Unspecified;
-            ui.Write("Enter your adventurer's gender ([M]ale/[F]emale, or press Enter for unspecified): ");
+            ui.Write("Enter your adventurer's gender ([M]ale/[F]emale, [gray]or press Enter for unspecified[/]): ");
             while (true)
             {
                 var key = ui.ReadKey(intercept: true);
@@ -69,7 +71,8 @@ namespace DynDungeonCrawler.ConDungeon
             {
                 // Generate a name using the LLM, passing the theme and gender
                 playerName = Adventurer.GenerateNameAsync(llmClient, dungeon.Theme, gender).GetAwaiter().GetResult();
-                ui.WriteLine($"Generated adventurer name: {playerName}");
+                ui.WriteLine();
+                ui.WriteLine($"Generated adventurer name: [bold]{playerName}[/]");
             }
 
             // Find entrance and create adventurer
@@ -98,6 +101,7 @@ namespace DynDungeonCrawler.ConDungeon
                 }
 
                 // Display room info, including exits
+                ui.WriteRule("Room");
                 ui.WriteLine(player.CurrentRoom.Description);
 
                 // Show room contents if any

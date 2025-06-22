@@ -39,5 +39,14 @@ namespace DynDungeonCrawler.Engine.Helpers
 
         private static string EscapeMarkup(string input) =>
             input.Replace("[", "[[").Replace("]", "]]");
+
+        public void WriteRule(string? text = null)
+        {
+            Rule rule = text is not null
+                ? new Rule(text) { Style = Style.Parse("gray dim") }
+                : new Rule() { Style = Style.Parse("gray dim") };
+
+            AnsiConsole.Write(rule);
+        }
     }
 }
