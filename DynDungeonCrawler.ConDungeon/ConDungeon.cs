@@ -231,6 +231,9 @@ namespace DynDungeonCrawler.ConDungeon
                         // Move the player to the next room and record the visit
                         player.CurrentRoom = nextRoom;
                         player.VisitedRoomIds.Add(nextRoom.Id);
+
+                        // Clear the UI before displaying the new room
+                        ui.Clear();
                     }
                     else
                     {
