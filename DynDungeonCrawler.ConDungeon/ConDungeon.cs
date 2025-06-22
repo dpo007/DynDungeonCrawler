@@ -198,13 +198,30 @@ namespace DynDungeonCrawler.ConDungeon
                     Room? nextRoom = player.CurrentRoom.GetNeighbour(moveDir, dungeon.Grid);
                     if (nextRoom != null)
                     {
+                        // If the next room does not have a description, generate descriptions for it and its accessible neighbors (2 levels deep)
                         if (string.IsNullOrWhiteSpace(nextRoom.Description))
                         {
-                            List<Room> roomsToProcess = new List<Room> { nextRoom };
-                            roomsToProcess.AddRange(nextRoom.GetAccessibleNeighbours(dungeon.Grid));
-                            Room.GenerateRoomDescriptionsAsync(roomsToProcess, dungeon.Theme, llmClient, logger).GetAwaiter().GetResult();
+                            // Use a HashSet to avoid duplicate rooms
+                            HashSet<Room> roomsToProcess = new HashSet<Room> { nextRoom };
+
+                            // First level: direct neighbors
+                            var firstLevel = nextRoom.GetAccessibleNeighbours(dungeon.Grid);
+                            foreach (var neighbor in firstLevel)
+                                roomsToProcess.Add(neighbor);
+
+                            // Second level: neighbors of neighbors
+                            foreach (var neighbor in firstLevel)
+                            {
+                                var secondLevel = neighbor.GetAccessibleNeighbours(dungeon.Grid);
+                                foreach (var secondNeighbor in secondLevel)
+                                    roomsToProcess.Add(secondNeighbor);
+                            }
+
+                            // Generate descriptions for all collected rooms
+                            Room.GenerateRoomDescriptionsAsync(roomsToProcess.ToList(), dungeon.Theme, llmClient, logger).GetAwaiter().GetResult();
                         }
 
+                        // Move the player to the next room and record the visit
                         player.CurrentRoom = nextRoom;
                         player.VisitedRoomIds.Add(nextRoom.Id);
                     }
@@ -215,7 +232,7 @@ namespace DynDungeonCrawler.ConDungeon
                 }
                 else
                 {
-                    ui.WriteLine("Invalid command. Please try again.");
+                    ui.WriteLine("[bold red]Invalid command.[/] Please try again.");
                     continue; // Re-prompt for command
                 }
             }
