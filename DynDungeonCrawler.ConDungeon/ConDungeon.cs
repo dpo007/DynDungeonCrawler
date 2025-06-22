@@ -166,7 +166,7 @@ namespace DynDungeonCrawler.ConDungeon
                 // Handle player commands
                 if (cmdChar == 'x')
                 {
-                    ui.WriteLine("Exiting the game. Goodbye!");
+                    ui.WriteLine("Exiting the game. [bold]Goodbye![/]");
                     break;
                 }
                 else if (cmdChar == 'l')
