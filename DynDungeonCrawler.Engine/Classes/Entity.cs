@@ -18,6 +18,7 @@ namespace DynDungeonCrawler.Engine.Classes
         public EntityType Type { get; set; }
         public string Name { get; set; }
         public string Description { get; set; } = "";
+        public string ShortDescription { get; set; } = "";
 
         public Entity(EntityType type, string name)
         {
@@ -39,7 +40,8 @@ namespace DynDungeonCrawler.Engine.Classes
                 Id = this.Id,
                 Type = this.Type,
                 Name = this.Name,
-                Description = this.Description
+                Description = this.Description,
+                ShortDescription = this.ShortDescription
             };
 
             if (this is TreasureChest chest)

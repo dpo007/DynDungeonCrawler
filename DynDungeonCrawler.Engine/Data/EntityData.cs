@@ -8,6 +8,7 @@ namespace DynDungeonCrawler.Engine.Data
         public EntityType Type { get; set; }
         public string Name { get; set; } = "";
         public string Description { get; set; } = "";
+        public string ShortDescription { get; set; } = "";
 
         // TreasureChest specific properties
         public bool? IsLocked { get; set; }

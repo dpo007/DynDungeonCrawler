@@ -20,7 +20,8 @@ namespace DynDungeonCrawler.Engine.Classes
             return new Entity(entityData.Type, entityData.Name)
             {
                 Id = entityData.Id,
-                Description = entityData.Description
+                Description = entityData.Description,
+                ShortDescription = entityData.ShortDescription
             };
         }
     }
