@@ -165,8 +165,8 @@ Each name must:
         /// <param name="theme">The theme of the dungeon.</param>
         /// <param name="llmClient">The LLM client instance to use for generation.</param>
         /// <param name="logger">The logger instance to use for warnings and errors.</param>
-        /// <returns>A Task representing the asynchronous operation, containing a dictionary mapping enemy names to descriptions.</returns>
-        public static async Task<Dictionary<string, string>> GenerateEnemyDescriptionsAsync(
+        /// <returns>A Task representing the asynchronous operation, containing a dictionary mapping enemy names to a tuple of (description, shortDescription).</returns>
+        public static async Task<Dictionary<string, (string Description, string ShortDescription)>> GenerateEnemyDescriptionsAsync(
             List<string> enemyNames, string theme, ILLMClient llmClient, ILogger logger)
         {
             ArgumentNullException.ThrowIfNull(llmClient);
@@ -178,13 +178,10 @@ Each name must:
                 throw new ArgumentException("Theme is required and cannot be null or empty.", nameof(theme));
 
             string namesJson = JsonSerializer.Serialize(enemyNames);
-            string userPrompt = $@"
-Given the following list of enemy names and the dungeon theme ""{theme}"", generate a vivid, atmospheric description (3-5 sentences) for each enemy.
-Return a JSON object where each key is the enemy name and the value is its description.
-Do not include any extra text or markdown, only valid JSON.
-
-Enemy names: {namesJson}
-";
+            string userPrompt = $@"Given the following list of enemy names and the dungeon theme '{theme}', generate for each enemy:
+- A vivid, atmospheric full description (3-5 sentences).
+- A short description (1 concise sentence, 10-20 words) that summarizes the enemy for quick display.
+Return a JSON object where each key is the enemy name and the value is an object with 'description' and 'shortDescription' fields. Do not include any extra text or markdown, only valid JSON. Enemy names: {namesJson}";
 
             logger.Log($"Generating descriptions for {enemyNames.Count} enemies in batch.");
 
@@ -204,16 +201,23 @@ Enemy names: {namesJson}
 
             try
             {
-                var dict = JsonSerializer.Deserialize<Dictionary<string, string>>(response);
+                var dict = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(response);
                 if (dict == null || dict.Count == 0)
                     throw new Exception("No descriptions returned.");
-                return dict;
+                var result = new Dictionary<string, (string, string)>();
+                foreach (var kvp in dict)
+                {
+                    string desc = kvp.Value.GetProperty("description").GetString() ?? "A mysterious enemy.";
+                    string shortDesc = kvp.Value.TryGetProperty("shortDescription", out var sdesc) ? (sdesc.GetString() ?? "A mysterious enemy.") : "A mysterious enemy.";
+                    result[kvp.Key] = (desc, shortDesc);
+                }
+                return result;
             }
             catch (Exception ex)
             {
                 logger.Log($"Failed to parse batch enemy descriptions: {ex.Message}");
                 // Fallback: generate empty descriptions
-                return enemyNames.ToDictionary(n => n, n => "A mysterious enemy.");
+                return enemyNames.ToDictionary(n => n, n => ("A mysterious enemy.", "A mysterious enemy."));
             }
         }
 
@@ -262,14 +266,16 @@ Enemy names: {namesJson}
             List<EnemyTypeInfo> enemyTypeList = new List<EnemyTypeInfo>(names.Count);
 
             // Generate descriptions for all enemy names in a single batch LLM call for efficiency
-            Dictionary<string, string> descriptions = await GenerateEnemyDescriptionsAsync(names, theme, llmClient, logger);
+            var descriptions = await GenerateEnemyDescriptionsAsync(names, theme, llmClient, logger);
 
             // For each generated enemy name, pair it with its description (or a fallback if missing),
             // and add the result to the list as an EnemyTypeInfo object
             foreach (string name in names)
             {
-                string description = descriptions.TryGetValue(name, out var desc) ? desc : "A mysterious enemy.";
-                enemyTypeList.Add(new EnemyTypeInfo(name, description));
+                (string description, string shortDescription) = descriptions.TryGetValue(name, out var descs)
+                    ? descs
+                    : ("A mysterious enemy.", "A mysterious enemy.");
+                enemyTypeList.Add(new EnemyTypeInfo(name, description, shortDescription));
             }
 
             return enemyTypeList;
