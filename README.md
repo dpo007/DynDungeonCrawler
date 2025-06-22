@@ -3,7 +3,7 @@
 ![Made with C#](https://img.shields.io/badge/Made%20with-C%23-239120)
 ![.NET](https://img.shields.io/badge/.NET-9.0-blueviolet)
 
-**DynDungeonCrawler** is a modular C# engine for procedural dungeon generation and interactive console exploration.  
+**DynDungeonCrawler** is a modular C# engine for procedural dungeon generation, interactive console exploration, and graphical map visualization.  
 It creates complex, solvable dungeon layouts, populates them with AI-generated enemies and treasures, and exports structured JSON for integration into games, visualization tools, or other projects.  
 The engine is highly configurable, supports multiple LLM providers, and features robust logging and configuration management.
 
@@ -45,6 +45,12 @@ The engine is highly configurable, supports multiple LLM providers, and features
     - Detailed entity view (Treasures and Enemies)
   - Color-coded map legend for clarity
 
+- **Graphical Map Viewer**
+  - WPF-based tool for visualizing dungeons from JSON files
+  - Synchronized vertical and horizontal scrolling between map views
+  - Color-coded display for rooms, paths, treasures, and enemies
+  - Horizontal scrolling appears only when needed
+
 - **Interactive Console Dungeon Crawler**
   - Playable console game: load a dungeon, create an adventurer, and explore room by room
   - Player movement, inventory, and room/entity interaction
@@ -69,6 +75,7 @@ The engine is highly configurable, supports multiple LLM providers, and features
 | **DynDungeonCrawler.Engine**             | Core engine: dungeon generation, room/entity structures, AI, serialization, logging |
 | **DynDungeonCrawler.GeneratorApp**       | Console runner: generates, populates, prints, and exports dungeons to JSON |
 | **DynDungeonCrawler.ConDungeon**         | Interactive console dungeon crawler: play through a generated dungeon    |
+| **DynDungeonCrawler.MapViewer**          | WPF graphical map viewer: load and visualize dungeon JSON files          |
 
 **DynDungeonCrawler.Engine Project Folders**:
 
@@ -127,6 +134,16 @@ The engine is highly configurable, supports multiple LLM providers, and features
 
 ---
 
+## 🖼️ WPF Map Viewer
+
+- **Load and visualize dungeon JSON files in a graphical interface**
+- **View maps in two modes: paths only, or with entities**
+- **Color-coded display for rooms, paths, treasures, and enemies**
+- **Synchronized vertical and horizontal scrolling between map views**
+- **Horizontal scrolling appears only when needed**
+
+---
+
 ## 🚀 Future Goals
 
 - Expanded entity types (Bosses, Keys, NPCs, Magical Items)
@@ -147,11 +164,14 @@ The engine is highly configurable, supports multiple LLM providers, and features
 1. Clone the repository.
 2. Open the solution (`DynDungeonCrawler.sln`) in Visual Studio 2022 or newer.
 3. Build the entire solution.
-4. Set either `DynDungeonCrawler.GeneratorApp` (for generation/export) or `DynDungeonCrawler.ConDungeon` (for interactive play) as the startup project.
+4. Set one of the following as the startup project:
+    - `DynDungeonCrawler.GeneratorApp` (for generation/export)
+    - `DynDungeonCrawler.ConDungeon` (for interactive play)
+    - `DynDungeonCrawler.MapViewer` (for graphical map viewing)
 5. Update your `settings.json`:
     - Set your OpenAI API key, or
     - Configure Ollama/local LLM settings as needed.
-6. Run the selected console app to generate a dungeon, play through it, or export to JSON.
+6. Run the selected app to generate a dungeon, play through it, or visualize/export to JSON.
 
 ---
 
@@ -165,9 +185,13 @@ The engine is highly configurable, supports multiple LLM providers, and features
   Run the ConDungeon app, load a generated dungeon, create or generate an adventurer, and explore room by room.  
   Room descriptions and names are generated as you explore, and you can interact with treasures and enemies.
 
+- **WPF Map Viewer:**  
+  Use the MapViewer app to load a dungeon JSON file and view the map in two modes (paths only, with entities).  
+  Maps are color-coded and support synchronized scrolling.
+
 ---
 
-> **Project Status:** Foundational systems complete — now featuring interactive exploration and LLM-powered content generation. Expanding into deeper gameplay mechanics, AI-driven storytelling, and worldbuilding next! 🚀
+> **Project Status:** Foundational systems complete — now featuring interactive exploration, graphical map viewing, and LLM-powered content generation. Expanding into deeper gameplay mechanics, AI-driven storytelling, and worldbuilding next! 🚀
 
 ---
 
