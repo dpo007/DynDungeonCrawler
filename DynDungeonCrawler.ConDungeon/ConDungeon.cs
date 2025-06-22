@@ -11,7 +11,7 @@ namespace DynDungeonCrawler.ConDungeon
         {
             IUserInterface ui = new ConsoleUserInterface();
 
-            ui.WriteLine("Welcome to the [bold]Dynamic Dungeon Crawler![/]");
+            ui.WriteLine("*** [bold]Dynamic Dungeon Crawler![/] ***");
 
             // Load settings and check API key
             var settings = Settings.Load();
@@ -30,7 +30,7 @@ namespace DynDungeonCrawler.ConDungeon
             // Load dungeon from JSON
             string filePath = "DungeonExports/MyDungeon.json";
             Dungeon dungeon = Dungeon.LoadFromJson(filePath, llmClient, logger);
-            ui.WriteLine("Dungeon loaded successfully.");
+            ui.WriteLine("[dim]Dungeon loaded successfully.[/]");
 
             // Display some information about the dungeon
             ui.WriteLine($"Dungeon Theme: [white]\"{dungeon.Theme}\"[/]");
@@ -73,7 +73,8 @@ namespace DynDungeonCrawler.ConDungeon
                 playerName = Adventurer.GenerateNameAsync(llmClient, dungeon.Theme, gender).GetAwaiter().GetResult();
             }
 
-            ui.WriteLine($"Welcome to the dungeon [bold]{playerName}[/]!");
+            ui.WriteLine();
+            ui.WriteLine($"Welcome to the dungeon [bold underline]{playerName}[/]!");
             ui.WriteLine();
 
             // Find entrance and create adventurer
@@ -138,10 +139,10 @@ namespace DynDungeonCrawler.ConDungeon
                 if (player.CurrentRoom.ConnectedEast) directions.Add("E");
                 if (player.CurrentRoom.ConnectedSouth) directions.Add("S");
                 if (player.CurrentRoom.ConnectedWest) directions.Add("W");
-                string directionsPrompt = directions.Count > 0 ? string.Join("/", directions) : "";
+                string directionsPrompt = directions.Count > 0 ? string.Join("[dim]/[/]", directions) : "";
 
                 // Ask for player input (single letter only) in a loop until a valid command is entered
-                ui.Write($"Enter command (move [{directionsPrompt}], [L]ook, [I]nventory, e[X]it): ");
+                ui.Write($"Enter command (move [[[bold]{directionsPrompt}[/]]], [[[bold]L[/]]]ook, [[[bold]I[/]]]nventory, e[[[bold]X[/]]]it): ");
                 char cmdChar;
                 while (true)
                 {
@@ -153,7 +154,7 @@ namespace DynDungeonCrawler.ConDungeon
                         directions.Contains(cmdChar.ToString().ToUpper()))
                     {
                         // Valid command entered
-                        ui.Write(char.ToUpper(cmdChar).ToString());
+                        ui.Write("[bold]" + char.ToUpper(cmdChar).ToString() + "[/]");
                         ui.WriteLine();
                         break;
                     }
