@@ -16,14 +16,14 @@ namespace DynDungeonCrawler.Engine.Classes
 
     public class Dungeon
     {
-        private Room[,] grid;
+        private readonly Room[,] grid;
+        private readonly List<Room> rooms = new List<Room>();
 
         private int width;
         private int height;
         private string theme;
         private static readonly Random random = Random.Shared;
         private int minPathLength = DungeonDefaults.DefaultEscapePathLength; // Minimum rooms from Entrance to Exit
-        private List<Room> rooms = new List<Room>();
         private readonly ILLMClient _llmClient;
         private readonly ILogger _logger;
 
@@ -141,6 +141,24 @@ namespace DynDungeonCrawler.Engine.Classes
         /// Gets the list of rooms in the dungeon.
         /// </summary>
         public IReadOnlyList<Room> Rooms => rooms;
+
+        /// <summary>
+        /// Encapsulated method to add a room to the dungeon.
+        /// </summary>
+        /// <param name="room">The room to add.</param>
+        public void AddRoom(Room room)
+        {
+            rooms.Add(room);
+        }
+
+        /// <summary>
+        /// Encapsulated method to remove a room from the dungeon.
+        /// </summary>
+        /// <param name="room">The room to remove.</param>
+        public void RemoveRoom(Room room)
+        {
+            rooms.Remove(room);
+        }
 
         /// <summary>
         /// Checks if the specified coordinates are within the bounds of the dungeon grid.
@@ -489,7 +507,7 @@ namespace DynDungeonCrawler.Engine.Classes
                 }
 
                 grid[room.X, room.Y] = room;
-                rooms.Add(room);
+                dungeon.AddRoom(room);
             }
 
             return dungeon;

@@ -28,16 +28,9 @@ namespace DynDungeonCrawler.GeneratorApp.Utilities
 
             Room[,] grid = dungeon.Grid;
 
-            // Get the internal list of rooms from the dungeon (cast from IReadOnlyList)
-            if (dungeon.Rooms is not List<Room> rooms)
-            {
-                // Defensive: should not happen with current Dungeon implementation
-                throw new InvalidOperationException("Dungeon.Rooms is not a List<Room>.");
-            }
-
             // Place the entrance room in the grid and add it to the rooms list
             grid[startX, startY] = entrance;
-            rooms.Add(entrance);
+            dungeon.AddRoom(entrance);
 
             // Stack for backtracking during main path generation
             Stack<Room> roomStack = new Stack<Room>();
@@ -58,7 +51,7 @@ namespace DynDungeonCrawler.GeneratorApp.Utilities
                 room => GetAvailableDirections(room, grid, (x, y) => x >= 0 && y >= 0 && x < width && y < height);
 
             Action<Room> createBranchPathFrom = room =>
-                CreateBranchPathFrom(room, grid, rooms, random, getAvailableDirections);
+                CreateBranchPathFrom(room, grid, dungeon.Rooms.ToList(), random, getAvailableDirections);
 
             Action<Room> tryCreateLoop = room =>
                 TryCreateLoop(room, grid, random, (x, y) => x >= 0 && y >= 0 && x < width && y < height);
@@ -91,7 +84,7 @@ namespace DynDungeonCrawler.GeneratorApp.Utilities
                 chosen.setExitTo(newRoom);
 
                 grid[newX, newY] = newRoom;
-                rooms.Add(newRoom);
+                dungeon.AddRoom(newRoom);
                 roomStack.Push(newRoom);
 
                 roomsPlaced++;
@@ -111,7 +104,7 @@ namespace DynDungeonCrawler.GeneratorApp.Utilities
             {
                 CreateBranchPath(
                     grid,
-                    rooms,
+                    dungeon.Rooms.ToList(),
                     random,
                     logger.Log,
                     getAvailableDirections,
