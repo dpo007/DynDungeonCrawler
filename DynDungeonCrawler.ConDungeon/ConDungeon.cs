@@ -117,14 +117,21 @@ namespace DynDungeonCrawler.ConDungeon
                         switch (entity)
                         {
                             case TreasureChest chest:
+                                // Show the chest's name and its state (opened, locked, or unlocked)
                                 string chestState = chest.IsOpened ? "opened" : (chest.IsLocked ? "locked" : "unlocked");
                                 ui.WriteLine($"[dim]-[/] [bold]{chest.Name}[/] ({chestState})");
                                 break;
 
                             default:
-                                if (!string.IsNullOrWhiteSpace(entity.Description))
-                                    ui.WriteLine($"[dim]-[/] [bold]{entity.Name}[/]: {entity.Description}");
+                                // Prefer ShortDescription if available, otherwise use Description
+                                string displayDesc = !string.IsNullOrWhiteSpace(entity.ShortDescription)
+                                    ? entity.ShortDescription
+                                    : entity.Description;
+                                if (!string.IsNullOrWhiteSpace(displayDesc))
+                                    // Show the entity's name and the chosen description
+                                    ui.WriteLine($"[dim]-[/] [bold]{entity.Name}[/]: {displayDesc}");
                                 else
+                                    // If no description is available, just show the name
                                     ui.WriteLine($"[dim]-[/] [bold]{entity.Name}[/]");
                                 break;
                         }
