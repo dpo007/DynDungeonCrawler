@@ -222,13 +222,14 @@ Return a JSON object where each key is the enemy name and the value is an object
         }
 
         /// <summary>
-        /// Creates an enemy based on the given name, description, and optional theme.
+        /// Creates an enemy based on the given name, description, short description, and optional theme.
         /// </summary>
         /// <param name="name">The name of the enemy.</param>
         /// <param name="description">A non-empty, vivid description of the enemy.</param>
+        /// <param name="shortDescription">A concise summary of the enemy.</param>
         /// <param name="theme">The theme of the dungeon (optional).</param>
         /// <returns>A new Enemy object.</returns>
-        public static Enemy CreateEnemy(string name, string description, string? theme = null)
+        public static Enemy CreateEnemy(string name, string description, string shortDescription, string? theme = null)
         {
             int health = random.Next(10, 21); // Random health between 10 and 20
             int attack = random.Next(2, 6);   // Random attack between 2 and 5
@@ -245,7 +246,7 @@ Return a JSON object where each key is the enemy name and the value is an object
                 }
             }
 
-            return new Enemy(name, description, health, attack);
+            return new Enemy(name, description, shortDescription, health, attack);
         }
 
         /// <summary>
