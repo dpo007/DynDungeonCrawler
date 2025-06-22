@@ -1,7 +1,6 @@
 ﻿using DynDungeonCrawler.Engine.Constants;
 using DynDungeonCrawler.Engine.Data;
 using DynDungeonCrawler.Engine.Interfaces;
-using DynDungeonCrawler.Engine.Classes; // For MapCellInfo, MapCellType, MapLegend
 using System.Text.Json;
 
 namespace DynDungeonCrawler.Engine.Classes

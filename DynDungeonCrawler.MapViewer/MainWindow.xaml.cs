@@ -85,12 +85,27 @@ public partial class MainWindow : Window
                 _llmClient = new DummyLLMClient(); // No LLM needed for map display
                 _logger = new ConsoleLogger();
                 _dungeon = Dungeon.LoadFromJson(_currentFilePath, _llmClient, _logger);
+                UpdateDungeonInfoUI();
                 ShowMaps();
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Failed to load dungeon: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+        }
+    }
+
+    private void UpdateDungeonInfoUI()
+    {
+        if (_dungeon != null)
+        {
+            TxtDungeonTheme.Text = _dungeon.Theme;
+            TxtRoomCount.Text = $"Rooms: {_dungeon.Rooms.Count}";
+        }
+        else
+        {
+            TxtDungeonTheme.Text = "Dungeon Theme: (none)";
+            TxtRoomCount.Text = "Rooms: 0";
         }
     }
 

@@ -9,12 +9,22 @@
     <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <!-- Theme row -->
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <!-- Room count row -->
         </Grid.RowDefinitions>
-        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,10" Grid.Row="0">
             <Button x:Name="BtnLoadDungeon" Content="Load Dungeon JSON..." Width="160" Margin="0,0,10,0" Click="BtnLoadDungeon_Click" />
         </StackPanel>
-        <Grid Grid.Row="1" Margin="0">
+        <!-- Fancy Theme Display -->
+        <Border Grid.Row="1" Margin="0,0,0,10" Padding="10" CornerRadius="8" Background="#222" BorderBrush="#6cf" BorderThickness="2">
+            <TextBlock x:Name="TxtDungeonTheme" Text="🏰 Please load a dungeon 🏰"
+                       FontSize="22" FontWeight="Bold" Foreground="#6cf"
+                       TextWrapping="Wrap" TextAlignment="Center" VerticalAlignment="Top" />
+        </Border>
+        <Grid Grid.Row="2" Margin="0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
@@ -40,5 +50,11 @@
                              Foreground="White" />
             </GroupBox>
         </Grid>
+        <!-- Fancy Room Count Display -->
+        <Border Grid.Row="3" Margin="0,10,0,0" Padding="8" CornerRadius="8" Background="#222" BorderBrush="#fc6" BorderThickness="2">
+            <TextBlock x:Name="TxtRoomCount" Text="Rooms: 0"
+                       FontSize="18" FontWeight="Bold" Foreground="#fc6"
+                       HorizontalAlignment="Center" TextAlignment="Center" />
+        </Border>
     </Grid>
 </Window>
