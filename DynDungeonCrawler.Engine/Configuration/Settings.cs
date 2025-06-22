@@ -15,10 +15,7 @@ namespace DynDungeonCrawler.Engine.Configuration
                 // Create a default settings file
                 Settings defaultSettings = new Settings();
                 File.WriteAllText(SettingsFilePath, JsonSerializer.Serialize(defaultSettings, new JsonSerializerOptions { WriteIndented = true }));
-                Console.WriteLine("Settings file created. Please update 'settings.json' with your actual API key.");
-                Console.WriteLine("Press any key to exit.");
-                Console.ReadKey();
-                Environment.Exit(0);
+                throw new InvalidOperationException("Settings file created. Please update 'settings.json' with your actual API key and restart the application.");
             }
 
             string json = File.ReadAllText(SettingsFilePath);
