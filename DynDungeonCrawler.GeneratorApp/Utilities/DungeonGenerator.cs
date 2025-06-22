@@ -14,49 +14,27 @@ namespace DynDungeonCrawler.GeneratorApp.Utilities
             ILLMClient llmClient,
             ILogger logger)
         {
-            // Create a new Dungeon instance with the specified parameters
             var dungeon = new Dungeon(width, height, theme, llmClient, logger);
-
             int startX = width / 2;
             int startY = height / 2;
-
-            // Create the entrance room at the center of the grid
-            Room entrance = new Room(startX, startY)
-            {
-                Type = RoomType.Entrance
-            };
-
+            Room entrance = new Room(startX, startY) { Type = RoomType.Entrance };
             Room[,] grid = dungeon.Grid;
-
-            // Place the entrance room in the grid and add it to the rooms list
             grid[startX, startY] = entrance;
             dungeon.AddRoom(entrance);
-
-            // Stack for backtracking during main path generation
             Stack<Room> roomStack = new Stack<Room>();
             roomStack.Push(entrance);
-
             logger.Log($"Dungeon entrance created at ({startX}, {startY}).");
-
-            // Set up path length constraints and randomization
             int minPathLength = DungeonDefaults.DefaultEscapePathLength;
             int roomsPlaced = 1;
             var random = Random.Shared;
             int targetPathLength = random.Next(minPathLength, minPathLength + 10);
-
             logger.Log($"Creating main path with target length: {targetPathLength} rooms.");
-
-            // Helper delegates for stateless helpers
             Func<Room, List<(int dx, int dy, Action<Room> setExitFrom, Action<Room> setExitTo)>> getAvailableDirections =
                 room => GetAvailableDirections(room, grid, (x, y) => x >= 0 && y >= 0 && x < width && y < height);
-
             Action<Room> createBranchPathFrom = room =>
-                CreateBranchPathFrom(room, grid, dungeon.Rooms.ToList(), random, getAvailableDirections);
-
+                CreateBranchPathFrom(room, grid, dungeon, random, getAvailableDirections);
             Action<Room> tryCreateLoop = room =>
                 TryCreateLoop(room, grid, random, (x, y) => x >= 0 && y >= 0 && x < width && y < height);
-
-            // Generate the main path
             while (roomsPlaced < targetPathLength)
             {
                 if (roomStack.Count == 0)
@@ -64,47 +42,37 @@ namespace DynDungeonCrawler.GeneratorApp.Utilities
                     logger.Log("Warning: Could not reach the desired path length. Dungeon may be smaller than expected.");
                     break;
                 }
-
                 Room currentRoom = roomStack.Peek();
                 var availableDirections = getAvailableDirections(currentRoom);
-
                 if (availableDirections.Count == 0)
                 {
-                    roomStack.Pop(); // Dead end, backtrack
+                    roomStack.Pop();
                     continue;
                 }
-
                 var chosen = availableDirections[random.Next(availableDirections.Count)];
                 int newX = currentRoom.X + chosen.dx;
                 int newY = currentRoom.Y + chosen.dy;
-
                 Room newRoom = new Room(newX, newY);
-
                 chosen.setExitFrom(currentRoom);
                 chosen.setExitTo(newRoom);
-
                 grid[newX, newY] = newRoom;
                 dungeon.AddRoom(newRoom);
                 roomStack.Push(newRoom);
-
                 roomsPlaced++;
             }
-
             if (roomStack.Count > 0)
             {
                 Room exitRoom = roomStack.Peek();
                 exitRoom.Type = RoomType.Exit;
                 logger.Log($"Dungeon exit created at ({exitRoom.X}, {exitRoom.Y}).");
             }
-
-            // Add side branches
             logger.Log($"Adding side branches...");
             int extraBranches = 30;
             for (int i = 0; i < extraBranches; i++)
             {
                 CreateBranchPath(
                     grid,
-                    dungeon.Rooms.ToList(),
+                    dungeon,
                     random,
                     logger.Log,
                     getAvailableDirections,
@@ -112,67 +80,49 @@ namespace DynDungeonCrawler.GeneratorApp.Utilities
                     tryCreateLoop
                 );
             }
-
-            // Generate a description for the entrance room using the LLM client
             await Room.GenerateRoomDescriptionsAsync(
                 new List<Room> { entrance },
                 theme,
                 llmClient,
                 logger
             );
-
             return dungeon;
         }
 
-        /// <summary>
-        /// Creates a side branch of rooms starting from a random room in the dungeon.
-        /// </summary>
         private static void CreateBranchPath(
             Room[,] grid,
-            List<Room> rooms,
+            Dungeon dungeon,
             Random random,
             Action<string> log,
             Func<Room, List<(int dx, int dy, Action<Room> setExitFrom, Action<Room> setExitTo)>> getAvailableDirections,
             Action<Room> createBranchPathFrom,
             Action<Room> tryCreateLoop)
         {
+            var rooms = dungeon.Rooms;
             if (rooms.Count == 0) return;
-
             Room fromRoom = rooms[random.Next(rooms.Count)];
-            int branchLength = random.Next(2, 6); // Branch of 2–5 rooms
+            int branchLength = random.Next(2, 6);
             Room current = fromRoom;
-
             for (int i = 0; i < branchLength; i++)
             {
                 var availableDirections = getAvailableDirections(current);
-
                 if (availableDirections.Count == 0)
                 {
-                    break; // Dead end
+                    break;
                 }
-
                 var chosen = availableDirections[random.Next(availableDirections.Count)];
                 int newX = current.X + chosen.dx;
                 int newY = current.Y + chosen.dy;
-
-                // Create a new room with default RoomType (Normal)
                 Room newRoom = new Room(newX, newY);
-
                 chosen.setExitFrom(current);
                 chosen.setExitTo(newRoom);
-
                 grid[newX, newY] = newRoom;
-                rooms.Add(newRoom);
-
+                dungeon.AddRoom(newRoom);
                 current = newRoom;
-
-                // 20% chance to spawn a mini sub-branch
                 if (random.NextDouble() < 0.2)
                 {
                     createBranchPathFrom(current);
                 }
-
-                // 30% chance to loop at the end of branch
                 if (i == branchLength - 1 && random.NextDouble() < 0.3)
                 {
                     tryCreateLoop(current);
@@ -180,40 +130,28 @@ namespace DynDungeonCrawler.GeneratorApp.Utilities
             }
         }
 
-        /// <summary>
-        /// Creates a small sub-branch of rooms starting from the specified room.
-        /// </summary>
-        /// <param name="startRoom">The room to start the sub-branch from.</param>
         private static void CreateBranchPathFrom(
             Room startRoom,
             Room[,] grid,
-            List<Room> rooms,
+            Dungeon dungeon,
             Random random,
             Func<Room, List<(int dx, int dy, Action<Room> setExitFrom, Action<Room> setExitTo)>> getAvailableDirections)
         {
-            int branchLength = random.Next(1, 4); // Small sub-branch (1–3 rooms)
+            int branchLength = random.Next(1, 4);
             Room current = startRoom;
-
             for (int i = 0; i < branchLength; i++)
             {
                 var availableDirections = getAvailableDirections(current);
-
                 if (availableDirections.Count == 0)
                     break;
-
                 var chosen = availableDirections[random.Next(availableDirections.Count)];
                 int newX = current.X + chosen.dx;
                 int newY = current.Y + chosen.dy;
-
-                // Create a new room with default RoomType (Normal)
                 Room newRoom = new Room(newX, newY);
-
                 chosen.setExitFrom(current);
                 chosen.setExitTo(newRoom);
-
                 grid[newX, newY] = newRoom;
-                rooms.Add(newRoom);
-
+                dungeon.AddRoom(newRoom);
                 current = newRoom;
             }
         }
