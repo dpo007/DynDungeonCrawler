@@ -47,7 +47,7 @@ namespace DynDungeonCrawler.ConDungeon
                 var key = ui.ReadKey(intercept: true);
                 if (key == ConsoleKey.Enter)
                 {
-                    ui.WriteLine("");
+                    ui.WriteLine();
                     break;
                 }
                 else if (key == ConsoleKey.M)
@@ -123,15 +123,7 @@ namespace DynDungeonCrawler.ConDungeon
                     }
                 }
 
-                ui.WriteLine("Exits:");
-                if (player.CurrentRoom.ConnectedNorth)
-                    ui.WriteLine(" - North");
-                if (player.CurrentRoom.ConnectedEast)
-                    ui.WriteLine(" - East");
-                if (player.CurrentRoom.ConnectedSouth)
-                    ui.WriteLine(" - South");
-                if (player.CurrentRoom.ConnectedWest)
-                    ui.WriteLine(" - West");
+                ui.WriteLine();
 
                 // Build available directions string
                 List<string> directions = new();
@@ -155,11 +147,13 @@ namespace DynDungeonCrawler.ConDungeon
                     {
                         // Valid command entered
                         ui.Write(char.ToUpper(cmdChar).ToString());
-                        ui.WriteLine("");
+                        ui.WriteLine();
                         break;
                     }
                     // Otherwise, ignore and re-prompt (do not display the character)
                 }
+
+                ui.WriteLine();
 
                 // Handle player commands
                 if (cmdChar == 'x')

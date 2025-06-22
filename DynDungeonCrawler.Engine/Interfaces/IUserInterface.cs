@@ -6,6 +6,8 @@
 
         void WriteLine(string message);
 
+        void WriteLine();
+
         string ReadLine();
 
         ConsoleKey ReadKey(bool intercept = false);
