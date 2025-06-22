@@ -118,91 +118,47 @@ public partial class MainWindow : Window
         var doc = new FlowDocument();
         doc.Background = Brushes.Black;
         var para = new Paragraph { Margin = new Thickness(0) };
-        int width = dungeon.Grid.GetLength(0);
-        int height = dungeon.Grid.GetLength(1);
-        int minX = width, minY = height, maxX = 0, maxY = 0;
-        foreach (var room in dungeon.Rooms)
+        var cells = dungeon.GetMapCells(showEntities);
+        int mapWidth = cells.GetLength(0);
+        int mapHeight = cells.GetLength(1);
+        for (int y = 0; y < mapHeight; y++)
         {
-            if (room.X < minX) minX = room.X;
-            if (room.Y < minY) minY = room.Y;
-            if (room.X > maxX) maxX = room.X;
-            if (room.Y > maxY) maxY = room.Y;
-        }
-        var mainPathDirections = new System.Collections.Generic.Dictionary<(int, int), Engine.Classes.TravelDirection>();
-        var entrance = dungeon.Rooms.FirstOrDefault(r => r.Type == Engine.Classes.RoomType.Entrance);
-        if (entrance != null && !showEntities)
-        {
-            var method = typeof(Dungeon).GetMethod("FindMainPath", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            method?.Invoke(dungeon, new object[] { entrance, mainPathDirections });
-        }
-        for (int y = minY - 2; y <= maxY + 2; y++)
-        {
-            for (int x = minX - 2; x <= maxX + 2; x++)
+            for (int x = 0; x < mapWidth; x++)
             {
-                var room = (x >= 0 && y >= 0 && x < width && y < height) ? dungeon.Grid[x, y] : null;
-                char ch;
-                SolidColorBrush color;
-                if (room == null)
+                var cell = cells[x, y];
+                char ch = cell.Symbol;
+                SolidColorBrush color = cell.CellType switch
                 {
-                    ch = '.';
-                    color = Brushes.DarkGray;
-                }
-                else if (room.Type == Engine.Classes.RoomType.Entrance)
-                {
-                    ch = 'E';
-                    color = Brushes.Green;
-                }
-                else if (room.Type == Engine.Classes.RoomType.Exit)
-                {
-                    ch = 'X';
-                    color = Brushes.Red;
-                }
-                else if (showEntities && room.Contents.Any(c => c.Type.ToString() == "TreasureChest"))
-                {
-                    ch = 'T';
-                    color = Brushes.Cyan;
-                }
-                else if (showEntities && room.Contents.Any(c => c.Type.ToString() == "Enemy"))
-                {
-                    ch = '@';
-                    color = Brushes.Magenta;
-                }
-                else if (!showEntities && mainPathDirections.ContainsKey((room.X, room.Y)))
-                {
-                    switch (mainPathDirections[(room.X, room.Y)])
-                    {
-                        case Engine.Classes.TravelDirection.North: ch = '^'; color = Brushes.Yellow; break;
-                        case Engine.Classes.TravelDirection.East: ch = '>'; color = Brushes.Yellow; break;
-                        case Engine.Classes.TravelDirection.South: ch = 'v'; color = Brushes.Yellow; break;
-                        case Engine.Classes.TravelDirection.West: ch = '<'; color = Brushes.Yellow; break;
-                        case Engine.Classes.TravelDirection.None: ch = '+'; color = Brushes.Yellow; break;
-                        default: ch = '#'; color = Brushes.Gray; break;
-                    }
-                }
-                else
-                {
-                    ch = '#';
-                    color = Brushes.Gray;
-                }
+                    MapCellType.Entrance => Brushes.Green,
+                    MapCellType.Exit => Brushes.Red,
+                    MapCellType.TreasureChest => Brushes.Cyan,
+                    MapCellType.Enemy => Brushes.Magenta,
+                    MapCellType.MainPath => Brushes.Yellow,
+                    MapCellType.Room => Brushes.Gray,
+                    MapCellType.Empty => Brushes.DarkGray,
+                    _ => Brushes.Gray
+                };
                 para.Inlines.Add(new Run(ch.ToString()) { Foreground = color });
             }
             para.Inlines.Add(new Run("\n"));
         }
         // Legend
         para.Inlines.Add(new Run("\nLegend:\n") { Foreground = Brushes.White });
-        para.Inlines.Add(new Run(" E = Entrance\n") { Foreground = Brushes.Green });
-        para.Inlines.Add(new Run(" X = Exit\n") { Foreground = Brushes.Red });
-        if (showEntities)
+        foreach (var entry in MapLegend.GetLegend(showEntities))
         {
-            para.Inlines.Add(new Run(" T = Treasure Chest\n") { Foreground = Brushes.Cyan });
-            para.Inlines.Add(new Run(" @ = Enemy\n") { Foreground = Brushes.Magenta });
+            SolidColorBrush color = entry.CellType switch
+            {
+                MapCellType.Entrance => Brushes.Green,
+                MapCellType.Exit => Brushes.Red,
+                MapCellType.TreasureChest => Brushes.Cyan,
+                MapCellType.Enemy => Brushes.Magenta,
+                MapCellType.MainPath => Brushes.Yellow,
+                MapCellType.Room => Brushes.Gray,
+                MapCellType.Empty => Brushes.DarkGray,
+                _ => Brushes.Gray
+            };
+            para.Inlines.Add(new Run($" {entry.Symbol} = {entry.Description}\n") { Foreground = color });
         }
-        else
-        {
-            para.Inlines.Add(new Run(" ^ > v < = Main Path Direction\n") { Foreground = Brushes.Yellow });
-        }
-        para.Inlines.Add(new Run(" # = Room\n") { Foreground = Brushes.Gray });
-        para.Inlines.Add(new Run(" . = Empty Space\n") { Foreground = Brushes.DarkGray });
         doc.Blocks.Add(para);
         return doc;
     }

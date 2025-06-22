@@ -1,6 +1,7 @@
 ﻿using DynDungeonCrawler.Engine.Constants;
 using DynDungeonCrawler.Engine.Data;
 using DynDungeonCrawler.Engine.Interfaces;
+using DynDungeonCrawler.Engine.Classes; // For MapCellInfo, MapCellType, MapLegend
 using System.Text.Json;
 
 namespace DynDungeonCrawler.Engine.Classes
@@ -511,6 +512,88 @@ namespace DynDungeonCrawler.Engine.Classes
             }
 
             return dungeon;
+        }
+
+        /// <summary>
+        /// Returns a 2D array of MapCellInfo representing the dungeon map for UI rendering.
+        /// </summary>
+        /// <param name="showEntities">Whether to show entities in the map.</param>
+        /// <returns>2D array of MapCellInfo for the map display.</returns>
+        public MapCellInfo[,] GetMapCells(bool showEntities = false)
+        {
+            int minX = width, minY = height, maxX = 0, maxY = 0;
+            foreach (Room room in rooms)
+            {
+                if (room.X < minX) minX = room.X;
+                if (room.Y < minY) minY = room.Y;
+                if (room.X > maxX) maxX = room.X;
+                if (room.Y > maxY) maxY = room.Y;
+            }
+            int mapWidth = maxX - minX + 5; // +4 for border, +1 for inclusive
+            int mapHeight = maxY - minY + 5;
+            var cells = new MapCellInfo[mapWidth, mapHeight];
+            var mainPathDirections = new Dictionary<(int, int), TravelDirection>();
+            Room? entrance = rooms.Find(r => r.Type == RoomType.Entrance);
+            if (entrance != null && !showEntities)
+            {
+                FindMainPath(entrance, mainPathDirections);
+            }
+            for (int y = 0; y < mapHeight; y++)
+            {
+                for (int x = 0; x < mapWidth; x++)
+                {
+                    int gridX = minX - 2 + x;
+                    int gridY = minY - 2 + y;
+                    Room? room = (IsInBounds(gridX, gridY)) ? grid[gridX, gridY] : null;
+                    var cell = new MapCellInfo { X = gridX, Y = gridY };
+                    if (room == null)
+                    {
+                        cell.Symbol = '.';
+                        cell.CellType = MapCellType.Empty;
+                    }
+                    else if (room.Type == RoomType.Entrance)
+                    {
+                        cell.Symbol = 'E';
+                        cell.CellType = MapCellType.Entrance;
+                    }
+                    else if (room.Type == RoomType.Exit)
+                    {
+                        cell.Symbol = 'X';
+                        cell.CellType = MapCellType.Exit;
+                    }
+                    else if (showEntities && room.Contents.Any(c => c.Type == EntityType.TreasureChest))
+                    {
+                        cell.Symbol = 'T';
+                        cell.CellType = MapCellType.TreasureChest;
+                    }
+                    else if (showEntities && room.Contents.Any(c => c.Type == EntityType.Enemy))
+                    {
+                        cell.Symbol = '@';
+                        cell.CellType = MapCellType.Enemy;
+                    }
+                    else if (!showEntities && mainPathDirections.ContainsKey((room.X, room.Y)))
+                    {
+                        cell.CellType = MapCellType.MainPath;
+                        cell.MainPathDirection = mainPathDirections[(room.X, room.Y)];
+                        switch (mainPathDirections[(room.X, room.Y)])
+                        {
+                            case TravelDirection.North: cell.Symbol = '^'; break;
+                            case TravelDirection.East: cell.Symbol = '>'; break;
+                            case TravelDirection.South: cell.Symbol = 'v'; break;
+                            case TravelDirection.West: cell.Symbol = '<'; break;
+                            case TravelDirection.None: cell.Symbol = '+'; break;
+                            default: cell.Symbol = '#'; break;
+                        }
+                    }
+                    else
+                    {
+                        cell.Symbol = '#';
+                        cell.CellType = MapCellType.Room;
+                    }
+                    cells[x, y] = cell;
+                }
+            }
+            return cells;
         }
     }
 }
