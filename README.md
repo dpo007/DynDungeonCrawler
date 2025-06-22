@@ -47,9 +47,8 @@ The engine is highly configurable, supports multiple LLM providers, and features
 
 - **Graphical Map Viewer**
   - WPF-based tool for visualizing dungeons from JSON files
-  - Synchronized vertical and horizontal scrolling between map views
   - Color-coded display for rooms, paths, treasures, and enemies
-  - Horizontal scrolling appears only when needed
+  - Synchronized vertical and horizontal scrolling between map views
 
 - **Interactive Console Dungeon Crawler**
   - Playable console game: load a dungeon, create an adventurer, and explore room by room
