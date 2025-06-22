@@ -8,17 +8,23 @@
         Title="Dungeon Map Viewer" Height="600" Width="900">
     <Grid Margin="10">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-            <Button x:Name="BtnLoadDungeon" Content="Load Dungeon JSON..." Width="160" Margin="0,0,10,0" Click="BtnLoadDungeon_Click"/>
-            <TextBlock Text="Map Type:" VerticalAlignment="Center" Margin="0,0,5,0"/>
-            <ComboBox x:Name="CmbMapType" Width="140" SelectedIndex="0" SelectionChanged="CmbMapType_SelectionChanged">
-                <ComboBoxItem Content="Path Only"/>
-                <ComboBoxItem Content="With Entities"/>
-            </ComboBox>
+            <Button x:Name="BtnLoadDungeon" Content="Load Dungeon JSON..." Width="160" Margin="0,0,10,0" Click="BtnLoadDungeon_Click" />
         </StackPanel>
-        <RichTextBox x:Name="RtbMapDisplay" Grid.Row="1" FontFamily="Consolas" FontSize="16" IsReadOnly="True" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Background="Black" Foreground="White"/>
+        <Grid Grid.Row="1" Margin="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <GroupBox Header="Paths Only" Grid.Column="0" Margin="0,0,5,0">
+                <RichTextBox x:Name="RtbMapDisplayPaths" FontFamily="Consolas" FontSize="16" IsReadOnly="True" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Background="Black" Foreground="White" />
+            </GroupBox>
+            <GroupBox Header="With Entities" Grid.Column="1" Margin="5,0,0,0">
+                <RichTextBox x:Name="RtbMapDisplayEntities" FontFamily="Consolas" FontSize="16" IsReadOnly="True" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Background="Black" Foreground="White" />
+            </GroupBox>
+        </Grid>
     </Grid>
 </Window>

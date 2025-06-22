@@ -4,6 +4,7 @@ using DynDungeonCrawler.Engine.Helpers;
 using DynDungeonCrawler.Engine.Interfaces;
 using Microsoft.Win32;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Media;
 
@@ -19,9 +20,53 @@ public partial class MainWindow : Window
     private ILLMClient _llmClient = new DummyLLMClient();
     private string? _currentFilePath;
 
+    private ScrollViewer? _scrollViewerPaths;
+    private ScrollViewer? _scrollViewerEntities;
+    private bool _syncingScroll = false;
+
     public MainWindow()
     {
         InitializeComponent();
+        Loaded += MainWindow_Loaded;
+    }
+
+    private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+    {
+        _scrollViewerPaths = GetScrollViewer(RtbMapDisplayPaths);
+        _scrollViewerEntities = GetScrollViewer(RtbMapDisplayEntities);
+        if (_scrollViewerPaths != null)
+            _scrollViewerPaths.ScrollChanged += ScrollViewer_ScrollChanged;
+        if (_scrollViewerEntities != null)
+            _scrollViewerEntities.ScrollChanged += ScrollViewer_ScrollChanged;
+    }
+
+    private ScrollViewer? GetScrollViewer(DependencyObject o)
+    {
+        if (o is ScrollViewer sv) return sv;
+        for (int i = 0; i < VisualTreeHelper.GetChildrenCount(o); i++)
+        {
+            var child = VisualTreeHelper.GetChild(o, i);
+            var result = GetScrollViewer(child);
+            if (result != null) return result;
+        }
+        return null;
+    }
+
+    private void ScrollViewer_ScrollChanged(object sender, ScrollChangedEventArgs e)
+    {
+        if (_syncingScroll) return;
+        _syncingScroll = true;
+        if (sender == _scrollViewerPaths && _scrollViewerEntities != null)
+        {
+            _scrollViewerEntities.ScrollToVerticalOffset(_scrollViewerPaths.VerticalOffset);
+            _scrollViewerEntities.ScrollToHorizontalOffset(_scrollViewerPaths.HorizontalOffset);
+        }
+        else if (sender == _scrollViewerEntities && _scrollViewerPaths != null)
+        {
+            _scrollViewerPaths.ScrollToVerticalOffset(_scrollViewerEntities.VerticalOffset);
+            _scrollViewerPaths.ScrollToHorizontalOffset(_scrollViewerEntities.HorizontalOffset);
+        }
+        _syncingScroll = false;
     }
 
     private void BtnLoadDungeon_Click(object sender, RoutedEventArgs e)
@@ -40,7 +85,7 @@ public partial class MainWindow : Window
                 _llmClient = new DummyLLMClient(); // No LLM needed for map display
                 _logger = new ConsoleLogger();
                 _dungeon = Dungeon.LoadFromJson(_currentFilePath, _llmClient, _logger);
-                ShowMap();
+                ShowMaps();
             }
             catch (Exception ex)
             {
@@ -49,23 +94,19 @@ public partial class MainWindow : Window
         }
     }
 
-    private void CmbMapType_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
-    {
-        ShowMap();
-    }
-
-    private void ShowMap()
+    private void ShowMaps()
     {
         // Prevent null reference if controls are not yet initialized
-        if (CmbMapType == null || RtbMapDisplay == null)
+        if (RtbMapDisplayPaths == null || RtbMapDisplayEntities == null)
             return;
         if (_dungeon == null)
         {
-            RtbMapDisplay.Document = new FlowDocument(new Paragraph(new Run("No dungeon loaded.")));
+            RtbMapDisplayPaths.Document = new FlowDocument(new Paragraph(new Run("No dungeon loaded.")));
+            RtbMapDisplayEntities.Document = new FlowDocument(new Paragraph(new Run("No dungeon loaded.")));
             return;
         }
-        bool showEntities = (CmbMapType.SelectedIndex == 1);
-        RtbMapDisplay.Document = BuildColoredMapDocument(_dungeon, showEntities);
+        RtbMapDisplayPaths.Document = BuildColoredMapDocument(_dungeon, false);
+        RtbMapDisplayEntities.Document = BuildColoredMapDocument(_dungeon, true);
     }
 
     private static FlowDocument BuildColoredMapDocument(Dungeon dungeon, bool showEntities)
