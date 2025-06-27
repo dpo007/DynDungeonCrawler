@@ -30,7 +30,7 @@ The engine is highly configurable, supports multiple LLM providers, and features
   - Loot value scales with rarity; some chests may be locked
 
 - **AI (LLM) Integration**
-  - **OpenAI GPT-4o-mini** and **Azure OpenAI**: Generate fantasy names, descriptions, and content based on dungeon themes
+  - **OpenAI** and **Azure OpenAI**: Generate fantasy names, descriptions, and content based on dungeon themes
   - **Ollama Compatibility**: Switch to local LLMs via the `ILLMClient` abstraction
   - Easily extend or swap AI providers without modifying engine code
   - Used for enemies, rooms, adventurers, and dynamic world flavor
