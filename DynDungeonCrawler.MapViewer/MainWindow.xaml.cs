@@ -15,21 +15,27 @@ namespace DynDungeonCrawler.MapViewer;
 /// </summary>
 public partial class MainWindow : Window
 {
+    // The currently loaded dungeon instance
     private Dungeon? _dungeon;
+    // Logger for diagnostic output (console only in viewer)
     private ILogger _logger = new ConsoleLogger();
+    // Dummy LLM client (no LLM calls needed for map viewing)
     private ILLMClient _llmClient = new DummyLLMClient();
+    // Path to the currently loaded dungeon file
     private string? _currentFilePath;
 
+    // ScrollViewers for map display RichTextBoxes (for synchronized scrolling)
     private ScrollViewer? _scrollViewerPaths;
     private ScrollViewer? _scrollViewerEntities;
-    private bool _syncingScroll = false;
+    private bool _syncingScroll = false; // Prevents recursive scroll events
 
     public MainWindow()
     {
         InitializeComponent();
-        Loaded += MainWindow_Loaded;
+        Loaded += MainWindow_Loaded; // Attach loaded event handler
     }
 
+    // On window loaded, find ScrollViewers and hook up scroll sync events
     private void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
         _scrollViewerPaths = GetScrollViewer(RtbMapDisplayPaths);
@@ -40,6 +46,7 @@ public partial class MainWindow : Window
             _scrollViewerEntities.ScrollChanged += ScrollViewer_ScrollChanged;
     }
 
+    // Recursively search for a ScrollViewer in the visual tree
     private ScrollViewer? GetScrollViewer(DependencyObject o)
     {
         if (o is ScrollViewer sv) return sv;
@@ -52,6 +59,7 @@ public partial class MainWindow : Window
         return null;
     }
 
+    // Synchronize vertical/horizontal scrolling between the two map views
     private void ScrollViewer_ScrollChanged(object sender, ScrollChangedEventArgs e)
     {
         if (_syncingScroll) return;
@@ -69,6 +77,7 @@ public partial class MainWindow : Window
         _syncingScroll = false;
     }
 
+    // Handle the Load Dungeon button click
     private void BtnLoadDungeon_Click(object sender, RoutedEventArgs e)
     {
         var dlg = new OpenFileDialog
@@ -84,9 +93,10 @@ public partial class MainWindow : Window
                 var settings = Settings.Load();
                 _llmClient = new DummyLLMClient(); // No LLM needed for map display
                 _logger = new ConsoleLogger();
+                // Load the dungeon from JSON file
                 _dungeon = Dungeon.LoadFromJson(_currentFilePath, _llmClient, _logger);
-                UpdateDungeonInfoUI();
-                ShowMaps();
+                UpdateDungeonInfoUI(); // Update theme/room count
+                ShowMaps(); // Render maps
             }
             catch (Exception ex)
             {
@@ -95,12 +105,13 @@ public partial class MainWindow : Window
         }
     }
 
+    // Update the theme and room count UI elements
     private void UpdateDungeonInfoUI()
     {
         if (_dungeon != null)
         {
-            TxtDungeonTheme.Text = _dungeon.Theme;
-            TxtRoomCount.Text = $"Rooms: {_dungeon.Rooms.Count}";
+            TxtDungeonTheme.Text = _dungeon.Theme; // Show dungeon theme
+            TxtRoomCount.Text = $"Rooms: {_dungeon.Rooms.Count}"; // Show room count
         }
         else
         {
@@ -109,25 +120,30 @@ public partial class MainWindow : Window
         }
     }
 
+    // Render the map displays in both modes (paths only, with entities)
     private void ShowMaps()
     {
         if (RtbMapDisplayPaths == null || RtbMapDisplayEntities == null)
             return;
         if (_dungeon == null)
         {
+            // Show placeholder if no dungeon loaded
             RtbMapDisplayPaths.Document = new FlowDocument(new Paragraph(new Run("No dungeon loaded.")));
             RtbMapDisplayEntities.Document = new FlowDocument(new Paragraph(new Run("No dungeon loaded.")));
             return;
         }
+        // Render map (paths only)
         var docPaths = BuildColoredMapDocument(_dungeon, false);
         docPaths.PageWidth = 420; // Use a smaller static value for max map width
         RtbMapDisplayPaths.Document = docPaths;
 
+        // Render map (with entities)
         var docEntities = BuildColoredMapDocument(_dungeon, true);
         docEntities.PageWidth = 420;
         RtbMapDisplayEntities.Document = docEntities;
     }
 
+    // Build a FlowDocument for the map, coloring each cell appropriately
     private static FlowDocument BuildColoredMapDocument(Dungeon dungeon, bool showEntities)
     {
         var doc = new FlowDocument();
@@ -142,6 +158,7 @@ public partial class MainWindow : Window
             {
                 var cell = cells[x, y];
                 char ch = cell.Symbol;
+                // Choose color based on cell type
                 SolidColorBrush color = cell.CellType switch
                 {
                     MapCellType.Entrance => Brushes.Green,
@@ -155,9 +172,9 @@ public partial class MainWindow : Window
                 };
                 para.Inlines.Add(new Run(ch.ToString()) { Foreground = color });
             }
-            para.Inlines.Add(new Run("\n"));
+            para.Inlines.Add(new Run("\n")); // Newline after each row
         }
-        // Legend
+        // Add legend at the bottom
         para.Inlines.Add(new Run("\nLegend:\n") { Foreground = Brushes.White });
         foreach (var entry in MapLegend.GetLegend(showEntities))
         {
