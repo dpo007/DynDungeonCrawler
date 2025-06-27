@@ -4,6 +4,7 @@ namespace DynDungeonCrawler.Engine.Configuration
 {
     public class Settings
     {
+        // OpenAI API settings
         public string OpenAIApiKey { get; set; } = "your-api-key-here";
 
         // Azure OpenAI Service settings
@@ -12,6 +13,7 @@ namespace DynDungeonCrawler.Engine.Configuration
         public string AzureOpenAIEndpoint { get; set; } = "https://your-resource-name.openai.azure.com/";
         public string AzureOpenAIDeployment { get; set; } = "your-deployment-name";
 
+        // Other propterties
         private static readonly string SettingsFilePath = "settings.json";
 
         public static Settings Load()
