@@ -30,10 +30,10 @@ The engine is highly configurable, supports multiple LLM providers, and features
   - Loot value scales with rarity; some chests may be locked
 
 - **AI (LLM) Integration**
-  - **OpenAI GPT-4o-mini**: Generates fantasy enemy names and descriptions based on dungeon theme
-  - **Ollama Compatibility**: Easily switch to local LLMs via the `ILLMClient` interface
-  - LLM integration is fully abstracted, allowing future expansion or swapping of AI providers
-  - Room and adventurer names/descriptions are also LLM-generated
+  - **OpenAI GPT-4o-mini** and **Azure OpenAI**: Generate fantasy names, descriptions, and content based on dungeon themes
+  - **Ollama Compatibility**: Switch to local LLMs via the `ILLMClient` abstraction
+  - Easily extend or swap AI providers without modifying engine code
+  - Used for enemies, rooms, adventurers, and dynamic world flavor
 
 - **Serialization and Export**
   - Full dungeon (rooms, entities, connections) serialized to JSON
@@ -56,9 +56,9 @@ The engine is highly configurable, supports multiple LLM providers, and features
   - Room descriptions and names generated on-the-fly as you explore
 
 - **Settings and Configuration**
-  - `settings.json` manages API keys, LLM provider selection, and global settings
+  - `settings.json` manages API keys, LLM provider selection (OpenAI, Azure OpenAI, Ollama), and global settings
   - Auto-generates a default settings file if missing
-  - Notifies user if OpenAI API key is not set or if LLM configuration is incomplete
+  - Validates LLM configuration and alerts if missing or incomplete
 
 - **Robust Logging**
   - Pluggable logging via the `ILogger` interface
@@ -82,7 +82,7 @@ The engine is highly configurable, supports multiple LLM providers, and features
 |:-----------------|:----------------------------------------------------------------------------------------|
 | `Classes/`       | Core classes (`Dungeon`, `Room`, `Entity`, `Enemy`, `TreasureChest`, `Adventurer`, etc.)|
 | `Data/`          | DTOs for dungeon export/import (`DungeonData`, `RoomData`, `EntityData`)                |
-| `Configuration/` | `Settings.cs` for managing OpenAI/Ollama keys and settings                              |
+| `Configuration/` | `Settings.cs` for managing OpenAI/Ollama/Azure keys and settings                        |
 | `Constants/`     | Default values for dungeon generation and LLM prompts (`DungeonDefaults`, `LLMDefaults`)|
 | `Interfaces/`    | `ILLMClient`, `ILogger` interfaces for AI and logging abstraction                       |
 | `Helpers/`       | Logging and LLM integration helpers (e.g., `ConsoleLogger`, `FileLogger`, `LLMClientBase`) |
@@ -100,12 +100,13 @@ The engine is highly configurable, supports multiple LLM providers, and features
 
 - **Provider Abstraction:**  
   The engine uses the `ILLMClient` interface to abstract all LLM interactions.
-  - **OpenAI:** Out-of-the-box support for GPT-4o-mini (API key required)
-  - **Ollama:** Easily add or switch to local LLMs (such as Llama 3) by implementing the interface
+  - **OpenAI**: Built-in support via API key
+  - **Azure OpenAI**: Native support via endpoint, deployment name, and key
+  - **Ollama**: Easily switch to local LLMs (such as Llama 3) by implementing the interface
 - **Usage:**  
   LLMs are used to generate enemy names and descriptions, room descriptions, and adventurer names
 - **Configuration:**  
-  Select and configure your LLM provider in `settings.json`
+  Choose your LLM provider and set credentials in `settings.json`
 
 ---
 
@@ -168,7 +169,7 @@ The engine is highly configurable, supports multiple LLM providers, and features
     - `DynDungeonCrawler.ConDungeon` (for interactive play)
     - `DynDungeonCrawler.MapViewer` (for graphical map viewing)
 5. Update your `settings.json`:
-    - Set your OpenAI API key, or
+    - Set your OpenAI or Azure OpenAI credentials, or
     - Configure Ollama/local LLM settings as needed.
 6. Run the selected app to generate a dungeon, play through it, or visualize/export to JSON.
 
