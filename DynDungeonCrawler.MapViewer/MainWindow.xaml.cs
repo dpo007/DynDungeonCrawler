@@ -198,10 +198,4 @@ public partial class MainWindow : Window
         doc.Blocks.Add(para);
         return doc;
     }
-
-    // Dummy LLM client for map viewing (no LLM calls needed)
-    private class DummyLLMClient : ILLMClient
-    {
-        public Task<string> GetResponseAsync(string userPrompt, string systemPrompt = "") => Task.FromResult("");
-    }
 }
