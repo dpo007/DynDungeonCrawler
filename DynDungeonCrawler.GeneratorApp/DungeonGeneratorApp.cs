@@ -59,7 +59,7 @@ namespace DynDungeonCrawler.GeneratorApp
                   Random.Shared);
 
             // Print maps
-            Console.WriteLine("Dungeon Map (Paths Only):");
+            Console.WriteLine("\nDungeon Map (Paths Only):");
             dungeon.PrintDungeonMap(showEntities: false); // Basic view: Entrance/Exit/Path only
 
             Console.WriteLine("\nDungeon Map (With Entities):");
