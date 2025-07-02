@@ -14,21 +14,23 @@ namespace DynDungeonCrawler.GeneratorApp
             // Load settings
             var settings = Settings.Load();
 
-            // Check if OpenAI API key is set
-            if (string.IsNullOrEmpty(settings.OpenAIApiKey) || settings.OpenAIApiKey == "your-api-key-here")
-            {
-                Console.WriteLine("OpenAI API key is not set. Please update 'settings.json' with your actual API key.");
-                Console.WriteLine("Press any key to exit.");
-                Console.ReadKey();
-                return;
-            }
-
             // Initialize logging
             ILogger logger = new ConsoleLogger();
 
             // Create LLM client with shared HttpClient
             var httpClient = new HttpClient();
-            ILLMClient llmClient = new OpenAIHelper(httpClient, settings.OpenAIApiKey);
+            ILLMClient llmClient;
+            try
+            {
+                llmClient = new OpenAIHelper(httpClient, settings.OpenAIApiKey);
+            }
+            catch (ArgumentException ex)
+            {
+                Console.WriteLine(ex.Message);
+                Console.WriteLine("Press any key to exit.");
+                Console.ReadKey();
+                return;
+            }
 
             // Get dungeon theme from user
             Console.Write("Enter a theme for the dungeon (or press Enter for default): ");
