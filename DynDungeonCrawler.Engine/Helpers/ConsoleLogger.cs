@@ -4,12 +4,17 @@ namespace DynDungeonCrawler.Engine.Helpers
 {
     public class ConsoleLogger : ILogger
     {
+        private static readonly object _consoleLock = new();
+
         public void Log(string message)
         {
-            Console.ForegroundColor = ConsoleColor.DarkGray;
-            Console.Write("» ");
-            Console.ResetColor();
-            Console.WriteLine(message);
+            lock (_consoleLock)
+            {
+                Console.ForegroundColor = ConsoleColor.DarkGray;
+                Console.Write("» ");
+                Console.ResetColor();
+                Console.WriteLine(message);
+            }
         }
     }
 }
