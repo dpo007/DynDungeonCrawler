@@ -15,7 +15,9 @@ namespace DynDungeonCrawler.Engine.Classes
         public static Entity? FromEntityData(EntityData entityData)
         {
             if (entityData == null)
+            {
                 return null;
+            }
 
             return new Entity(entityData.Type, entityData.Name)
             {

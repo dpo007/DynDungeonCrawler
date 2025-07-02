@@ -31,7 +31,7 @@ namespace DynDungeonCrawler.Engine.Classes
     {
         public static List<MapLegendEntry> GetLegend(bool showEntities)
         {
-            var legend = new List<MapLegendEntry>
+            List<MapLegendEntry> legend = new List<MapLegendEntry>
             {
                 new MapLegendEntry { Symbol = 'E', CellType = MapCellType.Entrance, Description = "Entrance" },
                 new MapLegendEntry { Symbol = 'X', CellType = MapCellType.Exit, Description = "Exit" },

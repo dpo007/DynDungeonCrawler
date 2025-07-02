@@ -22,18 +22,26 @@ namespace DynDungeonCrawler.Engine.Helpers
             try
             {
                 if (newline)
+                {
                     AnsiConsole.MarkupLine(message);
+                }
                 else
+                {
                     AnsiConsole.Markup(message);
+                }
             }
             catch (InvalidOperationException)
             {
                 // Fallback to escaped version for unknown style/color
-                var escaped = EscapeMarkup(message);
+                string escaped = EscapeMarkup(message);
                 if (newline)
+                {
                     AnsiConsole.MarkupLine(escaped);
+                }
                 else
+                {
                     AnsiConsole.Markup(escaped);
+                }
             }
         }
 

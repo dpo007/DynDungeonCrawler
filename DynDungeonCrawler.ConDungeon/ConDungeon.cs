@@ -9,47 +9,51 @@ namespace DynDungeonCrawler.ConDungeon
     {
         private static void Main(string[] args)
         {
-            // Initialize the user interface using Spectre.Console for enhanced console output and input.
-            IUserInterface ui = new SpectreConsoleUserInterface();
+            (IUserInterface ui, ILogger logger, ILLMClient llmClient, Dungeon dungeon, Adventurer player) = InitializeGame();
 
+            if (ui == null || logger == null || llmClient == null || dungeon == null || player == null)
+            {
+                return;
+            }
+
+            GameLoop(ui, logger, llmClient, dungeon, player);
+        }
+
+        private static (IUserInterface? ui, ILogger? logger, ILLMClient? llmClient, Dungeon? dungeon, Adventurer? player) InitializeGame()
+        {
+            IUserInterface ui = new SpectreConsoleUserInterface();
             ui.WriteLine("*** [bold]Dynamic Dungeon Crawler![/] ***");
 
-            // Load settings and check API key
-            var settings = Settings.Load();
+            Settings settings = Settings.Load();
             if (string.IsNullOrWhiteSpace(settings.OpenAIApiKey) || settings.OpenAIApiKey == "your-api-key-here")
             {
                 ui.WriteLine("OpenAI API key is not set. Please update 'settings.json' with your actual API key.");
                 ui.WriteLine("Press any key to exit.");
                 ui.ReadKey();
-                return;
+                return (null, null, null, null, null);
             }
 
-            // Setup logger and LLM client
             ILogger logger = new FileLogger(@"C:\temp\ConDungeon.log");
             ILLMClient llmClient = new OpenAIHelper(new HttpClient(), settings.OpenAIApiKey);
 
-            // Load dungeon from JSON
             string filePath = "DungeonExports/MyDungeon.json";
             Dungeon dungeon = Dungeon.LoadFromJson(filePath, llmClient, logger);
             ui.WriteLine("[dim]Dungeon loaded successfully.[/]");
-
-            // Display some information about the dungeon
             ui.WriteLine($"Dungeon Theme: \"[white]{dungeon.Theme}[/]\"");
             ui.WriteLine($"Total Rooms: [yellow]{dungeon.Rooms.Count}[/]");
             ui.WriteLine();
 
-            // Ask user for their Name (optional)
+            // Player name and gender
             ui.Write("Enter your adventurer's name [gray](or press Enter to generate one)[/]: ");
             string playerName = ui.ReadLine().Trim();
 
             if (string.IsNullOrWhiteSpace(playerName))
             {
-                // Ask user for their Gender
                 AdventurerGender gender = AdventurerGender.Unspecified;
                 ui.Write("Enter your adventurer's gender ([[[deepskyblue1]M[/]]]ale/[[[hotpink]F[/]]]emale, [gray]or press Enter for unspecified[/]): ");
                 while (true)
                 {
-                    var key = ui.ReadKey(intercept: true);
+                    ConsoleKey key = ui.ReadKey(intercept: true);
                     if (key == ConsoleKey.Enter)
                     {
                         ui.WriteLine();
@@ -67,10 +71,7 @@ namespace DynDungeonCrawler.ConDungeon
                         gender = AdventurerGender.Female;
                         break;
                     }
-                    // Any other key: ignore and re-prompt
                 }
-
-                // Generate a name using the LLM, passing the theme and gender
                 playerName = Adventurer.GenerateNameAsync(llmClient, dungeon.Theme, gender).GetAwaiter().GetResult();
             }
 
@@ -78,14 +79,22 @@ namespace DynDungeonCrawler.ConDungeon
             ui.WriteLine($"Welcome to the dungeon [bold underline]{playerName}[/]!");
             ui.WriteLine();
 
-            // Find entrance and create adventurer
             Room entrance = dungeon.Rooms.First(r => r.Type == RoomType.Entrance);
             Adventurer player = new Adventurer(playerName, entrance);
 
-            // Main game loop
+            return (ui, logger, llmClient, dungeon, player);
+        }
+
+        private static void GameLoop(
+            IUserInterface ui,
+            ILogger logger,
+            ILLMClient llmClient,
+            Dungeon dungeon,
+            Adventurer player)
+        {
             while (true)
             {
-                // Check for game-ending conditions
+                // Game-ending conditions
                 if (player.Health <= 0)
                 {
                     ui.WriteLine("You have perished in the dungeon. Game over!");
@@ -96,156 +105,184 @@ namespace DynDungeonCrawler.ConDungeon
                     ui.WriteLine("Congratulations! You have found the exit and escaped the dungeon!");
                     break;
                 }
-
                 if (player.CurrentRoom == null)
                 {
                     ui.WriteLine("You are lost in the void. Game over!");
                     break;
                 }
 
-                // Display room info.
-                ui.WriteRule();
-                ui.WriteLine(player.CurrentRoom.Description);
+                DrawRoom(ui, player);
 
-                // Show room contents if any
-                if (player.CurrentRoom.Contents.Count > 0)
+                List<string> directions = GetAvailableDirections(player.CurrentRoom);
+                char cmdChar = HandleInput(ui, directions);
+
+                if (!ProcessCommand(cmdChar, ui, logger, llmClient, dungeon, player, directions))
                 {
-                    ui.WriteLine();
-                    ui.WriteLine("You notice the following things in the room:");
-                    foreach (var entity in player.CurrentRoom.Contents)
-                    {
-                        switch (entity)
-                        {
-                            case TreasureChest chest:
-                                // Show the chest's name and its state (opened, locked, or unlocked)
-                                string chestState = chest.IsOpened ? "opened" : (chest.IsLocked ? "locked" : "unlocked");
-                                ui.WriteLine($"[dim]-[/] [bold]{chest.Name}[/] ({chestState})");
-                                break;
-
-                            default:
-                                // Prefer ShortDescription if available, otherwise use Description
-                                string displayDesc = !string.IsNullOrWhiteSpace(entity.ShortDescription)
-                                    ? entity.ShortDescription
-                                    : entity.Description;
-                                if (!string.IsNullOrWhiteSpace(displayDesc))
-                                    // Show the entity's name and the chosen description
-                                    ui.WriteLine($"[dim]-[/] [bold]{entity.Name}[/]: {displayDesc}");
-                                else
-                                    // If no description is available, just show the name
-                                    ui.WriteLine($"[dim]-[/] [bold]{entity.Name}[/]");
-                                break;
-                        }
-                    }
-                }
-
-                ui.WriteRule();
-                ui.WriteLine();
-
-                // Build available directions string
-                List<string> directions = new();
-                if (player.CurrentRoom.ConnectedNorth) directions.Add("N");
-                if (player.CurrentRoom.ConnectedEast) directions.Add("E");
-                if (player.CurrentRoom.ConnectedSouth) directions.Add("S");
-                if (player.CurrentRoom.ConnectedWest) directions.Add("W");
-                string directionsPrompt = directions.Count > 0 ? string.Join("[dim]/[/]", directions) : "";
-
-                // Ask for player input (single letter only) in a loop until a valid command is entered
-                ui.Write($"Enter command (move [[[bold]{directionsPrompt}[/]]], [[[bold]L[/]]]ook, [[[bold]I[/]]]nventory, e[[[bold]X[/]]]it): ");
-                char cmdChar;
-                while (true)
-                {
-                    var cmdKey = ui.ReadKey(intercept: true);
-                    cmdChar = char.ToLower((char)cmdKey);
-
-                    // Validate command
-                    if (cmdChar == 'x' || cmdChar == 'l' || cmdChar == 'i' ||
-                        directions.Contains(cmdChar.ToString().ToUpper()))
-                    {
-                        // Valid command entered
-                        ui.Write("[bold]" + char.ToUpper(cmdChar).ToString() + "[/]");
-                        ui.WriteLine();
-                        break;
-                    }
-                    // Otherwise, ignore and re-prompt (do not display the character)
-                }
-
-                ui.WriteLine();
-
-                // Handle player commands
-                if (cmdChar == 'x')
-                {
-                    ui.WriteLine("Exiting the game. [bold]Goodbye![/]");
                     break;
                 }
-                else if (cmdChar == 'l')
-                {
-                    ui.WriteLine(player.CurrentRoom.Description);
-                }
-                else if (cmdChar == 'i')
-                {
-                    ui.WriteLine("Your inventory contains:");
-                    foreach (var item in player.Inventory)
-                    {
-                        ui.WriteLine($" - {item.Name}");
-                    }
-                }
-                else if (directions.Contains(cmdChar.ToString().ToUpper()))
-                {
-                    // Determine direction
-                    RoomDirection moveDir = cmdChar switch
-                    {
-                        'n' => RoomDirection.North,
-                        'e' => RoomDirection.East,
-                        's' => RoomDirection.South,
-                        'w' => RoomDirection.West,
-                        _ => throw new InvalidOperationException("Invalid direction")
-                    };
+            }
+        }
 
-                    // Attempt to move
-                    Room? nextRoom = player.CurrentRoom.GetNeighbour(moveDir, dungeon.Grid);
-                    if (nextRoom != null)
+        private static void DrawRoom(IUserInterface ui, Adventurer player)
+        {
+            ui.WriteRule();
+            ui.WriteLine(player.CurrentRoom.Description);
+
+            if (player.CurrentRoom.Contents.Count > 0)
+            {
+                ui.WriteLine();
+                ui.WriteLine("You notice the following things in the room:");
+                foreach (Entity entity in player.CurrentRoom.Contents)
+                {
+                    switch (entity)
                     {
-                        // If the next room does not have a description, generate descriptions for it and its accessible neighbors (2 levels deep)
-                        if (string.IsNullOrWhiteSpace(nextRoom.Description))
-                        {
-                            // Use a HashSet to avoid duplicate rooms
-                            HashSet<Room> roomsToProcess = new HashSet<Room> { nextRoom };
-
-                            // First level: direct neighbors
-                            var firstLevel = nextRoom.GetAccessibleNeighbours(dungeon.Grid);
-                            foreach (var neighbor in firstLevel)
-                                roomsToProcess.Add(neighbor);
-
-                            // Second level: neighbors of neighbors
-                            foreach (var neighbor in firstLevel)
+                        case TreasureChest chest:
+                            string chestState = chest.IsOpened ? "opened" : (chest.IsLocked ? "locked" : "unlocked");
+                            ui.WriteLine($"[dim]-[/] [bold]{chest.Name}[/] ({chestState})");
+                            break;
+                        default:
+                            string displayDesc = !string.IsNullOrWhiteSpace(entity.ShortDescription)
+                                ? entity.ShortDescription
+                                : entity.Description;
+                            if (!string.IsNullOrWhiteSpace(displayDesc))
                             {
-                                var secondLevel = neighbor.GetAccessibleNeighbours(dungeon.Grid);
-                                foreach (var secondNeighbor in secondLevel)
-                                    roomsToProcess.Add(secondNeighbor);
+                                ui.WriteLine($"[dim]-[/] [bold]{entity.Name}[/]: {displayDesc}");
+                            }
+                            else
+                            {
+                                ui.WriteLine($"[dim]-[/] [bold]{entity.Name}[/]");
                             }
 
-                            // Generate descriptions for all collected rooms
-                            Room.GenerateRoomDescriptionsAsync(roomsToProcess.ToList(), dungeon.Theme, llmClient, logger).GetAwaiter().GetResult();
+                            break;
+                    }
+                }
+            }
+
+            ui.WriteRule();
+            ui.WriteLine();
+        }
+
+        private static List<string> GetAvailableDirections(Room room)
+        {
+            List<string> directions = new();
+            if (room.ConnectedNorth)
+            {
+                directions.Add("N");
+            }
+
+            if (room.ConnectedEast)
+            {
+                directions.Add("E");
+            }
+
+            if (room.ConnectedSouth)
+            {
+                directions.Add("S");
+            }
+
+            if (room.ConnectedWest)
+            {
+                directions.Add("W");
+            }
+
+            return directions;
+        }
+
+        private static char HandleInput(IUserInterface ui, List<string> directions)
+        {
+            string directionsPrompt = directions.Count > 0 ? string.Join("[dim]/[/]", directions) : "";
+            ui.Write($"Enter command (move [[[bold]{directionsPrompt}[/]]], [[[bold]L[/]]]ook, [[[bold]I[/]]]nventory, e[[[bold]X[/]]]it): ");
+            char cmdChar;
+            while (true)
+            {
+                ConsoleKey cmdKey = ui.ReadKey(intercept: true);
+                cmdChar = char.ToLower((char)cmdKey);
+
+                if (cmdChar == 'x' || cmdChar == 'l' || cmdChar == 'i' ||
+                    directions.Contains(cmdChar.ToString().ToUpper()))
+                {
+                    ui.Write("[bold]" + char.ToUpper(cmdChar).ToString() + "[/]");
+                    ui.WriteLine();
+                    break;
+                }
+            }
+            ui.WriteLine();
+            return cmdChar;
+        }
+
+        private static bool ProcessCommand(
+            char cmdChar,
+            IUserInterface ui,
+            ILogger logger,
+            ILLMClient llmClient,
+            Dungeon dungeon,
+            Adventurer player,
+            List<string> directions)
+        {
+            if (cmdChar == 'x')
+            {
+                ui.WriteLine("Exiting the game. [bold]Goodbye![/]");
+                return false;
+            }
+            else if (cmdChar == 'l')
+            {
+                ui.WriteLine(player.CurrentRoom.Description);
+            }
+            else if (cmdChar == 'i')
+            {
+                ui.WriteLine("Your inventory contains:");
+                foreach (Entity item in player.Inventory)
+                {
+                    ui.WriteLine($" - {item.Name}");
+                }
+            }
+            else if (directions.Contains(cmdChar.ToString().ToUpper()))
+            {
+                RoomDirection moveDir = cmdChar switch
+                {
+                    'n' => RoomDirection.North,
+                    'e' => RoomDirection.East,
+                    's' => RoomDirection.South,
+                    'w' => RoomDirection.West,
+                    _ => throw new InvalidOperationException("Invalid direction")
+                };
+
+                Room? nextRoom = player.CurrentRoom.GetNeighbour(moveDir, dungeon.Grid);
+                if (nextRoom != null)
+                {
+                    if (string.IsNullOrWhiteSpace(nextRoom.Description))
+                    {
+                        HashSet<Room> roomsToProcess = new HashSet<Room> { nextRoom };
+                        List<Room> firstLevel = nextRoom.GetAccessibleNeighbours(dungeon.Grid);
+                        foreach (Room neighbor in firstLevel)
+                        {
+                            roomsToProcess.Add(neighbor);
                         }
 
-                        // Move the player to the next room and record the visit
-                        player.CurrentRoom = nextRoom;
-                        player.VisitedRoomIds.Add(nextRoom.Id);
-
-                        // Clear the UI before displaying the new room
-                        ui.Clear();
+                        foreach (Room neighbor in firstLevel)
+                        {
+                            List<Room> secondLevel = neighbor.GetAccessibleNeighbours(dungeon.Grid);
+                            foreach (Room secondNeighbor in secondLevel)
+                            {
+                                roomsToProcess.Add(secondNeighbor);
+                            }
+                        }
+                        Room.GenerateRoomDescriptionsAsync(roomsToProcess.ToList(), dungeon.Theme, llmClient, logger).GetAwaiter().GetResult();
                     }
-                    else
-                    {
-                        ui.WriteLine("You can't go that way.");
-                    }
+                    player.CurrentRoom = nextRoom;
+                    player.VisitedRoomIds.Add(nextRoom.Id);
+                    ui.Clear();
                 }
                 else
                 {
-                    ui.WriteLine("[bold red]Invalid command.[/] Please try again.");
-                    continue; // Re-prompt for command
+                    ui.WriteLine("You can't go that way.");
                 }
             }
+            else
+            {
+                ui.WriteLine("[bold red]Invalid command.[/] Please try again.");
+            }
+            return true;
         }
     }
 }

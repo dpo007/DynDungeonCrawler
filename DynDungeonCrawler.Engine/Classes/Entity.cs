@@ -25,7 +25,10 @@ namespace DynDungeonCrawler.Engine.Classes
             Id = Guid.NewGuid();
             Type = type;
             if (string.IsNullOrWhiteSpace(name))
+            {
                 throw new ArgumentException("Entity name cannot be empty.", nameof(name));
+            }
+
             Name = name.Trim();
         }
 

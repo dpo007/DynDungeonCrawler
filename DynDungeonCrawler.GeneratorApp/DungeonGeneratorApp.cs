@@ -12,13 +12,13 @@ namespace DynDungeonCrawler.GeneratorApp
         private static async Task Main(string[] args)
         {
             // Load settings
-            var settings = Settings.Load();
+            Settings settings = Settings.Load();
 
             // Initialize logging
             ILogger logger = new ConsoleLogger();
 
             // Create LLM client with shared HttpClient
-            var httpClient = new HttpClient();
+            HttpClient httpClient = new HttpClient();
             ILLMClient llmClient;
             try
             {

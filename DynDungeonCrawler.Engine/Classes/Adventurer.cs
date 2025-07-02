@@ -52,9 +52,14 @@ namespace DynDungeonCrawler.Engine.Classes
             AdventurerGender gender = AdventurerGender.Unspecified)
         {
             if (llmClient == null)
+            {
                 throw new ArgumentNullException(nameof(llmClient));
+            }
+
             if (string.IsNullOrWhiteSpace(theme))
+            {
                 throw new ArgumentException("Theme must be provided.", nameof(theme));
+            }
 
             string genderPrompt = gender switch
             {

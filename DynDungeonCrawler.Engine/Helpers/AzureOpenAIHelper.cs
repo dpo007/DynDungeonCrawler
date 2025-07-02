@@ -20,11 +20,19 @@ namespace DynDungeonCrawler.Engine.Helpers
         {
             // Validate parameters
             if (string.IsNullOrWhiteSpace(apiKey) || apiKey == "your-azure-api-key-here")
+            {
                 throw new ArgumentException("Azure OpenAI API key is not set. Please update 'settings.json' with your actual Azure API key.", nameof(apiKey));
+            }
+
             if (string.IsNullOrWhiteSpace(endpoint) || endpoint.Contains("your-resource-name"))
+            {
                 throw new ArgumentException("Azure OpenAI endpoint is not set. Please update 'settings.json' with your actual Azure endpoint.", nameof(endpoint));
+            }
+
             if (string.IsNullOrWhiteSpace(deployment) || deployment == "your-deployment-name")
+            {
                 throw new ArgumentException("Azure OpenAI deployment is not set. Please update 'settings.json' with your actual deployment name.", nameof(deployment));
+            }
 
             // Initialize fields
             _apiKey = apiKey;

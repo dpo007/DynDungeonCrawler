@@ -17,9 +17,14 @@ namespace DynDungeonCrawler.Engine.Classes
             : base(EntityType.Enemy, name)
         {
             if (health <= 0)
+            {
                 throw new ArgumentOutOfRangeException(nameof(health), "Health must be greater than zero.");
+            }
+
             if (strength <= 0)
+            {
                 throw new ArgumentOutOfRangeException(nameof(strength), "Strength must be greater than zero.");
+            }
 
             Description = description;
             ShortDescription = shortDescription;
@@ -33,11 +38,17 @@ namespace DynDungeonCrawler.Engine.Classes
             double roll = random.NextDouble();
 
             if (roll < 0.7)
+            {
                 return 0; // 70% chance no money
+            }
             else if (roll < 0.9)
+            {
                 return random.Next(1, 101); // 1-100 gold
+            }
             else
+            {
                 return random.Next(100, 501); // 100-500 gold
+            }
         }
 
         /// <summary>

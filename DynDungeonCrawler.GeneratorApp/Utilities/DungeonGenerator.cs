@@ -14,7 +14,7 @@ namespace DynDungeonCrawler.GeneratorApp.Utilities
             ILLMClient llmClient,
             ILogger logger)
         {
-            var dungeon = new Dungeon(width, height, theme, llmClient, logger);
+            Dungeon dungeon = new Dungeon(width, height, theme, llmClient, logger);
             int startX = width / 2;
             int startY = height / 2;
             Room entrance = new Room(startX, startY) { Type = RoomType.Entrance };
@@ -26,7 +26,7 @@ namespace DynDungeonCrawler.GeneratorApp.Utilities
             logger.Log($"Dungeon entrance created at ({startX}, {startY}).");
             int minPathLength = DungeonDefaults.DefaultEscapePathLength;
             int roomsPlaced = 1;
-            var random = Random.Shared;
+            Random random = Random.Shared;
             int targetPathLength = random.Next(minPathLength, minPathLength + 10);
             logger.Log($"Creating main path with target length: {targetPathLength} rooms.");
             Func<Room, List<(int dx, int dy, Action<Room> setExitFrom, Action<Room> setExitTo)>> getAvailableDirections =
@@ -43,13 +43,13 @@ namespace DynDungeonCrawler.GeneratorApp.Utilities
                     break;
                 }
                 Room currentRoom = roomStack.Peek();
-                var availableDirections = getAvailableDirections(currentRoom);
+                List<(int dx, int dy, Action<Room> setExitFrom, Action<Room> setExitTo)> availableDirections = getAvailableDirections(currentRoom);
                 if (availableDirections.Count == 0)
                 {
                     roomStack.Pop();
                     continue;
                 }
-                var chosen = availableDirections[random.Next(availableDirections.Count)];
+                (int dx, int dy, Action<Room> setExitFrom, Action<Room> setExitTo) chosen = availableDirections[random.Next(availableDirections.Count)];
                 int newX = currentRoom.X + chosen.dx;
                 int newY = currentRoom.Y + chosen.dy;
                 Room newRoom = new Room(newX, newY);
@@ -98,19 +98,23 @@ namespace DynDungeonCrawler.GeneratorApp.Utilities
             Action<Room> createBranchPathFrom,
             Action<Room> tryCreateLoop)
         {
-            var rooms = dungeon.Rooms;
-            if (rooms.Count == 0) return;
+            IReadOnlyList<Room> rooms = dungeon.Rooms;
+            if (rooms.Count == 0)
+            {
+                return;
+            }
+
             Room fromRoom = rooms[random.Next(rooms.Count)];
             int branchLength = random.Next(2, 6);
             Room current = fromRoom;
             for (int i = 0; i < branchLength; i++)
             {
-                var availableDirections = getAvailableDirections(current);
+                List<(int dx, int dy, Action<Room> setExitFrom, Action<Room> setExitTo)> availableDirections = getAvailableDirections(current);
                 if (availableDirections.Count == 0)
                 {
                     break;
                 }
-                var chosen = availableDirections[random.Next(availableDirections.Count)];
+                (int dx, int dy, Action<Room> setExitFrom, Action<Room> setExitTo) chosen = availableDirections[random.Next(availableDirections.Count)];
                 int newX = current.X + chosen.dx;
                 int newY = current.Y + chosen.dy;
                 Room newRoom = new Room(newX, newY);
@@ -141,10 +145,13 @@ namespace DynDungeonCrawler.GeneratorApp.Utilities
             Room current = startRoom;
             for (int i = 0; i < branchLength; i++)
             {
-                var availableDirections = getAvailableDirections(current);
+                List<(int dx, int dy, Action<Room> setExitFrom, Action<Room> setExitTo)> availableDirections = getAvailableDirections(current);
                 if (availableDirections.Count == 0)
+                {
                     break;
-                var chosen = availableDirections[random.Next(availableDirections.Count)];
+                }
+
+                (int dx, int dy, Action<Room> setExitFrom, Action<Room> setExitTo) chosen = availableDirections[random.Next(availableDirections.Count)];
                 int newX = current.X + chosen.dx;
                 int newY = current.Y + chosen.dy;
                 Room newRoom = new Room(newX, newY);
@@ -166,20 +173,31 @@ namespace DynDungeonCrawler.GeneratorApp.Utilities
             Random random,
             Func<int, int, bool> isInBounds)
         {
-            var directions = new List<(int dx, int dy, Action<Room> setExitFrom, Action<Room> setExitTo)>();
+            List<(int dx, int dy, Action<Room> setExitFrom, Action<Room> setExitTo)> directions = new List<(int dx, int dy, Action<Room> setExitFrom, Action<Room> setExitTo)>();
 
             if (isInBounds(room.X, room.Y - 1) && grid[room.X, room.Y - 1] != null)
+            {
                 directions.Add((0, -1, r => r.ConnectedNorth = true, r => r.ConnectedSouth = true));
+            }
+
             if (isInBounds(room.X + 1, room.Y) && grid[room.X + 1, room.Y] != null)
+            {
                 directions.Add((1, 0, r => r.ConnectedEast = true, r => r.ConnectedWest = true));
+            }
+
             if (isInBounds(room.X, room.Y + 1) && grid[room.X, room.Y + 1] != null)
+            {
                 directions.Add((0, 1, r => r.ConnectedSouth = true, r => r.ConnectedNorth = true));
+            }
+
             if (isInBounds(room.X - 1, room.Y) && grid[room.X - 1, room.Y] != null)
+            {
                 directions.Add((-1, 0, r => r.ConnectedWest = true, r => r.ConnectedEast = true));
+            }
 
             if (directions.Count > 0)
             {
-                var chosen = directions[random.Next(directions.Count)];
+                (int dx, int dy, Action<Room> setExitFrom, Action<Room> setExitTo) chosen = directions[random.Next(directions.Count)];
                 int targetX = room.X + chosen.dx;
                 int targetY = room.Y + chosen.dy;
 
@@ -205,16 +223,27 @@ namespace DynDungeonCrawler.GeneratorApp.Utilities
             Room[,] grid,
             Func<int, int, bool> isInBounds)
         {
-            var available = new List<(int dx, int dy, Action<Room>, Action<Room>)>();
+            List<(int dx, int dy, Action<Room>, Action<Room>)> available = new List<(int dx, int dy, Action<Room>, Action<Room>)>();
 
             if (isInBounds(fromRoom.X, fromRoom.Y - 1) && grid[fromRoom.X, fromRoom.Y - 1] == null)
+            {
                 available.Add((0, -1, r => r.ConnectedNorth = true, r => r.ConnectedSouth = true));
+            }
+
             if (isInBounds(fromRoom.X + 1, fromRoom.Y) && grid[fromRoom.X + 1, fromRoom.Y] == null)
+            {
                 available.Add((1, 0, r => r.ConnectedEast = true, r => r.ConnectedWest = true));
+            }
+
             if (isInBounds(fromRoom.X, fromRoom.Y + 1) && grid[fromRoom.X, fromRoom.Y + 1] == null)
+            {
                 available.Add((0, 1, r => r.ConnectedSouth = true, r => r.ConnectedNorth = true));
+            }
+
             if (isInBounds(fromRoom.X - 1, fromRoom.Y) && grid[fromRoom.X - 1, fromRoom.Y] == null)
+            {
                 available.Add((-1, 0, r => r.ConnectedWest = true, r => r.ConnectedEast = true));
+            }
 
             return available;
         }
@@ -256,8 +285,8 @@ namespace DynDungeonCrawler.GeneratorApp.Utilities
                     else if (roll < 0.2)
                     {
                         // Pick a random enemy type from the master list
-                        var enemyType = enemyTypes[localRandom.Next(enemyTypes.Count)];
-                        var enemy = EnemyFactory.CreateEnemy(enemyType.Name, enemyType.Description, enemyType.ShortDescription, theme);
+                        EnemyTypeInfo enemyType = enemyTypes[localRandom.Next(enemyTypes.Count)];
+                        Enemy enemy = EnemyFactory.CreateEnemy(enemyType.Name, enemyType.Description, enemyType.ShortDescription, theme);
                         room.AddEntity(enemy);
 
                         logger.Log($"Enemy '{enemy.Name}' added to room at ({room.X}, {room.Y}).");

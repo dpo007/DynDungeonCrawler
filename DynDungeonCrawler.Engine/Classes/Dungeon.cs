@@ -41,15 +41,21 @@ namespace DynDungeonCrawler.Engine.Classes
         public Dungeon(int width, int height, string theme, ILLMClient llmClient, ILogger logger)
         {
             if (width < 1 || width > MaxDungeonWidth)
+            {
                 throw new ArgumentOutOfRangeException(nameof(width),
                     $"Width must be between 1 and {MaxDungeonWidth} (was {width}).");
+            }
 
             if (height < 1 || height > MaxDungeonHeight)
+            {
                 throw new ArgumentOutOfRangeException(nameof(height),
                     $"Height must be between 1 and {MaxDungeonHeight} (was {height}).");
+            }
 
             if (string.IsNullOrWhiteSpace(theme))
+            {
                 throw new ArgumentException("Theme cannot be empty or whitespace.", nameof(theme));
+            }
 
             ArgumentNullException.ThrowIfNull(llmClient);
             ArgumentNullException.ThrowIfNull(logger);
@@ -100,28 +106,36 @@ namespace DynDungeonCrawler.Engine.Classes
             {
                 Room? northRoom = grid[room.X, room.Y - 1];
                 if (northRoom != null)
+                {
                     connectedRooms[TravelDirection.North] = northRoom;
+                }
             }
 
             if (room.ConnectedEast && IsInBounds(room.X + 1, room.Y))
             {
                 Room? eastRoom = grid[room.X + 1, room.Y];
                 if (eastRoom != null)
+                {
                     connectedRooms[TravelDirection.East] = eastRoom;
+                }
             }
 
             if (room.ConnectedSouth && IsInBounds(room.X, room.Y + 1))
             {
                 Room? southRoom = grid[room.X, room.Y + 1];
                 if (southRoom != null)
+                {
                     connectedRooms[TravelDirection.South] = southRoom;
+                }
             }
 
             if (room.ConnectedWest && IsInBounds(room.X - 1, room.Y))
             {
                 Room? westRoom = grid[room.X - 1, room.Y];
                 if (westRoom != null)
+                {
                     connectedRooms[TravelDirection.West] = westRoom;
+                }
             }
 
             return connectedRooms;
@@ -181,10 +195,25 @@ namespace DynDungeonCrawler.Engine.Classes
 
             foreach (Room room in rooms)
             {
-                if (room.X < minX) minX = room.X;
-                if (room.Y < minY) minY = room.Y;
-                if (room.X > maxX) maxX = room.X;
-                if (room.Y > maxY) maxY = room.Y;
+                if (room.X < minX)
+                {
+                    minX = room.X;
+                }
+
+                if (room.Y < minY)
+                {
+                    minY = room.Y;
+                }
+
+                if (room.X > maxX)
+                {
+                    maxX = room.X;
+                }
+
+                if (room.Y > maxY)
+                {
+                    maxY = room.Y;
+                }
             }
 
             Dictionary<(int, int), TravelDirection> mainPathDirections = new Dictionary<(int, int), TravelDirection>();
@@ -331,7 +360,9 @@ namespace DynDungeonCrawler.Engine.Classes
         private bool FindMainPathRecursive(Room currentRoom, Dictionary<(int, int), TravelDirection> path)
         {
             if (!path.ContainsKey((currentRoom.X, currentRoom.Y)))
+            {
                 path[(currentRoom.X, currentRoom.Y)] = TravelDirection.None;
+            }
 
             if (currentRoom.Type == RoomType.Exit) // Updated to use Room.Type
             {
@@ -461,33 +492,40 @@ namespace DynDungeonCrawler.Engine.Classes
         public static Dungeon LoadFromJson(string filePath, ILLMClient llmClient, ILogger logger)
         {
             if (string.IsNullOrWhiteSpace(filePath))
+            {
                 throw new ArgumentException("File path cannot be null or empty.", nameof(filePath));
+            }
+
             if (!File.Exists(filePath))
+            {
                 throw new FileNotFoundException("Dungeon JSON file not found.", filePath);
+            }
 
             ArgumentNullException.ThrowIfNull(llmClient);
             ArgumentNullException.ThrowIfNull(logger);
 
-            var json = File.ReadAllText(filePath);
-            var dungeonData = JsonSerializer.Deserialize<DungeonData>(json)
+            string json = File.ReadAllText(filePath);
+            DungeonData dungeonData = JsonSerializer.Deserialize<DungeonData>(json)
                               ?? throw new InvalidOperationException("Failed to deserialize dungeon data.");
 
             // Create the dungeon instance
-            var dungeon = new Dungeon(dungeonData.Width, dungeonData.Height, dungeonData.Theme, llmClient, logger);
+            Dungeon dungeon = new Dungeon(dungeonData.Width, dungeonData.Height, dungeonData.Theme, llmClient, logger);
 
             // Prepare grid and room list
-            var grid = dungeon.Grid;
-            var rooms = dungeon.Rooms as List<Room>;
+            Room[,] grid = dungeon.Grid;
+            List<Room>? rooms = dungeon.Rooms as List<Room>;
             if (rooms == null)
+            {
                 throw new InvalidOperationException("Dungeon.Rooms is not a List<Room>.");
+            }
 
             // Reconstruct rooms
-            foreach (var roomData in dungeonData.Rooms)
+            foreach (RoomData roomData in dungeonData.Rooms)
             {
-                var room = new Room(roomData.X, roomData.Y)
+                Room room = new Room(roomData.X, roomData.Y)
                 {
                     Id = roomData.Id,
-                    Type = Enum.TryParse<RoomType>(roomData.Type, out var type) ? type : RoomType.Normal,
+                    Type = Enum.TryParse<RoomType>(roomData.Type, out RoomType type) ? type : RoomType.Normal,
                     Description = roomData.Description ?? string.Empty,
                     ConnectedNorth = roomData.ConnectedNorth,
                     ConnectedEast = roomData.ConnectedEast,
@@ -498,11 +536,13 @@ namespace DynDungeonCrawler.Engine.Classes
                 // Reconstruct entities. Use AddEntity for validation and encapsulation
                 if (roomData.Contents is not null && roomData.Contents.Count > 0)
                 {
-                    foreach (var entityData in roomData.Contents)
+                    foreach (EntityData entityData in roomData.Contents)
                     {
-                        var entity = EntityFactory.FromEntityData(entityData);
+                        Entity? entity = EntityFactory.FromEntityData(entityData);
                         if (entity != null)
+                        {
                             room.AddEntity(entity);
+                        }
                     }
                 }
 
@@ -523,15 +563,30 @@ namespace DynDungeonCrawler.Engine.Classes
             int minX = width, minY = height, maxX = 0, maxY = 0;
             foreach (Room room in rooms)
             {
-                if (room.X < minX) minX = room.X;
-                if (room.Y < minY) minY = room.Y;
-                if (room.X > maxX) maxX = room.X;
-                if (room.Y > maxY) maxY = room.Y;
+                if (room.X < minX)
+                {
+                    minX = room.X;
+                }
+
+                if (room.Y < minY)
+                {
+                    minY = room.Y;
+                }
+
+                if (room.X > maxX)
+                {
+                    maxX = room.X;
+                }
+
+                if (room.Y > maxY)
+                {
+                    maxY = room.Y;
+                }
             }
             int mapWidth = maxX - minX + 5; // +4 for border, +1 for inclusive
             int mapHeight = maxY - minY + 5;
-            var cells = new MapCellInfo[mapWidth, mapHeight];
-            var mainPathDirections = new Dictionary<(int, int), TravelDirection>();
+            MapCellInfo[,] cells = new MapCellInfo[mapWidth, mapHeight];
+            Dictionary<(int, int), TravelDirection> mainPathDirections = new Dictionary<(int, int), TravelDirection>();
             Room? entrance = rooms.Find(r => r.Type == RoomType.Entrance);
             if (entrance != null && !showEntities)
             {
@@ -544,7 +599,7 @@ namespace DynDungeonCrawler.Engine.Classes
                     int gridX = minX - 2 + x;
                     int gridY = minY - 2 + y;
                     Room? room = (IsInBounds(gridX, gridY)) ? grid[gridX, gridY] : null;
-                    var cell = new MapCellInfo { X = gridX, Y = gridY };
+                    MapCellInfo cell = new MapCellInfo { X = gridX, Y = gridY };
                     if (room == null)
                     {
                         cell.Symbol = '.';

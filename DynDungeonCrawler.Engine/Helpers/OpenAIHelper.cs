@@ -11,7 +11,9 @@
         {
             // Validate API key
             if (string.IsNullOrWhiteSpace(apiKey) || apiKey == "your-api-key-here")
+            {
                 throw new ArgumentException("OpenAI API key is not set. Please update 'settings.json' with your actual API key.", nameof(apiKey));
+            }
 
             // Initialize fields
             _apiKey = apiKey;

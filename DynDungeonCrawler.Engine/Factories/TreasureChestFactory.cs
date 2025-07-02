@@ -69,7 +69,9 @@ namespace DynDungeonCrawler.Engine.Factories
             ArgumentNullException.ThrowIfNull(logger);
 
             if (string.IsNullOrWhiteSpace(theme))
+            {
                 throw new ArgumentException("Theme is required and cannot be null or empty.", nameof(theme));
+            }
 
             string treasureDescription = chest.ContainedTreasure?.ToString() ?? "unknown treasure";
             string lockState = chest.IsLocked ? "locked" : "unlocked";

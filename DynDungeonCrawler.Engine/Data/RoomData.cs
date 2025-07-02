@@ -24,9 +24,15 @@
         public void AddEntity(EntityData entity)
         {
             if (entity == null)
+            {
                 throw new ArgumentNullException(nameof(entity), "Entity cannot be null.");
+            }
+
             if (Contents.Any(e => e.Id == entity.Id))
+            {
                 throw new InvalidOperationException("Entity with the same ID already exists in the room.");
+            }
+
             Contents.Add(entity);
         }
 

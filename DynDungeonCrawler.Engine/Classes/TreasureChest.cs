@@ -37,7 +37,9 @@
         public void Open()
         {
             if (IsOpened)
+            {
                 throw new InvalidOperationException("Cannot open: chest is already opened.");
+            }
 
             IsOpened = true;
         }

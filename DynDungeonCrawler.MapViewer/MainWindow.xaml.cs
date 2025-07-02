@@ -45,20 +45,32 @@ public partial class MainWindow : Window
         _scrollViewerPaths = GetScrollViewer(RtbMapDisplayPaths);
         _scrollViewerEntities = GetScrollViewer(RtbMapDisplayEntities);
         if (_scrollViewerPaths != null)
+        {
             _scrollViewerPaths.ScrollChanged += ScrollViewer_ScrollChanged;
+        }
+
         if (_scrollViewerEntities != null)
+        {
             _scrollViewerEntities.ScrollChanged += ScrollViewer_ScrollChanged;
+        }
     }
 
     // Recursively search for a ScrollViewer in the visual tree
     private ScrollViewer? GetScrollViewer(DependencyObject o)
     {
-        if (o is ScrollViewer sv) return sv;
+        if (o is ScrollViewer sv)
+        {
+            return sv;
+        }
+
         for (int i = 0; i < VisualTreeHelper.GetChildrenCount(o); i++)
         {
-            var child = VisualTreeHelper.GetChild(o, i);
-            var result = GetScrollViewer(child);
-            if (result != null) return result;
+            DependencyObject child = VisualTreeHelper.GetChild(o, i);
+            ScrollViewer? result = GetScrollViewer(child);
+            if (result != null)
+            {
+                return result;
+            }
         }
         return null;
     }
@@ -66,7 +78,11 @@ public partial class MainWindow : Window
     // Synchronize vertical/horizontal scrolling between the two map views
     private void ScrollViewer_ScrollChanged(object sender, ScrollChangedEventArgs e)
     {
-        if (_syncingScroll) return;
+        if (_syncingScroll)
+        {
+            return;
+        }
+
         _syncingScroll = true;
         if (sender == _scrollViewerPaths && _scrollViewerEntities != null)
         {
@@ -84,7 +100,7 @@ public partial class MainWindow : Window
     // Handle the Load Dungeon button click
     private void BtnLoadDungeon_Click(object sender, RoutedEventArgs e)
     {
-        var dlg = new OpenFileDialog
+        OpenFileDialog dlg = new OpenFileDialog
         {
             Filter = "Dungeon JSON (*.json)|*.json|All files (*.*)|*.*",
             Title = "Open Dungeon JSON File"
@@ -94,7 +110,7 @@ public partial class MainWindow : Window
             try
             {
                 _currentFilePath = dlg.FileName;
-                var settings = Settings.Load();
+                Settings settings = Settings.Load();
                 _llmClient = new DummyLLMClient(); // No LLM needed for map display
                 _logger = new ConsoleLogger();
                 // Load the dungeon from JSON file
@@ -128,7 +144,10 @@ public partial class MainWindow : Window
     private void ShowMaps()
     {
         if (RtbMapDisplayPaths == null || RtbMapDisplayEntities == null)
+        {
             return;
+        }
+
         if (_dungeon == null)
         {
             // Show placeholder if no dungeon loaded
@@ -137,12 +156,12 @@ public partial class MainWindow : Window
             return;
         }
         // Render map (paths only)
-        var docPaths = BuildColoredMapDocument(_dungeon, false);
+        FlowDocument docPaths = BuildColoredMapDocument(_dungeon, false);
         docPaths.PageWidth = 420; // Use a smaller static value for max map width
         RtbMapDisplayPaths.Document = docPaths;
 
         // Render map (with entities)
-        var docEntities = BuildColoredMapDocument(_dungeon, true);
+        FlowDocument docEntities = BuildColoredMapDocument(_dungeon, true);
         docEntities.PageWidth = 420;
         RtbMapDisplayEntities.Document = docEntities;
     }
@@ -150,17 +169,17 @@ public partial class MainWindow : Window
     // Build a FlowDocument for the map, coloring each cell appropriately
     private static FlowDocument BuildColoredMapDocument(Dungeon dungeon, bool showEntities)
     {
-        var doc = new FlowDocument();
+        FlowDocument doc = new FlowDocument();
         doc.Background = Brushes.Black;
-        var para = new Paragraph { Margin = new Thickness(0) };
-        var cells = dungeon.GetMapCells(showEntities);
+        Paragraph para = new Paragraph { Margin = new Thickness(0) };
+        MapCellInfo[,] cells = dungeon.GetMapCells(showEntities);
         int mapWidth = cells.GetLength(0);
         int mapHeight = cells.GetLength(1);
         for (int y = 0; y < mapHeight; y++)
         {
             for (int x = 0; x < mapWidth; x++)
             {
-                var cell = cells[x, y];
+                MapCellInfo cell = cells[x, y];
                 char ch = cell.Symbol;
                 // Choose color based on cell type
                 SolidColorBrush color = cell.CellType switch
@@ -180,7 +199,7 @@ public partial class MainWindow : Window
         }
         // Add legend at the bottom
         para.Inlines.Add(new Run("\nLegend:\n") { Foreground = Brushes.White });
-        foreach (var entry in MapLegend.GetLegend(showEntities))
+        foreach (MapLegendEntry entry in MapLegend.GetLegend(showEntities))
         {
             SolidColorBrush color = entry.CellType switch
             {

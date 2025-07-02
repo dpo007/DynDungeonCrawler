@@ -88,7 +88,10 @@ Each name must:
                 {
                     // If the LLM returns more names than requested, trim the list
                     if (parsed.Count > count)
+                    {
                         parsed = parsed.Take(count).ToList();
+                    }
+
                     return parsed;
                 }
                 else
@@ -147,7 +150,9 @@ Each name must:
 
             // If fewer than defaults requested, return the available names
             if (count <= defaults.Count)
+            {
                 return defaults.Take(count).ToList();
+            }
 
             // If more than defaults requested, repeat as needed
             List<string> result = new List<string>();
@@ -173,9 +178,14 @@ Each name must:
             ArgumentNullException.ThrowIfNull(logger);
 
             if (enemyNames == null || enemyNames.Count == 0)
+            {
                 throw new ArgumentException("Enemy names list cannot be null or empty.", nameof(enemyNames));
+            }
+
             if (string.IsNullOrWhiteSpace(theme))
+            {
                 throw new ArgumentException("Theme is required and cannot be null or empty.", nameof(theme));
+            }
 
             string namesJson = JsonSerializer.Serialize(enemyNames);
             string userPrompt = $@"Given the following list of enemy names and the dungeon theme '{theme}', generate for each enemy:
@@ -201,14 +211,17 @@ Return a JSON object where each key is the enemy name and the value is an object
 
             try
             {
-                var dict = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(response);
+                Dictionary<string, JsonElement>? dict = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(response);
                 if (dict == null || dict.Count == 0)
+                {
                     throw new Exception("No descriptions returned.");
-                var result = new Dictionary<string, (string, string)>();
-                foreach (var kvp in dict)
+                }
+
+                Dictionary<string, (string, string)> result = new Dictionary<string, (string, string)>();
+                foreach (KeyValuePair<string, JsonElement> kvp in dict)
                 {
                     string desc = kvp.Value.GetProperty("description").GetString() ?? "A mysterious enemy.";
-                    string shortDesc = kvp.Value.TryGetProperty("shortDescription", out var sdesc) ? sdesc.GetString() ?? "A mysterious enemy." : "A mysterious enemy.";
+                    string shortDesc = kvp.Value.TryGetProperty("shortDescription", out JsonElement sdesc) ? sdesc.GetString() ?? "A mysterious enemy." : "A mysterious enemy.";
                     result[kvp.Key] = (desc, shortDesc);
                 }
                 return result;
@@ -267,13 +280,13 @@ Return a JSON object where each key is the enemy name and the value is an object
             List<EnemyTypeInfo> enemyTypeList = new List<EnemyTypeInfo>(names.Count);
 
             // Generate descriptions for all enemy names in a single batch LLM call for efficiency
-            var descriptions = await GenerateEnemyDescriptionsAsync(names, theme, llmClient, logger);
+            Dictionary<string, (string Description, string ShortDescription)> descriptions = await GenerateEnemyDescriptionsAsync(names, theme, llmClient, logger);
 
             // For each generated enemy name, pair it with its description (or a fallback if missing),
             // and add the result to the list as an EnemyTypeInfo object
             foreach (string name in names)
             {
-                (string description, string shortDescription) = descriptions.TryGetValue(name, out var descs)
+                (string description, string shortDescription) = descriptions.TryGetValue(name, out (string Description, string ShortDescription) descs)
                     ? descs
                     : ("A mysterious enemy.", "A mysterious enemy.");
                 enemyTypeList.Add(new EnemyTypeInfo(name, description, shortDescription));

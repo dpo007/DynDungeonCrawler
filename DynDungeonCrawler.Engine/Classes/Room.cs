@@ -32,12 +32,21 @@ namespace DynDungeonCrawler.Engine.Classes
         public Room(int x, int y, RoomType type)
         {
             // Validate coordinates
-            if (x < 0) throw new ArgumentOutOfRangeException(nameof(x), "X must be ≥ 0.");
-            if (y < 0) throw new ArgumentOutOfRangeException(nameof(y), "Y must be ≥ 0.");
+            if (x < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(x), "X must be ≥ 0.");
+            }
+
+            if (y < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(y), "Y must be ≥ 0.");
+            }
 
             // Validate RoomType
             if (!Enum.IsDefined(type))
+            {
                 throw new ArgumentOutOfRangeException(nameof(type), "Invalid RoomType value.");
+            }
 
             Id = Guid.NewGuid();
             X = x;
@@ -63,7 +72,10 @@ namespace DynDungeonCrawler.Engine.Classes
             lock (_contentsLock)
             {
                 if (Contents.Any(e => e.Id == entity.Id))
+                {
                     throw new InvalidOperationException("Entity with the same ID already exists in the room.");
+                }
+
                 Contents.Add(entity);
             }
         }
@@ -94,7 +106,11 @@ namespace DynDungeonCrawler.Engine.Classes
         /// <returns>True if the Entity was found and removed; otherwise, false.</returns>
         public bool RemoveEntity(Entity entity)
         {
-            if (entity == null) return false;
+            if (entity == null)
+            {
+                return false;
+            }
+
             lock (_contentsLock)
             {
                 return Contents.Remove(entity);
@@ -111,33 +127,45 @@ namespace DynDungeonCrawler.Engine.Classes
         /// <returns>A list of directly accessible neighbouring rooms.</returns>
         public List<Room> GetAccessibleNeighbours(Room[,] grid)
         {
-            var neighbours = new List<Room>();
+            List<Room> neighbours = new List<Room>();
             int width = grid.GetLength(0);
             int height = grid.GetLength(1);
 
             // North
             if (ConnectedNorth && Y > 0)
             {
-                var north = grid[X, Y - 1];
-                if (north != null) neighbours.Add(north);
+                Room north = grid[X, Y - 1];
+                if (north != null)
+                {
+                    neighbours.Add(north);
+                }
             }
             // East
             if (ConnectedEast && X < width - 1)
             {
-                var east = grid[X + 1, Y];
-                if (east != null) neighbours.Add(east);
+                Room east = grid[X + 1, Y];
+                if (east != null)
+                {
+                    neighbours.Add(east);
+                }
             }
             // South
             if (ConnectedSouth && Y < height - 1)
             {
-                var south = grid[X, Y + 1];
-                if (south != null) neighbours.Add(south);
+                Room south = grid[X, Y + 1];
+                if (south != null)
+                {
+                    neighbours.Add(south);
+                }
             }
             // West
             if (ConnectedWest && X > 0)
             {
-                var west = grid[X - 1, Y];
-                if (west != null) neighbours.Add(west);
+                Room west = grid[X - 1, Y];
+                if (west != null)
+                {
+                    neighbours.Add(west);
+                }
             }
 
             return neighbours;
@@ -261,7 +289,9 @@ Do not change the IDs or exits. Only return valid JSON, with no markdown formatt
             }
 
             if (doc == null)
+            {
                 throw new InvalidOperationException("Failed to parse LLM response after retries.");
+            }
 
             using (doc)
             {
