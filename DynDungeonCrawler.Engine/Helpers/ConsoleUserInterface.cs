@@ -22,7 +22,7 @@ namespace DynDungeonCrawler.Engine.Helpers
                 width = 80; // Fallback if not available
             }
 
-            if (!string.IsNullOrEmpty(text))
+            if (!string.IsNullOrWhiteSpace(text))
             {
                 // Remove any newlines from text
                 text = text.Replace(Environment.NewLine, " ");
