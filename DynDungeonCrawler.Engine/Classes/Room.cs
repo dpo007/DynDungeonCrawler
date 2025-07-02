@@ -17,6 +17,7 @@ namespace DynDungeonCrawler.Engine.Classes
         public int Y { get; set; }            // Grid Y coordinate
         public RoomType Type { get; set; }    // Type of room
         public string Description { get; set; } = string.Empty;
+        private readonly object _contentsLock = new();
         public List<Entity> Contents { get; } = new();
 
         // Room connection flags
@@ -59,9 +60,12 @@ namespace DynDungeonCrawler.Engine.Classes
         public void AddEntity(Entity entity)
         {
             ArgumentNullException.ThrowIfNull(entity);
-            if (Contents.Any(e => e.Id == entity.Id))
-                throw new InvalidOperationException("Entity with the same ID already exists in the room.");
-            Contents.Add(entity);
+            lock (_contentsLock)
+            {
+                if (Contents.Any(e => e.Id == entity.Id))
+                    throw new InvalidOperationException("Entity with the same ID already exists in the room.");
+                Contents.Add(entity);
+            }
         }
 
         /// <summary>
@@ -71,13 +75,16 @@ namespace DynDungeonCrawler.Engine.Classes
         /// <returns>True if the Entity was found and removed; otherwise, false.</returns>
         public bool RemoveEntityById(Guid entityId)
         {
-            Entity? entity = Contents.FirstOrDefault(e => e.Id == entityId);
-            if (entity != null)
+            lock (_contentsLock)
             {
-                Contents.Remove(entity);
-                return true;
+                Entity? entity = Contents.FirstOrDefault(e => e.Id == entityId);
+                if (entity != null)
+                {
+                    Contents.Remove(entity);
+                    return true;
+                }
+                return false;
             }
-            return false;
         }
 
         /// <summary>
@@ -88,7 +95,10 @@ namespace DynDungeonCrawler.Engine.Classes
         public bool RemoveEntity(Entity entity)
         {
             if (entity == null) return false;
-            return Contents.Remove(entity);
+            lock (_contentsLock)
+            {
+                return Contents.Remove(entity);
+            }
         }
 
         /// <summary>

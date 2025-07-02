@@ -232,7 +232,7 @@ namespace DynDungeonCrawler.GeneratorApp.Utilities
             // Generate a list of enemy types based on the dungeon theme
             var enemyTypes = await EnemyFactory.GenerateEnemyTypesAsync(theme, llmClient, logger);
 
-            foreach (Room room in rooms)
+            Parallel.ForEach(rooms, room =>
             {
                 // Only populate normal rooms (not entrance/exit)
                 if (room.Type == RoomType.Normal)
@@ -243,7 +243,7 @@ namespace DynDungeonCrawler.GeneratorApp.Utilities
                     if (roll < 0.1)
                     {
                         bool isLocked = random.NextDouble() < 0.3; // 30% of chests are locked
-                        room.Contents.Add(TreasureChestFactory.CreateTreasureChest(isLocked: isLocked));
+                        room.AddEntity(TreasureChestFactory.CreateTreasureChest(isLocked: isLocked));
 
                         logger.Log($"Treasure chest added to room at ({room.X}, {room.Y}) -  {(isLocked ? "Locked" : "Unlocked")}.");
                     }
@@ -253,12 +253,12 @@ namespace DynDungeonCrawler.GeneratorApp.Utilities
                         // Pick a random enemy type from the master list
                         var enemyType = enemyTypes[random.Next(enemyTypes.Count)];
                         var enemy = EnemyFactory.CreateEnemy(enemyType.Name, enemyType.Description, enemyType.ShortDescription, theme);
-                        room.Contents.Add(enemy);
+                        room.AddEntity(enemy);
 
                         logger.Log($"Enemy '{enemy.Name}' added to room at ({room.X}, {room.Y}).");
                     }
                 }
-            }
+            });
         }
     }
 }
