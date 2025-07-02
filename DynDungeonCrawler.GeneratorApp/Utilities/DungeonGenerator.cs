@@ -230,19 +230,24 @@ namespace DynDungeonCrawler.GeneratorApp.Utilities
             Random random)
         {
             // Generate a list of enemy types based on the dungeon theme
-            var enemyTypes = await EnemyFactory.GenerateEnemyTypesAsync(theme, llmClient, logger);
+            List<EnemyTypeInfo> enemyTypes = await EnemyFactory.GenerateEnemyTypesAsync(theme, llmClient, logger);
+
+            // Use a thread-local Random instance to avoid contention in parallel processing
+            ThreadLocal<Random> threadLocalRandom = new ThreadLocal<Random>(() => new Random(Guid.NewGuid().GetHashCode()));
 
             Parallel.ForEach(rooms, room =>
             {
+                Random localRandom = threadLocalRandom.Value!;
+
                 // Only populate normal rooms (not entrance/exit)
                 if (room.Type == RoomType.Normal)
                 {
-                    double roll = random.NextDouble();
+                    double roll = localRandom.NextDouble();
 
                     // 10% chance to add a treasure chest (possibly locked)
                     if (roll < 0.1)
                     {
-                        bool isLocked = random.NextDouble() < 0.3; // 30% of chests are locked
+                        bool isLocked = localRandom.NextDouble() < 0.3; // 30% of chests are locked
                         room.AddEntity(TreasureChestFactory.CreateTreasureChest(isLocked: isLocked));
 
                         logger.Log($"Treasure chest added to room at ({room.X}, {room.Y}) -  {(isLocked ? "Locked" : "Unlocked")}.");
@@ -251,7 +256,7 @@ namespace DynDungeonCrawler.GeneratorApp.Utilities
                     else if (roll < 0.2)
                     {
                         // Pick a random enemy type from the master list
-                        var enemyType = enemyTypes[random.Next(enemyTypes.Count)];
+                        var enemyType = enemyTypes[localRandom.Next(enemyTypes.Count)];
                         var enemy = EnemyFactory.CreateEnemy(enemyType.Name, enemyType.Description, enemyType.ShortDescription, theme);
                         room.AddEntity(enemy);
 
