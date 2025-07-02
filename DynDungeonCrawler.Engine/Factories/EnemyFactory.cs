@@ -2,7 +2,7 @@ using DynDungeonCrawler.Engine.Classes;
 using DynDungeonCrawler.Engine.Interfaces;
 using System.Text.Json;
 
-namespace DynDungeonCrawler.GeneratorApp.Factories
+namespace DynDungeonCrawler.Engine.Factories
 {
     public static class EnemyFactory
     {
@@ -208,7 +208,7 @@ Return a JSON object where each key is the enemy name and the value is an object
                 foreach (var kvp in dict)
                 {
                     string desc = kvp.Value.GetProperty("description").GetString() ?? "A mysterious enemy.";
-                    string shortDesc = kvp.Value.TryGetProperty("shortDescription", out var sdesc) ? (sdesc.GetString() ?? "A mysterious enemy.") : "A mysterious enemy.";
+                    string shortDesc = kvp.Value.TryGetProperty("shortDescription", out var sdesc) ? sdesc.GetString() ?? "A mysterious enemy." : "A mysterious enemy.";
                     result[kvp.Key] = (desc, shortDesc);
                 }
                 return result;
