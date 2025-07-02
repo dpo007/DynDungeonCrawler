@@ -17,15 +17,19 @@ public partial class MainWindow : Window
 {
     // The currently loaded dungeon instance
     private Dungeon? _dungeon;
+
     // Logger for diagnostic output (console only in viewer)
     private ILogger _logger = new ConsoleLogger();
+
     // Dummy LLM client (no LLM calls needed for map viewing)
     private ILLMClient _llmClient = new DummyLLMClient();
+
     // Path to the currently loaded dungeon file
     private string? _currentFilePath;
 
     // ScrollViewers for map display RichTextBoxes (for synchronized scrolling)
     private ScrollViewer? _scrollViewerPaths;
+
     private ScrollViewer? _scrollViewerEntities;
     private bool _syncingScroll = false; // Prevents recursive scroll events
 

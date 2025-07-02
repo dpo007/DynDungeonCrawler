@@ -1,7 +1,7 @@
 using DynDungeonCrawler.Engine.Classes;
 using DynDungeonCrawler.Engine.Interfaces;
 
-namespace DynDungeonCrawler.GeneratorApp.Factories
+namespace DynDungeonCrawler.Engine.Factories
 {
     public static class TreasureChestFactory
     {
@@ -49,15 +49,20 @@ namespace DynDungeonCrawler.GeneratorApp.Factories
         }
 
         /// <summary>
-        /// Asynchronously generates a description for a treasure chest based on its contents and the dungeon theme.
+        /// Asynchronously generates a description for a treasure chest based on its contents, the dungeon theme, and optionally the room description.
         /// </summary>
         /// <param name="chest">The treasure chest to describe.</param>
         /// <param name="theme">The theme of the dungeon.</param>
         /// <param name="llmClient">The LLM client instance to use for generation.</param>
         /// <param name="logger">The logger instance to use for warnings and errors.</param>
+        /// <param name="roomDescription">Optional description of the room where the chest is located.</param>
         /// <returns>A Task representing the asynchronous operation, containing the generated description as a string.</returns>
         public static async Task<string> GenerateChestDescriptionAsync(
-            TreasureChest chest, string theme, ILLMClient llmClient, ILogger logger)
+            TreasureChest chest,
+            string theme,
+            ILLMClient llmClient,
+            ILogger logger,
+            string? roomDescription = null)
         {
             ArgumentNullException.ThrowIfNull(chest);
             ArgumentNullException.ThrowIfNull(llmClient);
@@ -69,7 +74,35 @@ namespace DynDungeonCrawler.GeneratorApp.Factories
             string treasureDescription = chest.ContainedTreasure?.ToString() ?? "unknown treasure";
             string lockState = chest.IsLocked ? "locked" : "unlocked";
 
-            string userPrompt = $@"
+            string userPrompt;
+
+            if (!string.IsNullOrWhiteSpace(roomDescription))
+            {
+                userPrompt = $@"
+You are an expert fantasy game designer helping build immersive dungeon content.
+
+The following is a description of the room where the treasure chest is found:
+---
+{roomDescription}
+---
+
+Now, generate a vivid and engaging description of a treasure chest that fits naturally within this room.
+The chest's description should match the room's atmosphere, style, and details, and fit the overall dungeon theme.
+
+Chest details:
+- Contains: {treasureDescription}
+- Lock state: {lockState}
+- Dungeon theme: {theme}
+
+Your description should be flavorful, atmospheric, and game-appropriate (no more than 3-4 sentences).
+Focus on the appearance, material, age, and condition of the chest. Do not explicitly state the contents
+or whether it's locked - that will be revealed through gameplay.
+
+Respond only with the description. Return only plain text, don't use markdown.";
+            }
+            else
+            {
+                userPrompt = $@"
 You are an expert fantasy game designer helping build immersive dungeon content.
 
 Generate a vivid and engaging description of a treasure chest for a dungeon crawler game.
@@ -85,8 +118,10 @@ Focus on the appearance, material, age, and condition of the chest. Don't explic
 or whether it's locked - that will be revealed through gameplay.
 
 Respond only with the description. Return only plain text, don't use markdown.";
+            }
 
-            logger.Log($"Generating description for treasure chest containing {treasureDescription}");
+            logger.Log($"Generating description for treasure chest containing {treasureDescription}" +
+                (roomDescription != null ? " (room context provided)" : ""));
 
             string response = await llmClient.GetResponseAsync(userPrompt);
 

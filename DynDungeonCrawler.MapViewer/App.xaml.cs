@@ -1,6 +1,4 @@
-﻿using System.Configuration;
-using System.Data;
-using System.Windows;
+﻿using System.Windows;
 
 namespace DynDungeonCrawler.MapViewer;
 
@@ -10,4 +8,3 @@ namespace DynDungeonCrawler.MapViewer;
 public partial class App : Application
 {
 }
-

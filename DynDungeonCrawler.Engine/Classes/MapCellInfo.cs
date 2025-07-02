@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace DynDungeonCrawler.Engine.Classes
 {
     public enum MapCellType

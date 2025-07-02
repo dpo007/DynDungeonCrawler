@@ -1,5 +1,6 @@
 ﻿using DynDungeonCrawler.Engine.Classes;
 using DynDungeonCrawler.Engine.Constants;
+using DynDungeonCrawler.Engine.Factories;
 using DynDungeonCrawler.Engine.Interfaces;
 using DynDungeonCrawler.GeneratorApp.Factories;
 
