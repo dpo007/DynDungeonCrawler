@@ -86,12 +86,12 @@ The engine is highly configurable, supports multiple LLM providers, and features
 | `Constants/`     | Default values for dungeon generation and LLM prompts (`DungeonDefaults`, `LLMDefaults`)|
 | `Interfaces/`    | `ILLMClient`, `ILogger` interfaces for AI and logging abstraction                       |
 | `Helpers/`       | Logging and LLM integration helpers (e.g., `ConsoleLogger`, `FileLogger`, `LLMClientBase`) |
+| `Factories/`     | Entity factories (e.g., `TreasureChestFactory`, `EnemyFactory`)                         |
 
 **DynDungeonCrawler.GeneratorApp Project Folders**:
 
 | Folder           | Purpose                                                                                  |
 |:-----------------|:----------------------------------------------------------------------------------------|
-| `Factories/`     | Factories for generating enemies and treasure chests                                    |
 | `Utilities/`     | Utility classes for dungeon generation and app logic                                    |
 
 ---
