@@ -138,6 +138,7 @@ namespace DynDungeonCrawler.ConDungeon
 
                     ui.WriteLine(player.CurrentRoom.Description ?? "[dim]You have reached the exit.  Not much to see, but...[/]");
 
+                    ui.WriteLine();
                     ui.WriteLine("[bold]Congratulations![/] You have found the exit and escaped the dungeon!");
                     break;
                 }
