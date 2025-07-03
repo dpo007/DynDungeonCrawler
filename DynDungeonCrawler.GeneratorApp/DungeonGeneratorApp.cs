@@ -42,7 +42,7 @@ namespace DynDungeonCrawler.GeneratorApp
 
             // Initialize the dungeon with the specified theme
             Console.WriteLine($"Initializing dungeon with theme: {dungeonTheme}");
-            Dungeon dungeon = await DungeonGenerator.GenerateDungeon(
+            Dungeon dungeon = await DungeonGeneration.GenerateDungeon(
                 DungeonDefaults.MaxDungeonWidth,
                 DungeonDefaults.MaxDungeonHeight,
                 dungeonTheme,
@@ -51,7 +51,7 @@ namespace DynDungeonCrawler.GeneratorApp
 
             // Populate rooms with treasure chests and enemies
             Console.WriteLine("Populating rooms with treasure and enemies...");
-            await DungeonGenerator.PopulateRoomContentsAsync(
+            await DungeonGeneration.PopulateRoomContentsAsync(
                   dungeon.Rooms.ToList(),
                   dungeonTheme,
                   llmClient,

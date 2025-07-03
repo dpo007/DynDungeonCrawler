@@ -5,7 +5,7 @@ using DynDungeonCrawler.Engine.Interfaces;
 
 namespace DynDungeonCrawler.GeneratorApp.Utilities
 {
-    public static class DungeonGenerator
+    public static class DungeonGeneration
     {
         /// <summary>
         /// Asynchronously generates a new dungeon with a main path, side branches, and AI-generated room descriptions.
