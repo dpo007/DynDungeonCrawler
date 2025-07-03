@@ -9,13 +9,27 @@ namespace DynDungeonCrawler.ConDungeon
     {
         private static void Main(string[] args)
         {
-            (IUserInterface ui, ILogger logger, ILLMClient llmClient, Dungeon dungeon, Adventurer player) = InitializeGame();
+            // Capture the nullable tuple
+            (IUserInterface? ui, ILogger? logger, ILLMClient? llmClient, Dungeon? dungeon, Adventurer? player) init = InitializeGame();
 
-            if (ui == null || logger == null || llmClient == null || dungeon == null || player == null)
+            // Bail out if any element is null
+            if (init.ui == null ||
+                init.logger == null ||
+                init.llmClient == null ||
+                init.dungeon == null ||
+                init.player == null)
             {
                 return;
             }
 
+            // Safe to deconstruct into non-nullable locals
+            (IUserInterface ui,
+             ILogger logger,
+             ILLMClient llmClient,
+             Dungeon dungeon,
+             Adventurer player) = init;
+
+            // Start the game loop
             GameLoop(ui, logger, llmClient, dungeon, player);
         }
 
