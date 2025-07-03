@@ -33,6 +33,15 @@ namespace DynDungeonCrawler.ConDungeon
             GameLoop(ui, logger, llmClient, dungeon, player);
         }
 
+        /// <summary>
+        /// Initializes the game by setting up the user interface, logger, LLM client, dungeon, and player.
+        /// Prompts the user for required information and loads the dungeon from a JSON file.
+        /// If initialization fails (e.g., missing API key), returns a tuple of nulls to signal failure.
+        /// </summary>
+        /// <returns>
+        /// A tuple containing the initialized user interface, logger, LLM client, dungeon, and player.
+        /// Any element may be null if initialization fails.
+        /// </returns>
         private static (IUserInterface? ui, ILogger? logger, ILLMClient? llmClient, Dungeon? dungeon, Adventurer? player) InitializeGame()
         {
             IUserInterface ui = new SpectreConsoleUserInterface();
