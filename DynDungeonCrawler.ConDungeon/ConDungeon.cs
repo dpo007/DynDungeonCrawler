@@ -99,6 +99,15 @@ namespace DynDungeonCrawler.ConDungeon
             return (ui, logger, llmClient, dungeon, player);
         }
 
+        /// <summary>
+        /// Runs the main game loop, handling player input and game state updates
+        /// until the player either exits, dies, or reaches the exit room.
+        /// </summary>
+        /// <param name="ui">The user interface for input/output interactions.</param>
+        /// <param name="logger">Logger for diagnostic and debug messages.</param>
+        /// <param name="llmClient">AI client for generating descriptions as needed.</param>
+        /// <param name="dungeon">The Dungeon instance containing rooms and state.</param>
+        /// <param name="player">The Adventurer representing the player.</param>
         private static void GameLoop(
             IUserInterface ui,
             ILogger logger,
@@ -137,6 +146,12 @@ namespace DynDungeonCrawler.ConDungeon
             }
         }
 
+        /// <summary>
+        /// Displays the current room's description and contents to the user interface.
+        /// If the player's current room is null, an error message is shown instead.
+        /// </summary>
+        /// <param name="ui">The user interface used for output.</param>
+        /// <param name="player">The adventurer whose current room will be displayed.</param>
         private static void DrawRoom(IUserInterface ui, Adventurer player)
         {
             if (player.CurrentRoom == null)
@@ -183,6 +198,13 @@ namespace DynDungeonCrawler.ConDungeon
             ui.WriteLine();
         }
 
+        /// <summary>
+        /// Returns a list of available movement directions from the specified room,
+        /// based on which exits are connected. Each direction is represented as a
+        /// single uppercase letter: "N" (north), "E" (east), "S" (south), or "W" (west).
+        /// </summary>
+        /// <param name="room">The room to check for available exits.</param>
+        /// <returns>A list of direction strings indicating which exits are available from the room.</returns>
         private static List<string> GetAvailableDirections(Room room)
         {
             List<string> directions = new();
@@ -209,6 +231,13 @@ namespace DynDungeonCrawler.ConDungeon
             return directions;
         }
 
+        /// <summary>
+        /// Prompts the user for a command and reads a key input, validating it against the available movement directions
+        /// and other valid commands (look, inventory, exit). Displays the chosen command in the UI.
+        /// </summary>
+        /// <param name="ui">The user interface used for input and output.</param>
+        /// <param name="directions">A list of valid movement directions (e.g., "N", "E", "S", "W").</param>
+        /// <returns>The character representing the user's chosen command, in lowercase.</returns>
         private static char HandleInput(IUserInterface ui, List<string> directions)
         {
             string directionsPrompt = directions.Count > 0 ? string.Join("[dim]/[/]", directions) : "";
@@ -231,6 +260,21 @@ namespace DynDungeonCrawler.ConDungeon
             return cmdChar;
         }
 
+        /// <summary>
+        /// Processes the player's command input, updating game state and handling actions such as movement,
+        /// looking around, viewing inventory, or exiting the game. Also manages invalid commands and ensures
+        /// the player's current room is valid before executing actions.
+        /// </summary>
+        /// <param name="cmdChar">The character representing the player's chosen command.</param>
+        /// <param name="ui">The user interface for input and output interactions.</param>
+        /// <param name="logger">Logger for diagnostic and debug messages.</param>
+        /// <param name="llmClient">AI client for generating room descriptions as needed.</param>
+        /// <param name="dungeon">The Dungeon instance containing rooms and state.</param>
+        /// <param name="player">The Adventurer representing the player.</param>
+        /// <param name="directions">A list of valid movement directions (e.g., "N", "E", "S", "W").</param>
+        /// <returns>
+        /// True to continue the game loop; false to exit the game loop (e.g., when the player chooses to exit).
+        /// </returns>
         private static bool ProcessCommand(
             char cmdChar,
             IUserInterface ui,
