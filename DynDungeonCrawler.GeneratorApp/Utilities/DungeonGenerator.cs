@@ -116,6 +116,25 @@ namespace DynDungeonCrawler.GeneratorApp.Utilities
             return dungeon;
         }
 
+        /// <summary>
+        /// Creates a primary branching path in the dungeon.
+        /// </summary>
+        /// <param name="grid">2D grid representing the dungeon layout.</param>
+        /// <param name="dungeon">The Dungeon instance holding all rooms.</param>
+        /// <param name="random">Random generator for decision making.</param>
+        /// <param name="log">Action for logging messages (unused in current logic).</param>
+        /// <param name="getAvailableDirections">
+        /// Function that, given a room, returns a list of possible directions
+        /// along with the corresponding exit setters.
+        /// </param>
+        /// <param name="createBranchPathFrom">
+        /// Action to recursively create a sub-branch from the current room
+        /// with a certain probability.
+        /// </param>
+        /// <param name="tryCreateLoop">
+        /// Action to attempt creating a loop back into an existing path
+        /// at the end of the branch with a certain probability.
+        /// </param>
         private static void CreateBranchPath(
             Room[,] grid,
             Dungeon dungeon,
@@ -187,6 +206,17 @@ namespace DynDungeonCrawler.GeneratorApp.Utilities
             }
         }
 
+        /// <summary>
+        /// Creates a sub-branch path starting from the specified room.
+        /// </summary>
+        /// <param name="startRoom">The room from which to start the sub-branch.</param>
+        /// <param name="grid">2D grid representing the dungeon layout.</param>
+        /// <param name="dungeon">The Dungeon instance holding all rooms.</param>
+        /// <param name="random">Random generator for decision making.</param>
+        /// <param name="getAvailableDirections">
+        /// Function that, given a room, returns a list of possible directions
+        /// along with the corresponding exit setters.
+        /// </param>
         private static void CreateBranchPathFrom(
             Room startRoom,
             Room[,] grid,
