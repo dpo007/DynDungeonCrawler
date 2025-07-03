@@ -134,6 +134,10 @@ namespace DynDungeonCrawler.ConDungeon
                 }
                 if (player.CurrentRoom?.Type == RoomType.Exit)
                 {
+                    ui.Clear();
+
+                    ui.WriteLine(player.CurrentRoom.Description ?? "[dim]You have reached the exit.[/]");
+
                     ui.WriteLine("Congratulations! You have found the exit and escaped the dungeon!");
                     break;
                 }
@@ -335,6 +339,7 @@ namespace DynDungeonCrawler.ConDungeon
                     {
                         HashSet<Room> roomsToProcess = new HashSet<Room> { nextRoom };
                         List<Room> firstLevel = nextRoom.GetAccessibleNeighbours(dungeon.Grid);
+
                         foreach (Room neighbor in firstLevel)
                         {
                             roomsToProcess.Add(neighbor);
@@ -348,7 +353,9 @@ namespace DynDungeonCrawler.ConDungeon
                                 roomsToProcess.Add(secondNeighbor);
                             }
                         }
-                        Room.GenerateRoomDescriptionsAsync(roomsToProcess.ToList(), dungeon.Theme, llmClient, logger).GetAwaiter().GetResult();
+
+                        // Generate descriptions for the next room and its neighbors
+                        RoomDescriptionGenerator.GenerateRoomDescriptionsAsync(roomsToProcess.ToList(), dungeon.Theme, llmClient, logger).GetAwaiter().GetResult();
                     }
                     player.CurrentRoom = nextRoom;
                     player.VisitedRoomIds.Add(nextRoom.Id);

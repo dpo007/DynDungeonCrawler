@@ -1,6 +1,7 @@
 ﻿using DynDungeonCrawler.Engine.Classes;
 using DynDungeonCrawler.Engine.Constants;
 using DynDungeonCrawler.Engine.Factories;
+using DynDungeonCrawler.Engine.Helpers;
 using DynDungeonCrawler.Engine.Interfaces;
 
 namespace DynDungeonCrawler.GeneratorApp.Utilities
@@ -113,13 +114,21 @@ namespace DynDungeonCrawler.GeneratorApp.Utilities
                 );
             }
 
-            // Generate a description for the entrance room (async)
-            await Room.GenerateRoomDescriptionsAsync(
-                new List<Room> { entrance },
-                theme,
-                llmClient,
-                logger
-            );
+            // Generate a description for the Entrance and Exit rooms
+            if (roomStack.Count > 0) // Ensure exitRoom exists in the current context
+            {
+                // Retrieve the exitRoom from the stack
+                Room exitRoom = roomStack.Peek();
+
+                // Generate descriptions for the entrance and exit rooms
+                logger.Log("Generating room descriptions for Entrance and Exit...");
+                await RoomDescriptionGenerator.GenerateRoomDescriptionsAsync(
+                    new List<Room> { entrance, exitRoom },
+                    theme,
+                    llmClient,
+                    logger
+                );
+            }
 
             // Return the generated dungeon
             return dungeon;
