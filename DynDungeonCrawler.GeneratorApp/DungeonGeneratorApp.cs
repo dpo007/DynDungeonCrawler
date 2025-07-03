@@ -15,14 +15,29 @@ namespace DynDungeonCrawler.GeneratorApp
             Settings settings = Settings.Load();
 
             // Initialize logging
-            ILogger logger = new ConsoleLogger();
+            ILogger logger;
+            if (!string.IsNullOrWhiteSpace(settings.LogFilePath))
+            {
+                logger = new FileLogger(settings.LogFilePath);
+            }
+            else
+            {
+                logger = new ConsoleLogger();
+            }
 
             // Create LLM client with shared HttpClient
             HttpClient httpClient = new HttpClient();
             ILLMClient llmClient;
             try
             {
-                llmClient = new OpenAIHelper(httpClient, settings.OpenAIApiKey);
+                switch ((settings.LLMProvider ?? "OpenAI").ToLowerInvariant())
+                {
+                    case "openai":
+                    default:
+                        llmClient = new OpenAIHelper(httpClient, settings.OpenAIApiKey);
+                        break;
+                        // Add other providers here as needed (e.g., Azure, Ollama)
+                }
             }
             catch (ArgumentException ex)
             {
@@ -66,9 +81,8 @@ namespace DynDungeonCrawler.GeneratorApp
             dungeon.PrintDungeonMap(showEntities: true); // Detailed view: showing treasure and enemies
 
             // Export dungeon (rooms + entities) to JSON
-            string exportFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DungeonExports");
-            Directory.CreateDirectory(exportFolder);
-            string exportPath = Path.Combine(exportFolder, "MyDungeon.json");
+            string exportPath = settings.DungeonFilePath ?? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DungeonExports", "MyDungeon.json");
+            Directory.CreateDirectory(Path.GetDirectoryName(exportPath)!);
             dungeon.SaveToJson(exportPath);
 
             Console.WriteLine($"\nDungeon saved to {exportPath}");

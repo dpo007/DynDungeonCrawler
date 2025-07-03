@@ -4,6 +4,13 @@ namespace DynDungeonCrawler.Engine.Configuration
 {
     public class Settings
     {
+        // General settings
+        public string LogFilePath { get; set; } = "C://temp//ConDungeon.log";
+
+        public string DungeonFilePath { get; set; } = "DungeonExports/MyDungeon.json";
+
+        public string LLMProvider { get; set; } = "OpenAI"; // e.g., OpenAI, Azure, Ollama
+
         // OpenAI API settings
         public string OpenAIApiKey { get; set; } = "your-api-key-here";
 

@@ -59,10 +59,19 @@ namespace DynDungeonCrawler.ConDungeon
                 return (null, null, null, null, null);
             }
 
-            ILogger logger = new FileLogger(@"C:\temp\ConDungeon.log");
-            ILLMClient llmClient = new OpenAIHelper(new HttpClient(), settings.OpenAIApiKey);
+            ILogger logger = new FileLogger(settings.LogFilePath ?? @"C:\temp\ConDungeon.log");
 
-            string filePath = "DungeonExports/MyDungeon.json";
+            ILLMClient llmClient;
+            switch ((settings.LLMProvider ?? "OpenAI").ToLowerInvariant())
+            {
+                case "openai":
+                default:
+                    llmClient = new OpenAIHelper(new HttpClient(), settings.OpenAIApiKey);
+                    break;
+                    // Add other providers here as needed (e.g., Azure, Ollama)
+            }
+
+            string filePath = settings.DungeonFilePath ?? "DungeonExports/MyDungeon.json";
             Dungeon dungeon = Dungeon.LoadFromJson(filePath, llmClient, logger);
             ui.WriteLine("[dim]Dungeon loaded successfully.[/]");
             ui.WriteLine($"Dungeon Theme: \"[white]{dungeon.Theme}[/]\"");
@@ -112,7 +121,7 @@ namespace DynDungeonCrawler.ConDungeon
         }
 
         /// <summary>
-        /// Asynchronously runs the main game loop, handling player input and game state updates
+        /// Runs the main game loop, handling player input and game state updates
         /// until the player either exits, dies, or reaches the exit room.
         /// </summary>
         /// <param name="ui">The user interface for input/output interactions.</param>

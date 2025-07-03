@@ -57,6 +57,11 @@ The engine is highly configurable, supports multiple LLM providers, and features
 
 - **Settings and Configuration**
   - `settings.json` manages API keys, LLM provider selection (OpenAI, Azure OpenAI, Ollama), and global settings
+  - Includes:
+    - `OpenAIApiKey`, `AzureOpenAIApiKey`, `AzureOpenAIEndpoint`, `AzureOpenAIDeployment`
+    - `LogFilePath`: Path to the log file for file-based logging
+    - `DungeonFilePath`: Default path to the dungeon JSON file
+    - `LLMProvider`: Selects the LLM provider (e.g., OpenAI, Azure, Ollama)
   - Auto-generates a default settings file if missing
   - Validates LLM configuration and alerts if missing or incomplete
 
