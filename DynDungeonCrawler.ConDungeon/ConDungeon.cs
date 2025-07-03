@@ -332,9 +332,16 @@ namespace DynDungeonCrawler.ConDungeon
             else if (cmdChar == 'i')
             {
                 ui.WriteLine("Your inventory contains:");
-                foreach (Entity item in player.Inventory)
+                if (player.Inventory == null || player.Inventory.Count == 0)
                 {
-                    ui.WriteLine($" - {item.Name}");
+                    ui.WriteLine("  [dim](You are not carrying anything.)[/]");
+                }
+                else
+                {
+                    foreach (Entity item in player.Inventory)
+                    {
+                        ui.WriteLine($" - {item.Name}");
+                    }
                 }
             }
             else if (directions.Contains(cmdChar.ToString().ToUpper()))
