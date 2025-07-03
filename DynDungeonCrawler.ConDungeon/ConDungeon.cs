@@ -7,6 +7,9 @@ namespace DynDungeonCrawler.ConDungeon
 {
     internal class ConDungeon
     {
+        /// <summary>
+        /// Entry point for the console dungeon crawler. Initializes the game and starts the main game loop asynchronously.
+        /// </summary>
         private static async Task Main(string[] args)
         {
             // Capture the nullable tuple
@@ -34,12 +37,12 @@ namespace DynDungeonCrawler.ConDungeon
         }
 
         /// <summary>
-        /// Initializes the game by setting up the user interface, logger, LLM client, dungeon, and player.
+        /// Asynchronously initializes the game by setting up the user interface, logger, LLM client, dungeon, and player.
         /// Prompts the user for required information and loads the dungeon from a JSON file.
         /// If initialization fails (e.g., missing API key), returns a tuple of nulls to signal failure.
         /// </summary>
         /// <returns>
-        /// A tuple containing the initialized user interface, logger, LLM client, dungeon, and player.
+        /// A task that resolves to a tuple containing the initialized user interface, logger, LLM client, dungeon, and player.
         /// Any element may be null if initialization fails.
         /// </returns>
         private static async Task<(IUserInterface? ui, ILogger? logger, ILLMClient? llmClient, Dungeon? dungeon, Adventurer? player)> InitializeGameAsync()
@@ -109,7 +112,7 @@ namespace DynDungeonCrawler.ConDungeon
         }
 
         /// <summary>
-        /// Runs the main game loop, handling player input and game state updates
+        /// Asynchronously runs the main game loop, handling player input and game state updates
         /// until the player either exits, dies, or reaches the exit room.
         /// </summary>
         /// <param name="ui">The user interface for input/output interactions.</param>
@@ -243,12 +246,12 @@ namespace DynDungeonCrawler.ConDungeon
         }
 
         /// <summary>
-        /// Prompts the user for a command and reads a key input, validating it against the available movement directions
+        /// Asynchronously prompts the user for a command and reads a key input, validating it against the available movement directions
         /// and other valid commands (look, inventory, exit). Displays the chosen command in the UI.
         /// </summary>
         /// <param name="ui">The user interface used for input and output.</param>
         /// <param name="directions">A list of valid movement directions (e.g., "N", "E", "S", "W").</param>
-        /// <returns>The character representing the user's chosen command, in lowercase.</returns>
+        /// <returns>A task that resolves to the character representing the user's chosen command, in lowercase.</returns>
         private static async Task<char> HandleInputAsync(IUserInterface ui, List<string> directions)
         {
             string directionsPrompt = directions.Count > 0 ? string.Join("[dim]/[/]", directions) : "";
@@ -278,7 +281,7 @@ namespace DynDungeonCrawler.ConDungeon
         }
 
         /// <summary>
-        /// Processes the player's command input, updating game state and handling actions such as movement,
+        /// Asynchronously processes the player's command input, updating game state and handling actions such as movement,
         /// looking around, viewing inventory, or exiting the game. Also manages invalid commands and ensures
         /// the player's current room is valid before executing actions.
         /// </summary>
@@ -290,7 +293,7 @@ namespace DynDungeonCrawler.ConDungeon
         /// <param name="player">The Adventurer representing the player.</param>
         /// <param name="directions">A list of valid movement directions (e.g., "N", "E", "S", "W").</param>
         /// <returns>
-        /// True to continue the game loop; false to exit the game loop (e.g., when the player chooses to exit).
+        /// A task that resolves to true to continue the game loop; false to exit the game loop (e.g., when the player chooses to exit).
         /// </returns>
         private static async Task<bool> ProcessCommandAsync(
             char cmdChar,
