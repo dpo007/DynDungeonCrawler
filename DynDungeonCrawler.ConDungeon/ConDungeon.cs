@@ -139,8 +139,14 @@ namespace DynDungeonCrawler.ConDungeon
 
         private static void DrawRoom(IUserInterface ui, Adventurer player)
         {
+            if (player.CurrentRoom == null)
+            {
+                ui.WriteLine("[bold red]Error:[/] Current room is null.");
+                return;
+            }
+
             ui.WriteRule();
-            ui.WriteLine(player.CurrentRoom.Description);
+            ui.WriteLine(player.CurrentRoom.Description ?? "[dim]This room is an abyss.[/]");
 
             if (player.CurrentRoom.Contents.Count > 0)
             {
@@ -234,6 +240,13 @@ namespace DynDungeonCrawler.ConDungeon
             Adventurer player,
             List<string> directions)
         {
+            // Null check player current room (to avoid NullReferenceException)
+            if (player.CurrentRoom == null)
+            {
+                ui.WriteLine("[bold red]Error:[/] Current room is null. Cannot process command.");
+                return true; // Continue the loop to avoid breaking the game
+            }
+
             if (cmdChar == 'x')
             {
                 ui.WriteLine("Exiting the game. [bold]Goodbye![/]");
