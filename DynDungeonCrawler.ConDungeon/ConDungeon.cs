@@ -7,10 +7,10 @@ namespace DynDungeonCrawler.ConDungeon
 {
     internal class ConDungeon
     {
-        private static void Main(string[] args)
+        private static async Task Main(string[] args)
         {
             // Capture the nullable tuple
-            (IUserInterface? ui, ILogger? logger, ILLMClient? llmClient, Dungeon? dungeon, Adventurer? player) init = InitializeGame();
+            (IUserInterface? ui, ILogger? logger, ILLMClient? llmClient, Dungeon? dungeon, Adventurer? player) init = await InitializeGameAsync();
 
             // Bail out if any element is null
             if (init.ui == null ||
@@ -30,7 +30,7 @@ namespace DynDungeonCrawler.ConDungeon
              Adventurer player) = init;
 
             // Start the game loop
-            GameLoop(ui, logger, llmClient, dungeon, player);
+            await GameLoopAsync(ui, logger, llmClient, dungeon, player);
         }
 
         /// <summary>
@@ -42,7 +42,7 @@ namespace DynDungeonCrawler.ConDungeon
         /// A tuple containing the initialized user interface, logger, LLM client, dungeon, and player.
         /// Any element may be null if initialization fails.
         /// </returns>
-        private static (IUserInterface? ui, ILogger? logger, ILLMClient? llmClient, Dungeon? dungeon, Adventurer? player) InitializeGame()
+        private static async Task<(IUserInterface? ui, ILogger? logger, ILLMClient? llmClient, Dungeon? dungeon, Adventurer? player)> InitializeGameAsync()
         {
             IUserInterface ui = new SpectreConsoleUserInterface();
             ui.WriteLine("*** [bold]Dynamic Dungeon Crawler![/] ***");
@@ -52,7 +52,7 @@ namespace DynDungeonCrawler.ConDungeon
             {
                 ui.WriteLine("OpenAI API key is not set. Please update 'settings.json' with your actual API key.");
                 ui.WriteLine("Press any key to exit.");
-                ui.ReadKey();
+                await ui.ReadKeyAsync();
                 return (null, null, null, null, null);
             }
 
@@ -68,7 +68,7 @@ namespace DynDungeonCrawler.ConDungeon
 
             // Player name and gender
             ui.Write("Enter your adventurer's name [gray](or press Enter to generate one)[/]: ");
-            string playerName = ui.ReadLine().Trim();
+            string playerName = (await ui.ReadLineAsync()).Trim();
 
             if (string.IsNullOrWhiteSpace(playerName))
             {
@@ -76,26 +76,26 @@ namespace DynDungeonCrawler.ConDungeon
                 ui.Write("Enter your adventurer's gender ([[[deepskyblue1]M[/]]]ale/[[[hotpink]F[/]]]emale, [gray]or press Enter for unspecified[/]): ");
                 while (true)
                 {
-                    ConsoleKey key = ui.ReadKey(intercept: true);
-                    if (key == ConsoleKey.Enter)
+                    string keyStr = await ui.ReadKeyAsync(intercept: true);
+                    if (string.IsNullOrEmpty(keyStr) || keyStr == "\r" || keyStr == "\n")
                     {
                         ui.WriteLine();
                         break;
                     }
-                    else if (key == ConsoleKey.M)
+                    else if (keyStr.Equals("M", System.StringComparison.OrdinalIgnoreCase))
                     {
                         ui.WriteLine("[deepskyblue1]M[/]");
                         gender = AdventurerGender.Male;
                         break;
                     }
-                    else if (key == ConsoleKey.F)
+                    else if (keyStr.Equals("F", System.StringComparison.OrdinalIgnoreCase))
                     {
                         ui.WriteLine("[hotpink]F[/]");
                         gender = AdventurerGender.Female;
                         break;
                     }
                 }
-                playerName = Adventurer.GenerateNameAsync(llmClient, dungeon.Theme, gender).GetAwaiter().GetResult();
+                playerName = await Adventurer.GenerateNameAsync(llmClient, dungeon.Theme, gender);
             }
 
             ui.WriteLine();
@@ -117,7 +117,7 @@ namespace DynDungeonCrawler.ConDungeon
         /// <param name="llmClient">AI client for generating descriptions as needed.</param>
         /// <param name="dungeon">The Dungeon instance containing rooms and state.</param>
         /// <param name="player">The Adventurer representing the player.</param>
-        private static void GameLoop(
+        private static async Task GameLoopAsync(
             IUserInterface ui,
             ILogger logger,
             ILLMClient llmClient,
@@ -136,7 +136,7 @@ namespace DynDungeonCrawler.ConDungeon
                 {
                     DrawRoom(ui, player);
 
-                    ui.WriteLine("[bold]Congratulations![/] You have found the exit and escaped the dungeon!");
+                    ui.ShowSpecialMessage("Congratulations! You have found the exit and escaped the dungeon!", center: true, writeLine: true);
                     break;
                 }
                 if (player.CurrentRoom == null)
@@ -148,9 +148,9 @@ namespace DynDungeonCrawler.ConDungeon
                 DrawRoom(ui, player);
 
                 List<string> directions = GetAvailableDirections(player.CurrentRoom);
-                char cmdChar = HandleInput(ui, directions);
+                char cmdChar = await HandleInputAsync(ui, directions);
 
-                if (!ProcessCommand(cmdChar, ui, logger, llmClient, dungeon, player, directions))
+                if (!await ProcessCommandAsync(cmdChar, ui, logger, llmClient, dungeon, player, directions))
                 {
                     break;
                 }
@@ -249,15 +249,21 @@ namespace DynDungeonCrawler.ConDungeon
         /// <param name="ui">The user interface used for input and output.</param>
         /// <param name="directions">A list of valid movement directions (e.g., "N", "E", "S", "W").</param>
         /// <returns>The character representing the user's chosen command, in lowercase.</returns>
-        private static char HandleInput(IUserInterface ui, List<string> directions)
+        private static async Task<char> HandleInputAsync(IUserInterface ui, List<string> directions)
         {
             string directionsPrompt = directions.Count > 0 ? string.Join("[dim]/[/]", directions) : "";
             ui.Write($"Enter command (move [[[bold]{directionsPrompt}[/]]], [[[bold]L[/]]]ook, [[[bold]I[/]]]nventory, e[[[bold]X[/]]]it): ");
             char cmdChar;
             while (true)
             {
-                ConsoleKey cmdKey = ui.ReadKey(intercept: true);
-                cmdChar = char.ToLower((char)cmdKey);
+                string cmdKeyStr = await ui.ReadKeyAsync(intercept: true);
+                if (string.IsNullOrEmpty(cmdKeyStr))
+                {
+                    continue;
+                }
+
+                char keyChar = char.ToLower(cmdKeyStr[0]);
+                cmdChar = keyChar;
 
                 if (cmdChar == 'x' || cmdChar == 'l' || cmdChar == 'i' ||
                     directions.Contains(cmdChar.ToString().ToUpper()))
@@ -286,7 +292,7 @@ namespace DynDungeonCrawler.ConDungeon
         /// <returns>
         /// True to continue the game loop; false to exit the game loop (e.g., when the player chooses to exit).
         /// </returns>
-        private static bool ProcessCommand(
+        private static async Task<bool> ProcessCommandAsync(
             char cmdChar,
             IUserInterface ui,
             ILogger logger,
@@ -353,7 +359,7 @@ namespace DynDungeonCrawler.ConDungeon
                         }
 
                         // Generate descriptions for the next room and its neighbors
-                        RoomDescriptionGenerator.GenerateRoomDescriptionsAsync(roomsToProcess.ToList(), dungeon.Theme, llmClient, logger).GetAwaiter().GetResult();
+                        await RoomDescriptionGenerator.GenerateRoomDescriptionsAsync(roomsToProcess.ToList(), dungeon.Theme, llmClient, logger);
                     }
                     player.CurrentRoom = nextRoom;
                     player.VisitedRoomIds.Add(nextRoom.Id);

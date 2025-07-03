@@ -29,21 +29,30 @@
         void WriteRule(string? text = null);
 
         /// <summary>
-        /// Reads a line of input from the user.
+        /// Reads a line of input from the user asynchronously.
         /// </summary>
-        /// <returns>The input string, or an empty string if input is null.</returns>
-        string ReadLine();
+        /// <returns>A task that resolves to the input string, or an empty string if input is null.</returns>
+        Task<string> ReadLineAsync();
 
         /// <summary>
-        /// Reads a key press from the user.
+        /// Reads a key press from the user asynchronously.
         /// </summary>
         /// <param name="intercept">If true, the key is not displayed in the output.</param>
-        /// <returns>The key that was pressed.</returns>
-        ConsoleKey ReadKey(bool intercept = false);
+        /// <returns>A task that resolves to a string representing the key that was pressed.</returns>
+        Task<string> ReadKeyAsync(bool intercept = false);
 
         /// <summary>
         /// Clears the output display.
         /// </summary>
         void Clear();
+
+        /// <summary>
+        /// Displays a special, celebratory, or highlighted message with enhanced formatting or animation.
+        /// </summary>
+        /// <param name="message">The message to display.</param>
+        /// <param name="durationMs">Optional duration for the effect, in milliseconds.</param>
+        /// <param name="center">Whether to center the message in the display area.</param>
+        /// <param name="writeLine">Whether to move the cursor to the next line after displaying.</param>
+        void ShowSpecialMessage(string message, int durationMs = 2000, bool center = false, bool writeLine = false);
     }
 }

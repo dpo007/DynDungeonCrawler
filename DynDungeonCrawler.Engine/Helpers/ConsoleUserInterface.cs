@@ -40,10 +40,33 @@ namespace DynDungeonCrawler.Engine.Helpers
             }
         }
 
-        public string ReadLine() => Console.ReadLine() ?? string.Empty;
+        // Async implementations (preparing for HTML UI comatability)
+        public Task<string> ReadLineAsync() => Task.FromResult(Console.ReadLine() ?? string.Empty);
 
-        public ConsoleKey ReadKey(bool intercept = false) => Console.ReadKey(intercept).Key;
+        public Task<string> ReadKeyAsync(bool intercept = false) =>
+            Task.FromResult(Console.ReadKey(intercept).KeyChar.ToString());
 
         public void Clear() => Console.Clear();
+
+        public void ShowSpecialMessage(string message, int durationMs = 2000, bool center = false, bool writeLine = false)
+        {
+            ConsoleColor prevColor = Console.ForegroundColor;
+            Console.ForegroundColor = ConsoleColor.Yellow;
+
+            int consoleWidth = Console.WindowWidth;
+            int padLeft = center ? Math.Max(0, (consoleWidth - message.Length) / 2) : 0;
+            string output = new string(' ', padLeft) + message.ToUpper();
+
+            if (writeLine)
+            {
+                Console.WriteLine(output);
+            }
+            else
+            {
+                Console.Write(output);
+            }
+
+            Console.ForegroundColor = prevColor;
+        }
     }
 }
