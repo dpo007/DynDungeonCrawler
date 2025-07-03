@@ -7,6 +7,17 @@ namespace DynDungeonCrawler.GeneratorApp.Utilities
 {
     public static class DungeonGenerator
     {
+        /// <summary>
+        /// Asynchronously generates a new dungeon with a main path, side branches, and AI-generated room descriptions.
+        /// </summary>
+        /// <param name="width">The width of the dungeon grid.</param>
+        /// <param name="height">The height of the dungeon grid.</param>
+        /// <param name="theme">The theme for styling and description generation.</param>
+        /// <param name="llmClient">An AI client used to generate room descriptions.</param>
+        /// <param name="logger">Logger instance for diagnostic and progress messages.</param>
+        /// <returns>
+        /// A Task that, when completed, returns the fully generated Dungeon instance.
+        /// </returns>
         public static async Task<Dungeon> GenerateDungeon(
             int width,
             int height,
@@ -28,7 +39,6 @@ namespace DynDungeonCrawler.GeneratorApp.Utilities
             // Stack for backtracking during main path generation
             Stack<Room> roomStack = new Stack<Room>();
             roomStack.Push(entrance);
-
             logger.Log($"Dungeon entrance created at ({startX}, {startY}).");
 
             // Determine minimum and target path lengths
@@ -36,7 +46,6 @@ namespace DynDungeonCrawler.GeneratorApp.Utilities
             int roomsPlaced = 1;
             Random random = Random.Shared;
             int targetPathLength = random.Next(minPathLength, minPathLength + 10);
-
             logger.Log($"Creating main path with target length: {targetPathLength} rooms.");
 
             // Helper functions for direction and branching
@@ -87,7 +96,7 @@ namespace DynDungeonCrawler.GeneratorApp.Utilities
                 logger.Log($"Dungeon exit created at ({exitRoom.X}, {exitRoom.Y}).");
             }
 
-            logger.Log($"Adding side branches...");
+            logger.Log("Adding side branches...");
 
             // Add extra branches to the dungeon for complexity
             int extraBranches = 30;

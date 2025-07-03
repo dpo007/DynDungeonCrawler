@@ -140,6 +140,7 @@ namespace DynDungeonCrawler.ConDungeon
                             string chestState = chest.IsOpened ? "opened" : (chest.IsLocked ? "locked" : "unlocked");
                             ui.WriteLine($"[dim]-[/] [bold]{chest.Name}[/] ({chestState})");
                             break;
+
                         default:
                             string displayDesc = !string.IsNullOrWhiteSpace(entity.ShortDescription)
                                 ? entity.ShortDescription
