@@ -512,6 +512,12 @@ namespace DynDungeonCrawler.ConDungeon
                         ui.WriteLine($" - {item.Name}");
                     }
                 }
+
+                ui.WriteLine();
+                ui.Write("[dim]Press any key to continue...[/]");
+                await ui.ReadKeyAsync();
+                ui.Clear();
+                return true; // Continue the loop to allow further commands
             }
             else if (directions.Contains(cmdChar.ToString().ToUpper()))
             {
