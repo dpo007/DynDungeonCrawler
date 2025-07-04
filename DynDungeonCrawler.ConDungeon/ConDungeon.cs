@@ -164,7 +164,7 @@ namespace DynDungeonCrawler.ConDungeon
                 DrawRoom(ui, player);
 
                 List<string> directions = GetAvailableDirections(player.CurrentRoom);
-                char cmdChar = await HandleInputAsync(ui, directions);
+                char cmdChar = await HandleInputAsync(ui, directions, player);
 
                 if (!await ProcessCommandAsync(cmdChar, ui, logger, llmClient, dungeon, player, directions))
                 {
@@ -326,11 +326,21 @@ namespace DynDungeonCrawler.ConDungeon
         /// </summary>
         /// <param name="ui">The user interface used for input and output.</param>
         /// <param name="directions">A list of valid movement directions (e.g., "N", "E", "S", "W").</param>
+        /// <param name="player">The current player (to check for entities in the room).</param>
         /// <returns>A task that resolves to the character representing the user's chosen command, in lowercase.</returns>
-        private static async Task<char> HandleInputAsync(IUserInterface ui, List<string> directions)
+        private static async Task<char> HandleInputAsync(IUserInterface ui, List<string> directions, Adventurer player)
         {
+            bool hasEntities = player.CurrentRoom != null && player.CurrentRoom.Contents.Count > 0;
             string directionsPrompt = directions.Count > 0 ? string.Join("[dim]/[/]", directions) : "";
-            ui.Write($"Enter command (move [[[bold]{directionsPrompt}[/]]], [[[bold]L[/]]]ook, [[[bold]I[/]]]nventory, e[[[bold]X[/]]]it): ");
+            string prompt = $"Enter command (move [[[bold]{directionsPrompt}[/]]]";
+            if (hasEntities)
+            {
+                prompt += ", [[[bold]L[/]]]ook";
+            }
+
+            prompt += ", [[[bold]I[/]]]nventory, e[[[bold]X[/]]]it): ";
+            ui.Write(prompt);
+
             char cmdChar;
             while (true)
             {
@@ -343,8 +353,13 @@ namespace DynDungeonCrawler.ConDungeon
                 char keyChar = char.ToLower(cmdKeyStr[0]);
                 cmdChar = keyChar;
 
-                if (cmdChar == 'x' || cmdChar == 'l' || cmdChar == 'i' ||
-                    directions.Contains(cmdChar.ToString().ToUpper()))
+                bool isValid =
+                    cmdChar == 'x' ||
+                    cmdChar == 'i' ||
+                    directions.Contains(cmdChar.ToString().ToUpper()) ||
+                    (hasEntities && cmdChar == 'l');
+
+                if (isValid)
                 {
                     ui.Write("[bold]" + char.ToUpper(cmdChar).ToString() + "[/]");
                     ui.WriteLine();
@@ -357,7 +372,7 @@ namespace DynDungeonCrawler.ConDungeon
 
         /// <summary>
         /// Handles the Look command by presenting a menu of things to look at in detail,
-        /// including the room itself and each entity in the room.
+        /// including each entity in the room (but not the room itself).
         /// </summary>
         /// <param name="ui">The user interface for I/O operations.</param>
         /// <param name="player">The current player.</param>
@@ -374,13 +389,9 @@ namespace DynDungeonCrawler.ConDungeon
                 return;
             }
 
-            // Build a list of lookable things (room + entities)
+            // Build a list of lookable things (entities only, not the room itself)
             List<(string name, string description, string color)> lookables = new();
 
-            // Add the room itself first
-            lookables.Add(("The room", player.CurrentRoom.Description ?? "[dim]This room is an abyss.[/]", "white"));
-
-            // Add each entity in the room
             foreach (Entity entity in player.CurrentRoom.Contents)
             {
                 string name;
@@ -410,14 +421,10 @@ namespace DynDungeonCrawler.ConDungeon
                 lookables.Add((name, description, color));
             }
 
-            // If there's nothing to look at besides the room, just show the room description
-            if (lookables.Count == 1)
+            // If there are no entities to look at, inform the user
+            if (lookables.Count == 0)
             {
-                // Ensure room description is not null before passing to WriteLine
-                string roomDesc = player.CurrentRoom.Description ??= "[dim]This room is an abyss.[/]";
-
-                ui.WriteLine("[italic]You take a closer look at the room...[/]");
-                ui.WriteLine(roomDesc);
+                ui.WriteLine("[dim]There is nothing to look at in detail in this room.[/]");
                 ui.WriteLine();
                 ui.Write("[dim]Press any key to continue...[/]");
                 await ui.ReadKeyAsync();
