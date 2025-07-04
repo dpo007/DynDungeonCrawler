@@ -426,7 +426,7 @@ namespace DynDungeonCrawler.ConDungeon
             ui.WriteLine("[bold]What would you like to examine more closely?[/]");
             for (int i = 0; i < lookables.Count; i++)
             {
-                ui.WriteLine($" [{i + 1}] [[{lookables[i].color}]{lookables[i].name}[/]");
+                ui.WriteLine($" [[{i + 1}]] [{lookables[i].color}]{lookables[i].name}[/]");
             }
 
             // Get player's choice
@@ -437,7 +437,8 @@ namespace DynDungeonCrawler.ConDungeon
             {
                 (string name, string description, string color) selected = lookables[choice - 1];
                 ui.WriteLine();
-                ui.WriteLine($"[bold][[{selected.color}]{selected.name}[/][/]");
+                ui.WriteLine($"[italic]You take a closer look at the [bold][{selected.color}]{selected.name}[/][/]...[/]");
+                ui.WriteLine();
                 ui.WriteLine(selected.description);
                 ui.WriteLine();
                 ui.Write("[dim]Press any key to continue...[/]");
