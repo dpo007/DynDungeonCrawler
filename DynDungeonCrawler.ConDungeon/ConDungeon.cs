@@ -111,6 +111,9 @@ namespace DynDungeonCrawler.ConDungeon
                 playerName = await Adventurer.GenerateNameAsync(llmClient, dungeon.Theme, gender);
             }
 
+            // Log the player's name
+            logger.Log($"Adventurer's name: {playerName}");
+
             ui.WriteLine();
             ui.WriteLine($"Welcome to the dungeon [bold underline]{playerName}[/]!");
             ui.WriteLine();

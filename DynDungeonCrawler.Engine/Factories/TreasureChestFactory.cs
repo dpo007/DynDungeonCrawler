@@ -68,25 +68,22 @@ namespace DynDungeonCrawler.Engine.Factories
             }
 
             // Gather all chests in all rooms
-            List<(TreasureChest chest, Room room)> chests = new List<(TreasureChest chest, Room room)>();
-            foreach (Room room in roomsWithChests)
-            {
-                foreach (Entity entity in room.Contents)
-                {
-                    if (entity is TreasureChest chest)
-                    {
-                        logger.Log($"Chest {chest.Id} description: '{chest.Description}'");
-                        if (string.IsNullOrWhiteSpace(chest.Description))
-                        {
-                            chests.Add((chest, room));
-                        }
-                    }
-                }
-            }
+            List<(TreasureChest chest, Room room)> chests = (
+                from room in roomsWithChests
+                from entity in room.Contents
+                let chest = entity as TreasureChest
+                where chest != null && string.IsNullOrWhiteSpace(chest.Description)
+                select (chest, room)
+            ).ToList();
+
             if (chests.Count == 0)
             {
                 logger.Log("No treasure chests require description generation.");
                 return;
+            }
+            else
+            {
+                logger.Log($"Found {chests.Count} treasure chests to generate descriptions for.");
             }
 
             // Prepare JSON batch for LLM
