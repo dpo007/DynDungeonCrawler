@@ -197,16 +197,27 @@ namespace DynDungeonCrawler.ConDungeon
                     {
                         case TreasureChest chest:
                             string chestState = chest.IsOpened ? "opened" : (chest.IsLocked ? "locked" : "unlocked");
-                            ui.WriteLine($"[dim]-[/] [bold]{chest.Name}[/] ({chestState})");
+                            string displayDesc = !string.IsNullOrWhiteSpace(chest.ShortDescription)
+                                ? chest.ShortDescription
+                                : "";
+
+                            if (!string.IsNullOrWhiteSpace(displayDesc))
+                            {
+                                ui.WriteLine($"[dim]-[/] [bold]{chest.Name}[/] ({chestState}): {displayDesc}");
+                            }
+                            else
+                            {
+                                ui.WriteLine($"[dim]-[/] [bold]{chest.Name}[/] ({chestState})");
+                            }
                             break;
 
                         default:
-                            string displayDesc = !string.IsNullOrWhiteSpace(entity.ShortDescription)
+                            string entityDesc = !string.IsNullOrWhiteSpace(entity.ShortDescription)
                                 ? entity.ShortDescription
                                 : entity.Description;
-                            if (!string.IsNullOrWhiteSpace(displayDesc))
+                            if (!string.IsNullOrWhiteSpace(entityDesc))
                             {
-                                ui.WriteLine($"[dim]-[/] [bold]{entity.Name}[/]: {displayDesc}");
+                                ui.WriteLine($"[dim]-[/] [bold]{entity.Name}[/]: {entityDesc}");
                             }
                             else
                             {

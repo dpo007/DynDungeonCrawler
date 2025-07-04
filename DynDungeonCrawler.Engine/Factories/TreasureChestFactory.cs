@@ -103,15 +103,16 @@ namespace DynDungeonCrawler.Engine.Factories
             };
             string inputJson = JsonSerializer.Serialize(chestRequest);
             string userPrompt = $@"
-Given the following dungeon theme and a list of treasure chests (with their room descriptions), generate a vivid, atmospheric, and game-appropriate description for each chest.
+Given the following dungeon theme and a list of treasure chests (with their room descriptions), generate for each chest:
+- A vivid, atmospheric, and game-appropriate 'description' (3-4 sentences).
+- A 'shortDescription' (1 concise sentence, 10-20 words) summarizing the chest for quick display.
 
 For each chest:
 - Use the room description to inspire the chest's appearance and style.
 - Do NOT explicitly state the contents or whether it's locked.
 - Focus on the chest's appearance, material, age, and condition.
-- Make each description flavorful and no more than 3-4 sentences.
 
-Return the same JSON structure, but add a 'description' field to each chest, generated based on the theme, chest details, and room context.
+Return the same JSON structure, but add both a 'description' and a 'shortDescription' field to each chest, generated based on the theme, chest details, and room context.
 
 Do not change the IDs or other fields. Only return valid JSON, with no markdown formatting.
 
@@ -154,16 +155,24 @@ Do not change the IDs or other fields. Only return valid JSON, with no markdown 
             using (doc)
             {
                 JsonElement responseChests = doc.RootElement.GetProperty("chests");
-                Dictionary<Guid, string> descDict = responseChests.EnumerateArray().ToDictionary(
-                    c => c.GetProperty("id").GetGuid(),
-                    c => c.TryGetProperty("description", out JsonElement desc) ? desc.GetString() ?? "" : ""
-                );
                 foreach ((TreasureChest chest, Room _) in chests)
                 {
-                    if (descDict.TryGetValue(chest.Id, out string? desc) && !string.IsNullOrWhiteSpace(desc))
+                    JsonElement chestJson = responseChests.EnumerateArray()
+                        .FirstOrDefault(c => c.GetProperty("id").GetGuid() == chest.Id);
+
+                    if (chestJson.ValueKind != JsonValueKind.Undefined)
                     {
-                        chest.Description = desc.Trim();
-                        logger.Log($"Generated description for treasure chest {chest.Id}");
+                        if (chestJson.TryGetProperty("description", out JsonElement descElem))
+                        {
+                            chest.Description = descElem.GetString()?.Trim() ?? "";
+                        }
+
+                        if (chestJson.TryGetProperty("shortDescription", out JsonElement shortDescElem))
+                        {
+                            chest.ShortDescription = shortDescElem.GetString()?.Trim() ?? "";
+                        }
+
+                        logger.Log($"Generated description and short description for treasure chest {chest.Id}");
                     }
                 }
             }
