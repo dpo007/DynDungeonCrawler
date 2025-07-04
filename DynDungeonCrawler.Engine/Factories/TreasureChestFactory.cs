@@ -1,5 +1,7 @@
 using DynDungeonCrawler.Engine.Classes;
+using DynDungeonCrawler.Engine.Constants;
 using DynDungeonCrawler.Engine.Interfaces;
+using System.Text.Json;
 
 namespace DynDungeonCrawler.Engine.Factories
 {
@@ -49,86 +51,122 @@ namespace DynDungeonCrawler.Engine.Factories
         }
 
         /// <summary>
-        /// Asynchronously generates a description for a treasure chest based on its contents, the dungeon theme, and optionally the room description.
+        /// Asynchronously generates and assigns descriptions for all treasure chests in the provided rooms.
         /// </summary>
-        /// <param name="chest">The treasure chest to describe.</param>
-        /// <param name="theme">The theme of the dungeon.</param>
-        /// <param name="llmClient">The LLM client instance to use for generation.</param>
-        /// <param name="logger">The logger instance to use for warnings and errors.</param>
-        /// <param name="roomDescription">Optional description of the room where the chest is located.</param>
-        /// <returns>A Task representing the asynchronous operation, containing the generated description as a string.</returns>
-        public static async Task<string> GenerateChestDescriptionAsync(
-            TreasureChest chest,
-            string theme,
-            ILLMClient llmClient,
-            ILogger logger,
-            string? roomDescription = null)
+        /// <param name="roomsWithChests">Rooms containing treasure chests to describe.</param>
+        /// <param name="theme">The dungeon theme.</param>
+        /// <param name="llmClient">The LLM client instance.</param>
+        /// <param name="logger">Logger for warnings and errors.</param>
+        public static async Task GenerateTreasureDescriptionsAsync(List<Room> roomsWithChests, string theme, ILLMClient llmClient, ILogger logger)
         {
-            ArgumentNullException.ThrowIfNull(chest);
+            ArgumentNullException.ThrowIfNull(roomsWithChests);
             ArgumentNullException.ThrowIfNull(llmClient);
             ArgumentNullException.ThrowIfNull(logger);
-
             if (string.IsNullOrWhiteSpace(theme))
             {
                 throw new ArgumentException("Theme is required and cannot be null or empty.", nameof(theme));
             }
 
-            string treasureDescription = chest.ContainedTreasure?.ToString() ?? "unknown treasure";
-            string lockState = chest.IsLocked ? "locked" : "unlocked";
-
-            string userPrompt;
-
-            if (!string.IsNullOrWhiteSpace(roomDescription))
+            // Gather all chests in all rooms
+            List<(TreasureChest chest, Room room)> chests = new List<(TreasureChest chest, Room room)>();
+            foreach (Room room in roomsWithChests)
             {
-                userPrompt = $@"
-You are an expert fantasy game designer helping build immersive dungeon content.
-
-The following is a description of the room where the treasure chest is found:
----
-{roomDescription}
----
-
-Now, generate a vivid and engaging description of a treasure chest that fits naturally within this room.
-The chest's description should match the room's atmosphere, style, and details, and fit the overall dungeon theme.
-
-Chest details:
-- Contains: {treasureDescription}
-- Lock state: {lockState}
-- Dungeon theme: {theme}
-
-Your description should be flavorful, atmospheric, and game-appropriate (no more than 3-4 sentences).
-Focus on the appearance, material, age, and condition of the chest. Do not explicitly state the contents
-or whether it's locked - that will be revealed through gameplay.
-
-Respond only with the description. Return only plain text, don't use markdown.";
+                foreach (Entity entity in room.Contents)
+                {
+                    if (entity is TreasureChest chest)
+                    {
+                        logger.Log($"Chest {chest.Id} description: '{chest.Description}'");
+                        if (string.IsNullOrWhiteSpace(chest.Description))
+                        {
+                            chests.Add((chest, room));
+                        }
+                    }
+                }
             }
-            else
+            if (chests.Count == 0)
             {
-                userPrompt = $@"
-You are an expert fantasy game designer helping build immersive dungeon content.
-
-Generate a vivid and engaging description of a treasure chest for a dungeon crawler game.
-Your description should fit the overall theme of the dungeon and match the characteristics of the chest.
-
-Chest details:
-- Contains: {treasureDescription}
-- Lock state: {lockState}
-- Dungeon theme: {theme}
-
-Your description should be flavorful, atmospheric, and game-appropriate (no more than 3-4 sentences).
-Focus on the appearance, material, age, and condition of the chest. Don't explicitly state the contents
-or whether it's locked - that will be revealed through gameplay.
-
-Respond only with the description. Return only plain text, don't use markdown.";
+                logger.Log("No treasure chests require description generation.");
+                return;
             }
 
-            logger.Log($"Generating description for treasure chest containing {treasureDescription}" +
-                (roomDescription != null ? " (room context provided)" : ""));
+            // Prepare JSON batch for LLM
+            var chestRequest = new
+            {
+                theme,
+                chests = chests.Select(tuple => new
+                {
+                    id = tuple.chest.Id,
+                    roomDescription = tuple.room.Description,
+                    contains = tuple.chest.ContainedTreasure?.ToString() ?? "unknown treasure",
+                    lockState = tuple.chest.IsLocked ? "locked" : "unlocked"
+                }).ToList()
+            };
+            string inputJson = JsonSerializer.Serialize(chestRequest);
+            string userPrompt = $@"
+Given the following dungeon theme and a list of treasure chests (with their room descriptions), generate a vivid, atmospheric, and game-appropriate description for each chest.
 
-            string response = await llmClient.GetResponseAsync(userPrompt);
+For each chest:
+- Use the room description to inspire the chest's appearance and style.
+- Do NOT explicitly state the contents or whether it's locked.
+- Focus on the chest's appearance, material, age, and condition.
+- Make each description flavorful and no more than 3-4 sentences.
 
-            // Return the trimmed response
-            return response.Trim();
+Return the same JSON structure, but add a 'description' field to each chest, generated based on the theme, chest details, and room context.
+
+Do not change the IDs or other fields. Only return valid JSON, with no markdown formatting.
+
+{inputJson}";
+            string systemPrompt = LLMDefaults.DefaultSystemPrompt;
+
+            // Call LLM
+            string llmResponse = await llmClient.GetResponseAsync(userPrompt, systemPrompt);
+
+            // Parse response and assign descriptions
+            JsonDocument? doc = null;
+            const int maxAttempts = 5;
+            int attempt = 0;
+            while (attempt < maxAttempts)
+            {
+                try
+                {
+                    doc = JsonDocument.Parse(llmResponse);
+                    break;
+                }
+                catch (JsonException ex)
+                {
+                    attempt++;
+                    if (attempt >= maxAttempts)
+                    {
+                        logger.Log($"Failed to parse LLM response after {maxAttempts} attempts: {ex.Message}");
+                        logger.Log($"User Prompt: {userPrompt}");
+                        logger.Log($"LLM Response: {llmResponse}");
+                        throw;
+                    }
+                    logger.Log($"JSON parse failed (attempt {attempt}): {ex.Message}. Retrying...");
+                    await Task.Delay(100 * attempt);
+                }
+            }
+            if (doc == null)
+            {
+                throw new InvalidOperationException("Failed to parse LLM response after retries.");
+            }
+
+            using (doc)
+            {
+                JsonElement responseChests = doc.RootElement.GetProperty("chests");
+                Dictionary<Guid, string> descDict = responseChests.EnumerateArray().ToDictionary(
+                    c => c.GetProperty("id").GetGuid(),
+                    c => c.TryGetProperty("description", out JsonElement desc) ? desc.GetString() ?? "" : ""
+                );
+                foreach ((TreasureChest chest, Room _) in chests)
+                {
+                    if (descDict.TryGetValue(chest.Id, out string? desc) && !string.IsNullOrWhiteSpace(desc))
+                    {
+                        chest.Description = desc.Trim();
+                        logger.Log($"Generated description for treasure chest {chest.Id}");
+                    }
+                }
+            }
         }
     }
 }

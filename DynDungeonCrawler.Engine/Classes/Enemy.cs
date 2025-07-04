@@ -33,6 +33,29 @@ namespace DynDungeonCrawler.Engine.Classes
             MoneyReward = GenerateMoneyReward();
         }
 
+        /// <summary>
+        /// Constructor for deserialization that allows setting a specific money reward.
+        /// </summary>
+        public Enemy(string name, string description, string shortDescription, int health, int strength, int moneyReward)
+            : base(EntityType.Enemy, name)
+        {
+            if (health <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(health), "Health must be greater than zero.");
+            }
+
+            if (strength <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(strength), "Strength must be greater than zero.");
+            }
+
+            Description = description;
+            ShortDescription = shortDescription;
+            Health = health;
+            Strength = strength;
+            MoneyReward = moneyReward;
+        }
+
         private static int GenerateMoneyReward()
         {
             double roll = random.NextDouble();

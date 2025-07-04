@@ -9,11 +9,30 @@
 
         private static readonly Random random = Random.Shared;
 
+        /// <summary>
+        /// Standard constructor that generates a random treasure.
+        /// </summary>
+        /// <param name="name">The name of the chest.</param>
+        /// <param name="isLocked">Whether the chest is locked.</param>
         public TreasureChest(string name = "Treasure Chest", bool isLocked = false)
             : base(EntityType.TreasureChest, name)
         {
             IsLocked = isLocked;
             GenerateTreasure();
+        }
+
+        /// <summary>
+        /// Deserialization constructor that allows setting a specific treasure.
+        /// </summary>
+        /// <param name="name">The name of the chest.</param>
+        /// <param name="isLocked">Whether the chest is locked.</param>
+        /// <param name="treasureType">The type of treasure.</param>
+        /// <param name="treasureValue">The value of the treasure.</param>
+        public TreasureChest(string name, bool isLocked, TreasureType treasureType, int treasureValue)
+            : base(EntityType.TreasureChest, name)
+        {
+            IsLocked = isLocked;
+            ContainedTreasure = new Treasure(treasureType, treasureValue);
         }
 
         private void GenerateTreasure()

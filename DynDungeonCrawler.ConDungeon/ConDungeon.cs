@@ -1,5 +1,6 @@
 ﻿using DynDungeonCrawler.Engine.Classes;
 using DynDungeonCrawler.Engine.Configuration;
+using DynDungeonCrawler.Engine.Factories;
 using DynDungeonCrawler.Engine.Helpers;
 using DynDungeonCrawler.Engine.Interfaces;
 
@@ -379,6 +380,17 @@ namespace DynDungeonCrawler.ConDungeon
 
                         // Generate descriptions for the next room and its neighbors
                         await RoomDescriptionGenerator.GenerateRoomDescriptionsAsync(roomsToProcess.ToList(), dungeon.Theme, llmClient, logger);
+
+                        // Extract rooms that have entities that are treasure chests
+                        List<Room> roomsWithChests = roomsToProcess
+                          .Where(r => r.Contents.Any(e => e.Type == EntityType.TreasureChest))
+                          .ToList();
+
+                        // If there are any rooms with treasure chests, generate descriptions for them
+                        if (roomsWithChests.Count > 0)
+                        {
+                            await TreasureChestFactory.GenerateTreasureDescriptionsAsync(roomsWithChests, dungeon.Theme, llmClient, logger);
+                        }
                     }
                     player.CurrentRoom = nextRoom;
                     player.VisitedRoomIds.Add(nextRoom.Id);
