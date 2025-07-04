@@ -187,14 +187,17 @@ namespace DynDungeonCrawler.ConDungeon
                 return;
             }
 
-            ui.WriteRule();
-            // Show entrance direction if available
-            if (player.PreviousRoom != null)
+            // Show direction room was entred from (if available)
+            if (player.PreviousRoom == null)
+            {
+                ui.WriteRule();
+            }
+            else
             {
                 string enteredFrom = GetEntranceDirection(player.PreviousRoom, player.CurrentRoom);
                 if (!string.IsNullOrEmpty(enteredFrom))
                 {
-                    ui.WriteLine($"[dim]You entered from the {enteredFrom}.[/]");
+                    ui.WriteRule($"You entered from the {enteredFrom}");
                 }
             }
 
