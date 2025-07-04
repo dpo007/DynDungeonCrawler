@@ -83,26 +83,81 @@ namespace DynDungeonCrawler.Engine.Helpers
 
             for (int i = 0; i < steps; i++)
             {
-                offset = (offset + 1) % rainbowColors.Length;
-
                 Console.SetCursorPosition(0, top);
-                Console.Write(new string(' ', consoleWidth)); // Clear line
-
-                Console.SetCursorPosition(0, top);
-                string rainbow = BuildRainbowMarkup(message, offset, padLeft);
-                AnsiConsole.Markup(rainbow);
-
+                AnsiConsole.Markup(BuildRainbowMarkup(message, offset++, padLeft));
                 Thread.Sleep(delay);
             }
 
-            // Move cursor below or just to end of line
             if (writeLine)
             {
-                Console.SetCursorPosition(0, top + 1);
+                Console.WriteLine();
             }
-            else
+        }
+
+        /// <summary>
+        /// Displays a pick list of items using Spectre.Console's styling and returns the selected item's index.
+        /// Uses single-keypress selection for immediate response.
+        /// </summary>
+        public async Task<int> ShowPickListAsync<T>(
+            string prompt,
+            IReadOnlyList<T> items,
+            Func<T, string> displaySelector,
+            Func<T, string>? colorSelector = null,
+            string cancelPrompt = "press Enter to cancel")
+        {
+            if (items.Count == 0)
             {
-                Console.SetCursorPosition(message.Length + padLeft, top); // after message
+                return -1; // No items to select from
+            }
+
+            // Display the prompt
+            AnsiConsole.MarkupLine($"[bold]{prompt}[/]");
+
+            // Display each item with its number and optional color
+            for (int i = 0; i < items.Count; i++)
+            {
+                string display = displaySelector(items[i]);
+                string color = colorSelector?.Invoke(items[i]) ?? "white";
+
+                // Make sure the color is valid for Spectre.Console
+                try
+                {
+                    Style.Parse(color);
+                }
+                catch
+                {
+                    color = "white"; // Fallback to white if color is invalid
+                }
+
+                AnsiConsole.MarkupLine($" [[{i + 1}]] [{color}]{EscapeMarkup(display)}[/]");
+            }
+
+            // Show the cancel prompt
+            AnsiConsole.Markup($"Enter number (or {cancelPrompt}): ");
+
+            // Wait for a valid key press
+            while (true)
+            {
+                string key = await ReadKeyAsync(intercept: true);
+
+                // Check for cancel (Enter key)
+                if (string.IsNullOrEmpty(key) || key == "\r" || key == "\n")
+                {
+                    Clear();
+                    return -1;
+                }
+
+                // Check for a valid digit
+                if (key.Length == 1 && char.IsDigit(key[0]))
+                {
+                    int num = key[0] - '0';
+                    if (num >= 1 && num <= items.Count)
+                    {
+                        return num - 1; // Return zero-based index
+                    }
+                }
+
+                // Invalid key, continue waiting
             }
         }
     }

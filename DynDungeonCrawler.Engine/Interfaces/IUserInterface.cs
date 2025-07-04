@@ -54,5 +54,22 @@
         /// <param name="center">Whether to center the message in the display area.</param>
         /// <param name="writeLine">Whether to move the cursor to the next line after displaying.</param>
         void ShowSpecialMessage(string message, int durationMs = 2000, bool center = false, bool writeLine = false);
+
+        /// <summary>
+        /// Displays a pick list of items and returns the selected item's index or -1 if cancelled.
+        /// </summary>
+        /// <typeparam name="T">The type of items in the list.</typeparam>
+        /// <param name="prompt">The prompt to display above the list.</param>
+        /// <param name="items">The list of items to choose from.</param>
+        /// <param name="displaySelector">Function that converts each item to its display string.</param>
+        /// <param name="colorSelector">Optional function that returns a color name for each item.</param>
+        /// <param name="cancelPrompt">The prompt for the cancel option (default: "press Enter to cancel").</param>
+        /// <returns>The index of the selected item, or -1 if cancelled.</returns>
+        Task<int> ShowPickListAsync<T>(
+            string prompt,
+            IReadOnlyList<T> items,
+            Func<T, string> displaySelector,
+            Func<T, string>? colorSelector = null,
+            string cancelPrompt = "press Enter to cancel");
     }
 }
