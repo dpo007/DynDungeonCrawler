@@ -432,29 +432,42 @@ namespace DynDungeonCrawler.ConDungeon
                 ui.WriteLine($" [[{i + 1}]] [{lookables[i].color}]{lookables[i].name}[/]");
             }
 
-            // Get player's choice
+            // Get player's choice (single keypress)
             ui.Write("Enter number (or press Enter to cancel): ");
-            string input = await ui.ReadLineAsync();
 
-            if (int.TryParse(input, out int choice) && choice >= 1 && choice <= lookables.Count)
+            while (true)
             {
-                (string name, string description, string color) selected = lookables[choice - 1];
-                ui.WriteLine();
-                ui.WriteLine($"[italic]You take a closer look at the [bold][{selected.color}]{selected.name}[/][/]...[/]");
-                ui.WriteLine();
-                ui.WriteLine(selected.description);
-                ui.WriteLine();
-                ui.Write("[dim]Press any key to continue...[/]");
-                await ui.ReadKeyAsync();
-                ui.Clear();
-            }
-            else if (!string.IsNullOrWhiteSpace(input))
-            {
-                ui.WriteLine("[dim]Invalid choice.[/]");
-                ui.WriteLine();
-                ui.Write("[dim]Press any key to continue...[/]");
-                await ui.ReadKeyAsync();
-                ui.Clear();
+                // Read a single key from the user (intercepted, not shown)
+                string key = await ui.ReadKeyAsync(intercept: true);
+
+                // If Enter is pressed (empty, CR, or LF), cancel and clear UI
+                if (string.IsNullOrEmpty(key) || key == "\r" || key == "\n")
+                {
+                    ui.Clear();
+                    return;
+                }
+
+                // Only accept digits 1..lookables.Count
+                if (key.Length == 1 && char.IsDigit(key[0]))
+                {
+                    int num = key[0] - '0';
+
+                    // If the digit is a valid menu option, show the detail
+                    if (num >= 1 && num <= lookables.Count)
+                    {
+                        (string name, string description, string color) selected = lookables[num - 1];
+                        ui.WriteLine();
+                        ui.WriteLine($"[italic]You take a closer look at the [bold][{selected.color}]{selected.name}[/][/]...[/]");
+                        ui.WriteLine();
+                        ui.WriteLine(selected.description);
+                        ui.WriteLine();
+                        ui.Write("[dim]Press any key to continue...[/]");
+                        await ui.ReadKeyAsync();
+                        ui.Clear();
+                        return;
+                    }
+                }
+                // Ignore any other key and continue waiting for valid input
             }
         }
 
