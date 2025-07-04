@@ -188,7 +188,19 @@ namespace DynDungeonCrawler.ConDungeon
             }
 
             ui.WriteRule();
-            ui.WriteLine(player.CurrentRoom.Description ?? "[dim]This room is an abyss.[/]");
+            // Show entrance direction if available
+            if (player.PreviousRoom != null)
+            {
+                string enteredFrom = GetEntranceDirection(player.PreviousRoom, player.CurrentRoom);
+                if (!string.IsNullOrEmpty(enteredFrom))
+                {
+                    ui.WriteLine($"[dim]You entered from the {enteredFrom}.[/]");
+                }
+            }
+
+            // Ensure the room description is not null before passing it to WriteLine
+            string roomDescription = player.CurrentRoom.Description ?? "[dim]This room is an abyss.[/]";
+            ui.WriteLine(roomDescription);
 
             if (player.CurrentRoom.Contents.Count > 0)
             {
@@ -234,6 +246,42 @@ namespace DynDungeonCrawler.ConDungeon
 
             ui.WriteRule();
             ui.WriteLine();
+        }
+
+        /// <summary>
+        /// Determines the entrance direction based on the previous and current room coordinates.
+        /// Returns a string such as "North", "South", "East", or "West".
+        /// </summary>
+        private static string GetEntranceDirection(Room previous, Room current)
+        {
+            if (previous == null || current == null)
+            {
+                return string.Empty;
+            }
+
+            int dx = current.X - previous.X;
+            int dy = current.Y - previous.Y;
+            if (dx == 1 && dy == 0)
+            {
+                return "West";
+            }
+
+            if (dx == -1 && dy == 0)
+            {
+                return "East";
+            }
+
+            if (dx == 0 && dy == 1)
+            {
+                return "North";
+            }
+
+            if (dx == 0 && dy == -1)
+            {
+                return "South";
+            }
+
+            return string.Empty;
         }
 
         /// <summary>
@@ -305,6 +353,108 @@ namespace DynDungeonCrawler.ConDungeon
         }
 
         /// <summary>
+        /// Handles the Look command by presenting a menu of things to look at in detail,
+        /// including the room itself and each entity in the room.
+        /// </summary>
+        /// <param name="ui">The user interface for I/O operations.</param>
+        /// <param name="player">The current player.</param>
+        /// <returns>A task that completes when the look operation is finished.</returns>
+        private static async Task HandleLookCommandAsync(IUserInterface ui, Adventurer player)
+        {
+            if (player.CurrentRoom == null)
+            {
+                ui.WriteLine("[bold red]Error:[/] Current room is null.");
+                ui.WriteLine();
+                ui.Write("[dim]Press any key to continue...[/]");
+                await ui.ReadKeyAsync();
+                ui.Clear();
+                return;
+            }
+
+            // Build a list of lookable things (room + entities)
+            List<(string name, string description, string color)> lookables = new();
+
+            // Add the room itself first
+            lookables.Add(("The room", player.CurrentRoom.Description ?? "[dim]This room is an abyss.[/]", "white"));
+
+            // Add each entity in the room
+            foreach (Entity entity in player.CurrentRoom.Contents)
+            {
+                string name;
+                string description;
+                string color;
+
+                switch (entity)
+                {
+                    case TreasureChest chest:
+                        string chestState = chest.IsOpened ? "opened" : (chest.IsLocked ? "locked" : "unlocked");
+                        name = $"{chest.Name} ({chestState})";
+                        description = !string.IsNullOrWhiteSpace(chest.Description)
+                            ? chest.Description
+                            : "A mysterious chest with no further details.";
+                        color = "cyan1";
+                        break;
+
+                    default:
+                        name = entity.Name;
+                        description = !string.IsNullOrWhiteSpace(entity.Description)
+                            ? entity.Description
+                            : "No detailed description available.";
+                        color = "yellow";
+                        break;
+                }
+
+                lookables.Add((name, description, color));
+            }
+
+            // If there's nothing to look at besides the room, just show the room description
+            if (lookables.Count == 1)
+            {
+                // Ensure room description is not null before passing to WriteLine
+                string roomDesc = player.CurrentRoom.Description ??= "[dim]This room is an abyss.[/]";
+
+                ui.WriteLine("[italic]You take a closer look at the room...[/]");
+                ui.WriteLine(roomDesc);
+                ui.WriteLine();
+                ui.Write("[dim]Press any key to continue...[/]");
+                await ui.ReadKeyAsync();
+                ui.Clear();
+                return;
+            }
+
+            // Otherwise, present the menu of options
+            ui.WriteLine("[bold]What would you like to examine more closely?[/]");
+            for (int i = 0; i < lookables.Count; i++)
+            {
+                ui.WriteLine($" [{i + 1}] [[{lookables[i].color}]{lookables[i].name}[/]");
+            }
+
+            // Get player's choice
+            ui.Write("Enter number (or press Enter to cancel): ");
+            string input = await ui.ReadLineAsync();
+
+            if (int.TryParse(input, out int choice) && choice >= 1 && choice <= lookables.Count)
+            {
+                (string name, string description, string color) selected = lookables[choice - 1];
+                ui.WriteLine();
+                ui.WriteLine($"[bold][[{selected.color}]{selected.name}[/][/]");
+                ui.WriteLine(selected.description);
+                ui.WriteLine();
+                ui.Write("[dim]Press any key to continue...[/]");
+                await ui.ReadKeyAsync();
+                ui.Clear();
+            }
+            else if (!string.IsNullOrWhiteSpace(input))
+            {
+                ui.WriteLine("[dim]Invalid choice.[/]");
+                ui.WriteLine();
+                ui.Write("[dim]Press any key to continue...[/]");
+                await ui.ReadKeyAsync();
+                ui.Clear();
+            }
+        }
+
+        /// <summary>
         /// Asynchronously processes the player's command input, updating game state and handling actions such as movement,
         /// looking around, viewing inventory, or exiting the game. Also manages invalid commands and ensures
         /// the player's current room is valid before executing actions.
@@ -342,7 +492,8 @@ namespace DynDungeonCrawler.ConDungeon
             }
             else if (cmdChar == 'l')
             {
-                ui.WriteLine(player.CurrentRoom.Description);
+                // Enhanced look command - show menu of things to look at
+                await HandleLookCommandAsync(ui, player);
             }
             else if (cmdChar == 'i')
             {
@@ -406,6 +557,7 @@ namespace DynDungeonCrawler.ConDungeon
                             await TreasureChestFactory.GenerateTreasureDescriptionsAsync(roomsWithChests, dungeon.Theme, llmClient, logger);
                         }
                     }
+                    player.PreviousRoom = player.CurrentRoom; // Track previous room before moving
                     player.CurrentRoom = nextRoom;
                     player.VisitedRoomIds.Add(nextRoom.Id);
                     ui.Clear();

@@ -17,6 +17,7 @@ namespace DynDungeonCrawler.Engine.Classes
         public int Wealth { get; private set; }
         public List<Entity> Inventory { get; private set; }
         public Room? CurrentRoom { get; set; }
+        public Room? PreviousRoom { get; set; }
         public HashSet<Guid> VisitedRoomIds { get; } = new();
 
         public Adventurer(string name)
