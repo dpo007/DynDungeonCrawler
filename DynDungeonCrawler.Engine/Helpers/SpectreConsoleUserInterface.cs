@@ -156,5 +156,17 @@ namespace DynDungeonCrawler.Engine.Helpers
             // Fallback: return -1 if no valid selection was made
             return Task.FromResult(-1);
         }
+
+        public async Task<T> ShowSpinnerAsync<T>(string message, Func<Task<T>> operation)
+        {
+            T result = default!;
+            await AnsiConsole.Status()
+                .Spinner(Spinner.Known.Dots)
+                .StartAsync(message, async ctx =>
+                {
+                    result = await operation();
+                });
+            return result;
+        }
     }
 }

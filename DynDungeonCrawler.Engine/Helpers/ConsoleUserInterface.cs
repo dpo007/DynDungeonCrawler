@@ -158,5 +158,40 @@ namespace DynDungeonCrawler.Engine.Helpers
                 // Invalid key, continue waiting
             }
         }
+
+        /// <summary>
+        /// Displays a spinner animation while performing an asynchronous operation.
+        /// </summary>
+        public async Task<T> ShowSpinnerAsync<T>(string message, Func<Task<T>> operation)
+        {
+            char[] spinnerChars = new[] { '|', '/', '-', '\\' };
+            int spinnerIndex = 0;
+            bool running = true;
+
+            Thread spinnerThread = new Thread(() =>
+            {
+                while (running)
+                {
+                    Console.Write($"\r{message} {spinnerChars[spinnerIndex++ % spinnerChars.Length]}");
+                    Thread.Sleep(100);
+                }
+            })
+            {
+                IsBackground = true
+            };
+
+            spinnerThread.Start();
+            try
+            {
+                T result = await operation();
+                return result;
+            }
+            finally
+            {
+                running = false;
+                spinnerThread.Join();
+                Console.Write("\r" + new string(' ', message.Length + 2) + "\r"); // Clear spinner line
+            }
+        }
     }
 }

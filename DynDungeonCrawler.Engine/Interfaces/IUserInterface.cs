@@ -71,5 +71,14 @@
             Func<T, string> displaySelector,
             Func<T, string>? colorSelector = null,
             string cancelPrompt = "press Enter to cancel");
+
+        /// <summary>
+        /// Shows a spinner with an optional message while running the given async operation.
+        /// </summary>
+        /// <typeparam name="T">The result type of the operation.</typeparam>
+        /// <param name="message">The message to display next to the spinner.</param>
+        /// <param name="operation">The async operation to run.</param>
+        /// <returns>The result of the operation.</returns>
+        Task<T> ShowSpinnerAsync<T>(string message, Func<Task<T>> operation);
     }
 }
