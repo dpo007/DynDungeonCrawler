@@ -96,69 +96,65 @@ namespace DynDungeonCrawler.Engine.Helpers
 
         /// <summary>
         /// Displays a pick list of items using Spectre.Console's styling and returns the selected item's index.
-        /// Uses single-keypress selection for immediate response.
+        /// Uses Spectre.Console's SelectionPrompt for a native, interactive pick list with color support and a cancel option.
         /// </summary>
-        public async Task<int> ShowPickListAsync<T>(
+        public Task<int> ShowPickListAsync<T>(
             string prompt,
             IReadOnlyList<T> items,
             Func<T, string> displaySelector,
             Func<T, string>? colorSelector = null,
-            string cancelPrompt = "press Enter to cancel")
+            string cancelPrompt = "Cancel")
         {
+            // Return -1 immediately if there are no items to select from
             if (items.Count == 0)
             {
-                return -1; // No items to select from
+                return Task.FromResult(-1);
             }
 
-            // Display the prompt
-            AnsiConsole.MarkupLine($"[bold]{prompt}[/]");
-
-            // Display each item with its number and optional color
+            // Build a list of display strings for each item, with optional color markup
+            List<string> displayList = new List<string>();
             for (int i = 0; i < items.Count; i++)
             {
                 string display = displaySelector(items[i]);
                 string color = colorSelector?.Invoke(items[i]) ?? "white";
-
-                // Make sure the color is valid for Spectre.Console
-                try
-                {
-                    Style.Parse(color);
-                }
-                catch
-                {
-                    color = "white"; // Fallback to white if color is invalid
-                }
-
-                AnsiConsole.MarkupLine($" [[{i + 1}]] [{color}]{EscapeMarkup(display)}[/]");
+                // Validate the color; fallback to white if invalid
+                try { Style.Parse(color); } catch { color = "white"; }
+                // Format the display string with color markup and item index
+                string colored = $"[{color}]{EscapeMarkup(display)}[/]";
+                displayList.Add($"{colored}");
             }
 
-            // Show the cancel prompt
-            AnsiConsole.Markup($"Enter number (or {cancelPrompt}): ");
+            // Add a cancel option at the end of the list
+            string cancelOption = $"[grey]{cancelPrompt}[/]";
+            displayList.Add(cancelOption);
 
-            // Wait for a valid key press
-            while (true)
+            // Create and configure the Spectre.Console SelectionPrompt
+            SelectionPrompt<string> selectionPrompt = new SelectionPrompt<string>()
+                .Title($"[bold]{EscapeMarkup(prompt)}[/]") // Set the prompt title
+                .AddChoices(displayList)                   // Add all choices (including cancel)
+                .HighlightStyle("bold invert");                 // Highlight style for the selected item
+
+            // Show the prompt and get the user's selection
+            string selected = AnsiConsole.Prompt(selectionPrompt);
+
+            // If the user selected the cancel option, return -1
+            if (selected == cancelOption)
             {
-                string key = await ReadKeyAsync(intercept: true);
-
-                // Check for cancel (Enter key)
-                if (string.IsNullOrEmpty(key) || key == "\r" || key == "\n")
-                {
-                    Clear();
-                    return -1;
-                }
-
-                // Check for a valid digit
-                if (key.Length == 1 && char.IsDigit(key[0]))
-                {
-                    int num = key[0] - '0';
-                    if (num >= 1 && num <= items.Count)
-                    {
-                        return num - 1; // Return zero-based index
-                    }
-                }
-
-                // Invalid key, continue waiting
+                Clear();
+                return Task.FromResult(-1);
             }
+
+            // Otherwise, find the index of the selected item and return it
+            for (int i = 0; i < items.Count; i++)
+            {
+                if (selected == displayList[i])
+                {
+                    return Task.FromResult(i);
+                }
+            }
+
+            // Fallback: return -1 if no valid selection was made
+            return Task.FromResult(-1);
         }
     }
 }

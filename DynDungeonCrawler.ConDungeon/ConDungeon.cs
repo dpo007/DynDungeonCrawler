@@ -434,10 +434,11 @@ namespace DynDungeonCrawler.ConDungeon
 
             // Use the new ShowPickListAsync method to get the player's choice
             int selectedIndex = await ui.ShowPickListAsync(
-                prompt: "[bold]What would you like to examine more closely?[/]",
+                prompt: "What would you like to examine more closely?",
                 items: lookables,
                 displaySelector: item => item.name,
-                colorSelector: item => item.color);
+                colorSelector: item => item.color,
+                cancelPrompt: "Cancel");
 
             // If the user cancelled (selectedIndex == -1), return
             if (selectedIndex == -1)

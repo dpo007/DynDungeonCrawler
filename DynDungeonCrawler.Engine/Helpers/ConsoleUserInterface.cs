@@ -2,6 +2,10 @@
 
 namespace DynDungeonCrawler.Engine.Helpers
 {
+    /// <summary>
+    /// Provides a basic, plain-text, mono-colored console user interface implementation of <see cref="IUserInterface"/>.
+    /// Intended for standard console environments with no advanced formatting or color features.
+    /// </summary>
     public class ConsoleUserInterface : IUserInterface
     {
         public void Write(string message) => Console.Write(message);
@@ -50,65 +54,58 @@ namespace DynDungeonCrawler.Engine.Helpers
 
         public void ShowSpecialMessage(string message, int durationMs = 2000, bool center = false, bool writeLine = false)
         {
-            ConsoleColor prevColor = Console.ForegroundColor;
-            Console.ForegroundColor = ConsoleColor.Yellow;
-
-            int consoleWidth = Console.WindowWidth;
-            int padLeft = center ? Math.Max(0, (consoleWidth - message.Length) / 2) : 0;
-            string output = new string(' ', padLeft) + message.ToUpper();
-
-            if (writeLine)
+            // Prepare the message in uppercase and with some padding
+            string decorated = $"*** {message.ToUpper()} ***";
+            int consoleWidth;
+            try
             {
-                Console.WriteLine(output);
+                consoleWidth = Console.WindowWidth;
+            }
+            catch
+            {
+                consoleWidth = 80;
+            }
+
+            // Center the message if requested
+            string output;
+            if (center)
+            {
+                int padLeft = Math.Max(0, (consoleWidth - decorated.Length) / 2);
+                output = new string(' ', padLeft) + decorated;
             }
             else
             {
-                Console.Write(output);
+                output = decorated;
             }
 
-            Console.ForegroundColor = prevColor;
+            // Draw a box around the message
+            string border = new string('*', Math.Min(consoleWidth, decorated.Length + 4));
+            if (center)
+            {
+                int padLeft = Math.Max(0, (consoleWidth - border.Length) / 2);
+                border = new string(' ', padLeft) + border;
+            }
+
+            // Print the box
+            Console.WriteLine();
+            Console.WriteLine(border);
+            Console.WriteLine(output);
+            Console.WriteLine(border);
+
+            // Optionally pause for effect
+            if (durationMs > 0)
+            {
+                Thread.Sleep(durationMs);
+            }
+
+            if (writeLine)
+            {
+                Console.WriteLine();
+            }
         }
 
         /// <summary>
-        /// Maps color names to ConsoleColor values.
-        /// </summary>
-        private static readonly Dictionary<string, ConsoleColor> ColorMap = new()
-        {
-            { "red", ConsoleColor.Red },
-            { "green", ConsoleColor.Green },
-            { "blue", ConsoleColor.Blue },
-            { "yellow", ConsoleColor.Yellow },
-            { "cyan", ConsoleColor.Cyan },
-            { "cyan1", ConsoleColor.Cyan },
-            { "magenta", ConsoleColor.Magenta },
-            { "white", ConsoleColor.White },
-            { "gray", ConsoleColor.Gray },
-            { "grey", ConsoleColor.Gray },
-            { "darkgray", ConsoleColor.DarkGray },
-            { "darkgrey", ConsoleColor.DarkGray },
-            { "black", ConsoleColor.Black },
-            { "darkred", ConsoleColor.DarkRed },
-            { "darkgreen", ConsoleColor.DarkGreen },
-            { "darkblue", ConsoleColor.DarkBlue },
-            { "darkyellow", ConsoleColor.DarkYellow },
-            { "darkcyan", ConsoleColor.DarkCyan },
-            { "darkmagenta", ConsoleColor.DarkMagenta },
-            { "default", Console.ForegroundColor }
-        };
-
-        /// <summary>
-        /// Attempts to map a color name to a ConsoleColor.
-        /// </summary>
-        private static ConsoleColor MapColor(string colorName)
-        {
-            colorName = colorName.ToLowerInvariant().Trim();
-            return ColorMap.TryGetValue(colorName, out ConsoleColor color)
-                ? color
-                : Console.ForegroundColor;
-        }
-
-        /// <summary>
-        /// Displays a pick list of items using standard Console colors and returns the selected item's index.
+        /// Displays a pick list of items and returns the selected item's index.
         /// Uses single-keypress selection for immediate response.
         /// </summary>
         public async Task<int> ShowPickListAsync<T>(
@@ -126,22 +123,11 @@ namespace DynDungeonCrawler.Engine.Helpers
             // Display the prompt
             Console.WriteLine(prompt);
 
-            // Display each item with its number and optional color
-            ConsoleColor originalColor = Console.ForegroundColor;
-
+            // Display each item with its number
             for (int i = 0; i < items.Count; i++)
             {
                 string display = displaySelector(items[i]);
-                string colorName = colorSelector?.Invoke(items[i]) ?? "default";
-                ConsoleColor itemColor = MapColor(colorName);
-
-                // Display the item number in the original color
-                Console.Write($" [{i + 1}] ");
-
-                // Display the item text in the specified color
-                Console.ForegroundColor = itemColor;
-                Console.WriteLine(display);
-                Console.ForegroundColor = originalColor;
+                Console.WriteLine($" [{i + 1}] {display}");
             }
 
             // Show the cancel prompt
