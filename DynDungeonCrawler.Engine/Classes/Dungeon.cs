@@ -449,6 +449,7 @@ namespace DynDungeonCrawler.Engine.Classes
                     X = room.X,
                     Y = room.Y,
                     Type = room.Type.ToString(),
+                    Name = room.Name, // Serialize room name
                     Description = room.Description,
                     ConnectedNorth = room.ConnectedNorth,
                     ConnectedEast = room.ConnectedEast,
@@ -526,6 +527,7 @@ namespace DynDungeonCrawler.Engine.Classes
                 {
                     Id = roomData.Id,
                     Type = Enum.TryParse<RoomType>(roomData.Type, out RoomType type) ? type : RoomType.Normal,
+                    Name = roomData.Name ?? string.Empty, // Deserialize room name
                     Description = roomData.Description ?? string.Empty,
                     ConnectedNorth = roomData.ConnectedNorth,
                     ConnectedEast = roomData.ConnectedEast,

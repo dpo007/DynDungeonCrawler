@@ -13,6 +13,7 @@
         public int X { get; set; }            // Grid X coordinate
         public int Y { get; set; }            // Grid Y coordinate
         public RoomType Type { get; set; }    // Type of room
+        public string Name { get; set; } = string.Empty; // LLM-generated room name
         public string Description { get; set; } = string.Empty;
         private readonly object _contentsLock = new();
         public List<Entity> Contents { get; } = new();

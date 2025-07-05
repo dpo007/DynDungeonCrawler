@@ -6,6 +6,7 @@
         public int X { get; set; }              // Grid X coordinate
         public int Y { get; set; }              // Grid Y coordinate
         public string Type { get; set; } = "";  // Room type as string for serialization
+        public string Name { get; set; } = "";  // LLM-generated room name
         public string Description { get; set; } = ""; // Optional description
 
         /// <summary>
