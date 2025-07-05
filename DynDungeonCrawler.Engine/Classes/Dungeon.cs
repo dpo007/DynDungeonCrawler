@@ -24,8 +24,8 @@ namespace DynDungeonCrawler.Engine.Classes
         private string theme;
         private readonly ILogger _logger;
 
-        public const int MaxDungeonWidth = 100;
-        public const int MaxDungeonHeight = 100;
+        public const int MaxDungeonWidth = 1000;
+        public const int MaxDungeonHeight = 1000;
 
         /// <summary>
         /// Initializes a new instance of the Dungeon class with the specified width, height, theme, and LLM client.
@@ -57,7 +57,6 @@ namespace DynDungeonCrawler.Engine.Classes
             ArgumentNullException.ThrowIfNull(llmClient);
             ArgumentNullException.ThrowIfNull(logger);
 
-            _llmClient = llmClient;
             _logger = logger;
 
             this.width = width;
