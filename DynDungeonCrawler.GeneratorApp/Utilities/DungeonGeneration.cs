@@ -420,6 +420,11 @@ namespace DynDungeonCrawler.GeneratorApp.Utilities
                     for (int i = 0; i < MaxEnemiesPerRoom; i++)
                     {
                         double chance = i < enemyChances.Length ? enemyChances[i] : 0.01;
+                        // If at least one chest, increase the chance for the first enemy by 10% (additive)
+                        if (i == 0 && chestsAdded > 0)
+                        {
+                            chance += 0.10;
+                        }
                         if (localRandom.NextDouble() < chance)
                         {
                             EnemyTypeInfo enemyType = enemyTypes[localRandom.Next(enemyTypes.Count)];
