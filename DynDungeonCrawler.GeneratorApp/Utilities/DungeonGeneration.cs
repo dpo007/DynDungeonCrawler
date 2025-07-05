@@ -9,16 +9,26 @@ namespace DynDungeonCrawler.GeneratorApp.Utilities
     public static class DungeonGeneration
     {
         /// <summary>
+        /// The maximum number of treasure chests that can appear in a single room.
+        /// </summary>
+        public const int MaxChestsPerRoom = 1;
+
+        /// <summary>
+        /// The maximum number of enemies that can appear in a single room.
+        /// </summary>
+        public const int MaxEnemiesPerRoom = 2;
+
+        /// <summary>
         /// Asynchronously generates a new dungeon with a main path, side branches, and AI-generated room descriptions.
+        /// The dungeon is constructed by creating an entrance room at the center, generating a main path of random length,
+        /// adding side branches for complexity, and generating descriptions for the entrance and exit rooms using an LLM client.
         /// </summary>
         /// <param name="width">The width of the dungeon grid.</param>
         /// <param name="height">The height of the dungeon grid.</param>
         /// <param name="theme">The theme for styling and description generation.</param>
         /// <param name="llmClient">An AI client used to generate room descriptions.</param>
         /// <param name="logger">Logger instance for diagnostic and progress messages.</param>
-        /// <returns>
-        /// A Task that, when completed, returns the fully generated Dungeon instance.
-        /// </returns>
+        /// <returns>A Task that, when completed, returns the fully generated Dungeon instance.</returns>
         public static async Task<Dungeon> GenerateDungeon(
             int width,
             int height,
@@ -135,24 +145,16 @@ namespace DynDungeonCrawler.GeneratorApp.Utilities
         }
 
         /// <summary>
-        /// Creates a primary branching path in the dungeon.
+        /// Creates a primary branching path in the dungeon from a random starting room.
+        /// The branch is carved step by step, creating new rooms in random directions, and may spawn side-branches or loops.
         /// </summary>
         /// <param name="grid">2D grid representing the dungeon layout.</param>
         /// <param name="dungeon">The Dungeon instance holding all rooms.</param>
         /// <param name="random">Random generator for decision making.</param>
-        /// <param name="log">Action for logging messages (unused in current logic).</param>
-        /// <param name="getAvailableDirections">
-        /// Function that, given a room, returns a list of possible directions
-        /// along with the corresponding exit setters.
-        /// </param>
-        /// <param name="createBranchPathFrom">
-        /// Action to recursively create a sub-branch from the current room
-        /// with a certain probability.
-        /// </param>
-        /// <param name="tryCreateLoop">
-        /// Action to attempt creating a loop back into an existing path
-        /// at the end of the branch with a certain probability.
-        /// </param>
+        /// <param name="log">Action for logging messages.</param>
+        /// <param name="getAvailableDirections">Function that, given a room, returns a list of possible directions along with the corresponding exit setters.</param>
+        /// <param name="createBranchPathFrom">Action to recursively create a sub-branch from the current room with a certain probability.</param>
+        /// <param name="tryCreateLoop">Action to attempt creating a loop back into an existing path at the end of the branch with a certain probability.</param>
         private static void CreateBranchPath(
             Room[,] grid,
             Dungeon dungeon,
@@ -226,15 +228,13 @@ namespace DynDungeonCrawler.GeneratorApp.Utilities
 
         /// <summary>
         /// Creates a sub-branch path starting from the specified room.
+        /// The sub-branch is carved out by creating new rooms in random directions for a random length.
         /// </summary>
         /// <param name="startRoom">The room from which to start the sub-branch.</param>
         /// <param name="grid">2D grid representing the dungeon layout.</param>
         /// <param name="dungeon">The Dungeon instance holding all rooms.</param>
         /// <param name="random">Random generator for decision making.</param>
-        /// <param name="getAvailableDirections">
-        /// Function that, given a room, returns a list of possible directions
-        /// along with the corresponding exit setters.
-        /// </param>
+        /// <param name="getAvailableDirections">Function that, given a room, returns a list of possible directions along with the corresponding exit setters.</param>
         private static void CreateBranchPathFrom(
             Room startRoom,
             Room[,] grid,
@@ -281,9 +281,13 @@ namespace DynDungeonCrawler.GeneratorApp.Utilities
         }
 
         /// <summary>
-        /// Attempts to create a loop by connecting the specified room to an existing room.
+        /// Attempts to create a loop by connecting the specified room to an existing adjacent room.
+        /// If a valid adjacent room exists, sets the appropriate connection flags to create a loop.
         /// </summary>
         /// <param name="room">The room to attempt to connect to an existing room.</param>
+        /// <param name="grid">2D grid representing the dungeon layout.</param>
+        /// <param name="random">Random generator for decision making.</param>
+        /// <param name="isInBounds">Function to check if a position is within bounds.</param>
         private static void TryCreateLoop(
             Room room,
             Room[,] grid,
@@ -330,6 +334,7 @@ namespace DynDungeonCrawler.GeneratorApp.Utilities
 
         /// <summary>
         /// Determines the available directions for placing a new room from the specified room.
+        /// Returns a list of available directions and actions to set connections, considering grid bounds and existing rooms.
         /// </summary>
         /// <param name="fromRoom">The room to check for available directions.</param>
         /// <param name="grid">The grid of rooms.</param>
@@ -367,7 +372,15 @@ namespace DynDungeonCrawler.GeneratorApp.Utilities
 
         /// <summary>
         /// Populates the rooms with contents such as treasure chests and enemies.
+        /// For each normal room, attempts to add up to MaxChestsPerRoom treasure chests (10% chance per slot)
+        /// and up to MaxEnemiesPerRoom enemies (with decreasing odds for each additional enemy).
+        /// The type and properties of each entity are determined randomly and by the dungeon theme.
         /// </summary>
+        /// <param name="rooms">The list of rooms to populate.</param>
+        /// <param name="theme">The dungeon theme for enemy generation.</param>
+        /// <param name="llmClient">The LLM client for generating enemy types.</param>
+        /// <param name="logger">Logger for progress and entity addition messages.</param>
+        /// <param name="random">Random generator for entity placement.</param>
         public static async Task PopulateRoomContentsAsync(
             List<Room> rooms,
             string theme,
@@ -388,25 +401,33 @@ namespace DynDungeonCrawler.GeneratorApp.Utilities
                 // Only populate normal rooms (not entrance/exit)
                 if (room.Type == RoomType.Normal)
                 {
-                    double roll = localRandom.NextDouble();
-
-                    // 10% chance to add a treasure chest (possibly locked)
-                    if (roll < 0.1)
+                    // Add up to MaxChestsPerRoom chests (10% chance per slot)
+                    int chestsAdded = 0;
+                    for (int i = 0; i < MaxChestsPerRoom; i++)
                     {
-                        bool isLocked = localRandom.NextDouble() < 0.3; // 30% of chests are locked
-                        room.AddEntity(TreasureChestFactory.CreateTreasureChest(isLocked: isLocked));
-
-                        logger.Log($"Treasure chest added to room at ({room.X}, {room.Y}) -  {(isLocked ? "Locked" : "Unlocked")}.");
+                        if (localRandom.NextDouble() < 0.10)
+                        {
+                            bool isLocked = localRandom.NextDouble() < 0.3;
+                            room.AddEntity(TreasureChestFactory.CreateTreasureChest(isLocked: isLocked));
+                            chestsAdded++;
+                            logger.Log($"Treasure chest added to room at ({room.X}, {room.Y}) - {(isLocked ? "Locked" : "Unlocked")}.");
+                        }
                     }
-                    // Next 10% chance (i.e., 10% to 20%) to add an enemy
-                    else if (roll < 0.2)
-                    {
-                        // Pick a random enemy type from the master list
-                        EnemyTypeInfo enemyType = enemyTypes[localRandom.Next(enemyTypes.Count)];
-                        Enemy enemy = EnemyFactory.CreateEnemy(enemyType.Name, enemyType.Description, enemyType.ShortDescription, theme);
-                        room.AddEntity(enemy);
 
-                        logger.Log($"Enemy '{enemy.Name}' added to room at ({room.X}, {room.Y}).");
+                    // Add up to MaxEnemiesPerRoom enemies (decreasing odds for each)
+                    int enemiesAdded = 0;
+                    double[] enemyChances = { 0.10, 0.03, 0.01 }; // Extend as needed for more than 3
+                    for (int i = 0; i < MaxEnemiesPerRoom; i++)
+                    {
+                        double chance = i < enemyChances.Length ? enemyChances[i] : 0.01;
+                        if (localRandom.NextDouble() < chance)
+                        {
+                            EnemyTypeInfo enemyType = enemyTypes[localRandom.Next(enemyTypes.Count)];
+                            Enemy enemy = EnemyFactory.CreateEnemy(enemyType.Name, enemyType.Description, enemyType.ShortDescription, theme);
+                            room.AddEntity(enemy);
+                            enemiesAdded++;
+                            logger.Log($"Enemy '{enemy.Name}' added to room at ({room.X}, {room.Y}).");
+                        }
                     }
                 }
             });

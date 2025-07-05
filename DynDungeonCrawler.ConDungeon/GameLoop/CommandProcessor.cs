@@ -103,7 +103,7 @@ namespace DynDungeonCrawler.ConDungeon.GameLoop
                         }
 
                         int roomCount = roomsToProcess.Count;
-                        await ui.ShowSpinnerAsync($"Generating descriptions for {roomCount} room{(roomCount == 1 ? "" : "s")}", async () =>
+                        await ui.ShowSpinnerAsync($"Checking and generating descriptions for {roomCount} room{(roomCount == 1 ? "" : "s")}", async () =>
                         {
                             await RoomDescriptionGenerator.GenerateRoomDescriptionsAsync(roomsToProcess.ToList(), dungeon.Theme, llmClient, logger);
 

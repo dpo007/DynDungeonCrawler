@@ -34,6 +34,18 @@ namespace DynDungeonCrawler.Engine.Helpers
                 ? rooms
                 : rooms.Where(r => string.IsNullOrWhiteSpace(r.Description)).ToList();
 
+            // Log skipped rooms if not clobbering
+            if (!allowClobber)
+            {
+                foreach (Room room in rooms)
+                {
+                    if (!string.IsNullOrWhiteSpace(room.Description))
+                    {
+                        logger.Log($"[RoomGen] Skipping room {room.Id} (already has a description)");
+                    }
+                }
+            }
+
             if (targetRooms.Count == 0)
             {
                 logger.Log("No rooms require description generation.");
