@@ -99,6 +99,18 @@ The engine is highly configurable, supports multiple LLM providers, and features
 |:-----------------|:----------------------------------------------------------------------------------------|
 | `Utilities/`     | Utility classes for dungeon generation and app logic                                    |
 
+**DynDungeonCrawler.ConDungeon Project Folders**:
+
+| Folder / File         | Purpose                                                                                  |
+|:----------------------|:----------------------------------------------------------------------------------------|
+| `GameLoop/`           | Modular game loop logic: input handling, command processing, room rendering, main loop  |
+| &nbsp;&nbsp;└─ `InputHandler.cs`      | Handles all player input and command key validation                        |
+| &nbsp;&nbsp;└─ `CommandProcessor.cs`  | Processes player commands, movement, inventory, and look actions           |
+| &nbsp;&nbsp;└─ `RoomRenderer.cs`      | Renders the current room and its contents to the UI                        |
+| &nbsp;&nbsp;└─ `GameLoopRunner.cs`    | Orchestrates the main game loop                                            |
+| `GameInitializer.cs`  | Handles all game setup and initialization logic                                         |
+| `ConDungeon.cs`       | Entry point; wires up initialization and the main game loop                             |
+
 ---
 
 ## 🤖 LLM (AI) Integration
@@ -136,6 +148,8 @@ The engine is highly configurable, supports multiple LLM providers, and features
 - **Room descriptions are generated on demand as you explore**
 - **Inventory and basic player stats supported**
 - **Game ends on player death or escape**
+
+> The ConDungeon project is now fully modular, with separate classes for game initialization, input handling, command processing, room rendering, and the main game loop. This makes the codebase easier to maintain and extend.
 
 ---
 
