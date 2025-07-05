@@ -187,19 +187,17 @@ namespace DynDungeonCrawler.ConDungeon
                 return;
             }
 
-            // Show direction room was entred from (if available)
-            if (player.PreviousRoom == null)
+            // Show the room name (if available), otherwise a rule
+            if (!string.IsNullOrWhiteSpace(player.CurrentRoom.Name))
             {
-                ui.WriteRule();
+                ui.WriteRule($"[bold white]{player.CurrentRoom.Name}[/]");
             }
             else
             {
-                string enteredFrom = GetEntranceDirection(player.PreviousRoom, player.CurrentRoom);
-                if (!string.IsNullOrEmpty(enteredFrom))
-                {
-                    ui.WriteRule($"You entered from the {enteredFrom}");
-                }
+                ui.WriteRule();
             }
+
+            ui.WriteLine();
 
             // Ensure the room description is not null before passing it to WriteLine
             string roomDescription = player.CurrentRoom.Description ?? "[dim]This room is an abyss.[/]";
@@ -247,7 +245,21 @@ namespace DynDungeonCrawler.ConDungeon
                 }
             }
 
-            ui.WriteRule();
+            ui.WriteLine();
+
+            // Show direction room was entred from (if available)
+            if (player.PreviousRoom == null)
+            {
+                ui.WriteRule();
+            }
+            else
+            {
+                string enteredFrom = GetEntranceDirection(player.PreviousRoom, player.CurrentRoom);
+                if (!string.IsNullOrEmpty(enteredFrom))
+                {
+                    ui.WriteRule($"You entered from the {enteredFrom}");
+                }
+            }
             ui.WriteLine();
         }
 

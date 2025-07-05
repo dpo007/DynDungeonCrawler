@@ -97,7 +97,7 @@ Response format:
                 string exitPrompt = $@"
 You are a fantasy narrative generator.
 
-Given the theme and room data, generate a short, vivid, and triumphant description congratulating the adventurer on escaping the dungeon, and a fitting room name.
+Given the theme and room data, generate a vivid, and triumphant description congratulating the adventurer on escaping the dungeon, and a fitting room name.
 
 For each room:
 - Do NOT mention exits or physical portals.
