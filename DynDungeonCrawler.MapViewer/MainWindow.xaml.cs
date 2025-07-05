@@ -218,6 +218,7 @@ public partial class MainWindow : Window
 
                 if (room != null)
                 {
+                    // Entities section
                     string entityList;
                     if (room.Contents != null && room.Contents.Count > 0)
                     {
@@ -249,11 +250,25 @@ public partial class MainWindow : Window
                         entityList = "- None";
                     }
 
-                    run.ToolTip = $"Coords: ({room.X},{room.Y})\nEntities:\n{entityList}";
+                    // Doors section
+                    string?[] doors =
+                    [
+                        room.ConnectedNorth ? "N" : null,
+                        room.ConnectedEast  ? "E" : null,
+                        room.ConnectedSouth ? "S" : null,
+                        room.ConnectedWest  ? "W" : null
+                    ];
+                    string doorsList = string.Join(", ", doors.Where(d => d != null));
+                    if (string.IsNullOrEmpty(doorsList))
+                    {
+                        doorsList = "None";
+                    }
+
+                    run.ToolTip = $"Coords: ({room.X},{room.Y})\nDoors: {doorsList}\nEntities:\n{entityList}";
                 }
                 else
                 {
-                    run.ToolTip = $"Coords: (n/a)\nEntities:\n- None";
+                    run.ToolTip = $"Coords: (n/a)\nDoors: None\nEntities:\n- None";
                 }
 
                 para.Inlines.Add(run);
