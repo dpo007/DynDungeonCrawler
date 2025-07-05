@@ -1,5 +1,6 @@
 ﻿using DynDungeonCrawler.Engine.Classes;
 using DynDungeonCrawler.Engine.Interfaces;
+using Spectre.Console;
 using System.Text.Json;
 
 namespace DynDungeonCrawler.Engine.Helpers
@@ -49,20 +50,28 @@ namespace DynDungeonCrawler.Engine.Helpers
 
                 string inputJson = JsonSerializer.Serialize(normalRequest);
                 string prompt = $@"
-Given the following dungeon theme and room data in JSON, generate a vivid, concise fantasy description for each room.
+You are a fantasy world-building assistant.
 
-For each room:
-- Always mention the available exits (north, east, south, west).
-- For each exit, describe the **physical appearance** of the doorway, arch, gate, or passage — including material, style, damage, light, markings, etc.
-- Do **not** describe what lies beyond the exit — focus only on the portal itself.
+Given the following dungeon **theme** and a list of **room objects** in JSON format, generate a vivid and immersive **description** for each room.
 
-Return the same JSON structure, but add a 'description' field to each room, generated based on the theme, room type, and exits.
+Instructions for each room:
+- Incorporate the overall dungeon **theme** and the **room type**.
+- Always include the **available exits** (north, east, south, west).
+- For **each exit**, vividly describe the **physical appearance** of the portal (doorway, arch, gate, passage, etc.).
+  - Mention style, materials, damage, age, light, markings, carvings, or magical effects.
+  - Use varied vocabulary to avoid repetition.
+  - Each exit’s description should begin with the direction (e.g., ""To the north, a cracked stone arch..."").
+- Use **concise, sensory - rich language** — imagine you are writing for a text-based adventure or dungeon crawler game.
+- Limit each description to approximately 3–5 sentences.
 
-Do not change the IDs or exits. Only return valid JSON, with no markdown formatting.
+Response format:
+- Return the **exact same JSON structure**, with an added ""description"" field in each room object.
+- Do not modify any existing fields(IDs, coordinates, or exits).
+- Return only **valid, minified JSON** — no markdown, no comments, no extra output.
 
 {inputJson}";
 
-                string systemPrompt = "You are a creative fantasy room description generator for RPG dungeons.";
+                string systemPrompt = "You are an expert fantasy narrator who writes vivid, concise, and immersive room descriptions for procedurally generated RPG dungeons. Your style is atmospheric and rich with sensory detail, while staying brief and game-ready. You always respect the input structure and never invent content not grounded in the data.";
 
                 Dictionary<Guid, string> normalDescriptions = await GetDescriptionsFromLLM(normalRooms, prompt, systemPrompt, llmClient, logger);
                 foreach (KeyValuePair<Guid, string> kvp in normalDescriptions)
