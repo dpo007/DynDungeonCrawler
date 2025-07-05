@@ -22,13 +22,10 @@ namespace DynDungeonCrawler.Engine.Classes
         private int width;
         private int height;
         private string theme;
-        private static readonly Random random = Random.Shared;
-        private int minPathLength = DungeonDefaults.DefaultEscapePathLength; // Minimum rooms from Entrance to Exit
-        private readonly ILLMClient _llmClient;
         private readonly ILogger _logger;
 
-        public const int MaxDungeonWidth = 1000;
-        public const int MaxDungeonHeight = 1000;
+        public const int MaxDungeonWidth = 100;
+        public const int MaxDungeonHeight = 100;
 
         /// <summary>
         /// Initializes a new instance of the Dungeon class with the specified width, height, theme, and LLM client.
