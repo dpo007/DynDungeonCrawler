@@ -3,6 +3,7 @@ using DynDungeonCrawler.Engine.Configuration;
 using DynDungeonCrawler.Engine.Factories;
 using DynDungeonCrawler.Engine.Helpers;
 using DynDungeonCrawler.Engine.Interfaces;
+using Spectre.Console;
 
 namespace DynDungeonCrawler.ConDungeon
 {
@@ -13,6 +14,9 @@ namespace DynDungeonCrawler.ConDungeon
         /// </summary>
         private static async Task Main(string[] args)
         {
+            // Set the console output encoding to UTF-8 to support special characters
+            Console.OutputEncoding = System.Text.Encoding.UTF8;
+
             // Capture the nullable tuple
             (IUserInterface? ui, ILogger? logger, ILLMClient? llmClient, Dungeon? dungeon, Adventurer? player) init = await InitializeGameAsync();
 
@@ -565,19 +569,23 @@ namespace DynDungeonCrawler.ConDungeon
                             }
                         }
 
-                        // Generate descriptions for the next room and its neighbors
-                        await RoomDescriptionGenerator.GenerateRoomDescriptionsAsync(roomsToProcess.ToList(), dungeon.Theme, llmClient, logger);
-
-                        // Extract rooms that have entities that are treasure chests
-                        List<Room> roomsWithChests = roomsToProcess
-                          .Where(r => r.Contents.Any(e => e.Type == EntityType.TreasureChest))
-                          .ToList();
-
-                        // If there are any rooms with treasure chests, generate descriptions for them
-                        if (roomsWithChests.Count > 0)
+                        int roomCount = roomsToProcess.Count;
+                        await ui.ShowSpinnerAsync($"Generating descriptions for {roomCount} room{(roomCount == 1 ? "" : "s")}...", async () =>
                         {
-                            await TreasureChestFactory.GenerateTreasureDescriptionsAsync(roomsWithChests, dungeon.Theme, llmClient, logger);
-                        }
+                            await RoomDescriptionGenerator.GenerateRoomDescriptionsAsync(roomsToProcess.ToList(), dungeon.Theme, llmClient, logger);
+
+                            // Extract rooms that have entities that are treasure chests
+                            List<Room> roomsWithChests = roomsToProcess
+                              .Where(r => r.Contents.Any(e => e.Type == EntityType.TreasureChest))
+                              .ToList();
+
+                            // If there are any rooms with treasure chests, generate descriptions for them
+                            if (roomsWithChests.Count > 0)
+                            {
+                                await TreasureChestFactory.GenerateTreasureDescriptionsAsync(roomsWithChests, dungeon.Theme, llmClient, logger);
+                            }
+                            return true;
+                        });
                     }
                     player.PreviousRoom = player.CurrentRoom; // Track previous room before moving
                     player.CurrentRoom = nextRoom;

@@ -161,7 +161,7 @@ namespace DynDungeonCrawler.Engine.Helpers
         {
             T result = default!;
             await AnsiConsole.Status()
-                .Spinner(Spinner.Known.Dots)
+                .Spinner(Spinner.Known.BouncingBar)
                 .StartAsync(message, async ctx =>
                 {
                     result = await operation();
