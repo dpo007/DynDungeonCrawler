@@ -59,6 +59,7 @@ namespace DynDungeonCrawler.Engine.Classes
 
             ArgumentNullException.ThrowIfNull(llmClient);
             ArgumentNullException.ThrowIfNull(logger);
+
             _llmClient = llmClient;
             _logger = logger;
 
@@ -292,6 +293,7 @@ namespace DynDungeonCrawler.Engine.Classes
                         Console.Write("#");
                     }
                 }
+
                 Console.WriteLine();
             }
 
@@ -570,6 +572,7 @@ namespace DynDungeonCrawler.Engine.Classes
         public MapCellInfo[,] GetMapCells(bool showEntities = false)
         {
             int minX = width, minY = height, maxX = 0, maxY = 0;
+
             foreach (Room room in rooms)
             {
                 if (room.X < minX)
@@ -592,15 +595,18 @@ namespace DynDungeonCrawler.Engine.Classes
                     maxY = room.Y;
                 }
             }
+
             int mapWidth = maxX - minX + 5; // +4 for border, +1 for inclusive
             int mapHeight = maxY - minY + 5;
             MapCellInfo[,] cells = new MapCellInfo[mapWidth, mapHeight];
             Dictionary<(int, int), TravelDirection> mainPathDirections = new Dictionary<(int, int), TravelDirection>();
             Room? entrance = rooms.Find(r => r.Type == RoomType.Entrance);
+
             if (entrance != null && !showEntities)
             {
                 FindMainPath(entrance, mainPathDirections);
             }
+
             for (int y = 0; y < mapHeight; y++)
             {
                 for (int x = 0; x < mapWidth; x++)
@@ -609,6 +615,7 @@ namespace DynDungeonCrawler.Engine.Classes
                     int gridY = minY - 2 + y;
                     Room? room = (IsInBounds(gridX, gridY)) ? grid[gridX, gridY] : null;
                     MapCellInfo cell = new MapCellInfo { X = gridX, Y = gridY };
+
                     if (room == null)
                     {
                         cell.Symbol = '.';
@@ -658,9 +665,11 @@ namespace DynDungeonCrawler.Engine.Classes
                         cell.Symbol = '#';
                         cell.CellType = MapCellType.Room;
                     }
+
                     cells[x, y] = cell;
                 }
             }
+
             return cells;
         }
     }
