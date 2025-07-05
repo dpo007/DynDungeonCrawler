@@ -389,7 +389,7 @@ namespace DynDungeonCrawler.ConDungeon
                 return;
             }
 
-            // Build a list of lookable things (entities only, not the room itself)
+            // Build a list of lookable things
             List<(string name, string description, string color)> lookables = new();
 
             foreach (Entity entity in player.CurrentRoom.Contents)
@@ -495,7 +495,7 @@ namespace DynDungeonCrawler.ConDungeon
             }
             else if (cmdChar == 'l')
             {
-                // Enhanced look command - show menu of things to look at
+                // Show menu of things to look at
                 await HandleLookCommandAsync(ui, player);
             }
             else if (cmdChar == 'i')
