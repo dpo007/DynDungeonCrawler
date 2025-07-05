@@ -78,7 +78,11 @@ namespace DynDungeonCrawler.ConDungeon
                         break;
                     }
                 }
-                playerName = await Adventurer.GenerateNameAsync(llmClient, dungeon.Theme, gender);
+
+                playerName = await ui.ShowSpinnerAsync(
+                    "Generating a name for your adventurer...",
+                    () => Adventurer.GenerateNameAsync(llmClient, dungeon.Theme, gender)
+                );
             }
 
             // Log the player's name
