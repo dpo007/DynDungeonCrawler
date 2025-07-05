@@ -63,6 +63,7 @@ namespace DynDungeonCrawler.Engine.Helpers
             if (normalRooms.Count > 0)
             {
                 List<List<Room>> normalBatches = BatchRooms(normalRooms, batchSize).ToList();
+
                 logger.Log($"[RoomGen] Normal rooms: {normalRooms.Count}, batching into {normalBatches.Count} batches of up to {batchSize} (processing up to {maxParallelBatches} in parallel)");
 
                 string systemPrompt = "You are an expert fantasy narrator who writes vivid, concise, and immersive room descriptions and evocative room names for procedurally generated RPG dungeons. Your style is atmospheric and rich with sensory detail, while staying brief and game-ready. You always respect the input structure and never invent content not grounded in the data.";
@@ -92,14 +93,18 @@ Response format:
 ";
 
                 ConcurrentDictionary<Guid, (string Name, string Description)> normalRoomDataBag = new ConcurrentDictionary<Guid, (string Name, string Description)>();
+
                 // Process batches in groups of up to maxParallelBatches
                 for (int i = 0; i < normalBatches.Count; i += maxParallelBatches)
                 {
                     List<List<Room>> batchGroup = normalBatches.Skip(i).Take(maxParallelBatches).ToList();
+
                     logger.Log($"[RoomGen] Processing normal room batches {i + 1}-{i + batchGroup.Count} of {normalBatches.Count}...");
+
                     // Launch LLM calls for this group in parallel
                     List<Task<Dictionary<Guid, (string Name, string Description)>>> tasks = batchGroup.Select((batch, batchIdx) => ProcessNormalBatchAsync(batch, theme, promptTemplate, systemPrompt, llmClient, logger, i + batchIdx + 1, normalBatches.Count)).ToList();
                     Dictionary<Guid, (string Name, string Description)>[] results = await Task.WhenAll(tasks);
+
                     // Aggregate results
                     foreach (Dictionary<Guid, (string Name, string Description)>? dict in results)
                     {
@@ -109,6 +114,7 @@ Response format:
                         }
                     }
                 }
+
                 foreach (KeyValuePair<Guid, (string Name, string Description)> kvp in normalRoomDataBag)
                 {
                     allRoomData[kvp.Key] = kvp.Value;
@@ -119,8 +125,11 @@ Response format:
             if (exitRooms.Count > 0)
             {
                 List<List<Room>> exitBatches = BatchRooms(exitRooms, batchSize).ToList();
+
                 logger.Log($"[RoomGen] Exit rooms: {exitRooms.Count}, batching into {exitBatches.Count} batches of up to {batchSize} (processing up to {maxParallelBatches} in parallel)");
+
                 string exitSystemPrompt = "You are a creative fantasy narrator celebrating a dungeon escape, and you also invent fitting room names.";
+
                 string exitPromptTemplate = @"
 You are a fantasy narrative generator.
 
@@ -141,14 +150,18 @@ Do not change any other data. Only return valid JSON, with no markdown formattin
 ";
 
                 ConcurrentDictionary<Guid, (string Name, string Description)> exitRoomDataBag = new ConcurrentDictionary<Guid, (string Name, string Description)>();
+
                 // Process batches in groups of up to maxParallelBatches
                 for (int i = 0; i < exitBatches.Count; i += maxParallelBatches)
                 {
                     List<List<Room>> batchGroup = exitBatches.Skip(i).Take(maxParallelBatches).ToList();
+
                     logger.Log($"[RoomGen] Processing exit room batches {i + 1}-{i + batchGroup.Count} of {exitBatches.Count}...");
+
                     // Launch LLM calls for this group in parallel
                     List<Task<Dictionary<Guid, (string Name, string Description)>>> tasks = batchGroup.Select((batch, batchIdx) => ProcessExitBatchAsync(batch, theme, exitPromptTemplate, exitSystemPrompt, llmClient, logger, i + batchIdx + 1, exitBatches.Count)).ToList();
                     Dictionary<Guid, (string Name, string Description)>[] results = await Task.WhenAll(tasks);
+
                     // Aggregate results
                     foreach (Dictionary<Guid, (string Name, string Description)>? dict in results)
                     {
@@ -158,6 +171,7 @@ Do not change any other data. Only return valid JSON, with no markdown formattin
                         }
                     }
                 }
+
                 foreach (KeyValuePair<Guid, (string Name, string Description)> kvp in exitRoomDataBag)
                 {
                     allRoomData[kvp.Key] = kvp.Value;
@@ -275,6 +289,7 @@ Do not change any other data. Only return valid JSON, with no markdown formattin
             int totalBatches)
         {
             logger.Log($"[RoomGen]   Starting LLM call for normal batch {batchIdx}/{totalBatches} (rooms: {batch.Count})");
+
             var normalRequest = new
             {
                 theme,
@@ -291,10 +306,14 @@ Do not change any other data. Only return valid JSON, with no markdown formattin
                     }
                 }).ToList()
             };
+
             string inputJson = JsonSerializer.Serialize(normalRequest);
             string prompt = promptTemplate.Replace("{{inputJson}}", inputJson);
+
             Dictionary<Guid, (string Name, string Description)> result = await GetNamesAndDescriptionsFromLLM(batch, prompt, systemPrompt, llmClient, logger);
+
             logger.Log($"[RoomGen]   Finished LLM call for normal batch {batchIdx}/{totalBatches}");
+
             return result;
         }
 
@@ -321,6 +340,7 @@ Do not change any other data. Only return valid JSON, with no markdown formattin
             int totalBatches)
         {
             logger.Log($"[RoomGen]   Starting LLM call for exit batch {batchIdx}/{totalBatches} (rooms: {batch.Count})");
+
             var exitRequest = new
             {
                 theme,
@@ -330,10 +350,14 @@ Do not change any other data. Only return valid JSON, with no markdown formattin
                     type = r.Type.ToString()
                 }).ToList()
             };
+
             string exitJson = JsonSerializer.Serialize(exitRequest);
             string exitPrompt = exitPromptTemplate.Replace("{{exitJson}}", exitJson);
+
             Dictionary<Guid, (string Name, string Description)> result = await GetNamesAndDescriptionsFromLLM(batch, exitPrompt, exitSystemPrompt, llmClient, logger);
+
             logger.Log($"[RoomGen]   Finished LLM call for exit batch {batchIdx}/{totalBatches}");
+
             return result;
         }
     }
