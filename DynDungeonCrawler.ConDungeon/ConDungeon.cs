@@ -35,56 +35,7 @@ namespace DynDungeonCrawler.ConDungeon
              Adventurer player) = init;
 
             // Start the game loop
-            await GameLoopAsync(ui, logger, llmClient, dungeon, player);
-        }
-
-        /// <summary>
-        /// Runs the main game loop, handling player input and game state updates
-        /// until the player either exits, dies, or reaches the exit room.
-        /// </summary>
-        /// <param name="ui">The user interface for input/output interactions.</param>
-        /// <param name="logger">Logger for diagnostic and debug messages.</param>
-        /// <param name="llmClient">AI client for generating descriptions as needed.</param>
-        /// <param name="dungeon">The Dungeon instance containing rooms and state.</param>
-        /// <param name="player">The Adventurer representing the player.</param>
-        private static async Task GameLoopAsync(
-            IUserInterface ui,
-            ILogger logger,
-            ILLMClient llmClient,
-            Dungeon dungeon,
-            Adventurer player)
-        {
-            while (true)
-            {
-                // Game-ending conditions
-                if (player.Health <= 0)
-                {
-                    ui.WriteLine("You have perished in the dungeon. Game over!");
-                    break;
-                }
-                if (player.CurrentRoom?.Type == RoomType.Exit)
-                {
-                    RoomRenderer.DrawRoom(ui, player);
-
-                    ui.ShowSpecialMessage("Congratulations! You have found the exit and escaped the dungeon!", center: true, writeLine: true);
-                    break;
-                }
-                if (player.CurrentRoom == null)
-                {
-                    ui.WriteLine("You are lost in the void. Game over!");
-                    break;
-                }
-
-                RoomRenderer.DrawRoom(ui, player);
-
-                List<string> directions = GetAvailableDirections(player.CurrentRoom);
-                char cmdChar = await InputHandler.HandleInputAsync(ui, directions, player);
-
-                if (!await CommandProcessor.ProcessCommandAsync(cmdChar, ui, logger, llmClient, dungeon, player, directions))
-                {
-                    break;
-                }
-            }
+            await GameLoopRunner.GameLoopAsync(ui, logger, llmClient, dungeon, player);
         }
 
         /// <summary>
