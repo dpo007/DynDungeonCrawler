@@ -27,7 +27,7 @@ public partial class MainWindow : Window
     // Path to the currently loaded dungeon file
     private string? _currentFilePath;
 
-    // ScrollViewers for map display RichTextBoxes (for synchronized scrolling)
+    // Internal ScrollViewers for scroll syncing
     private ScrollViewer? _scrollViewerPaths;
 
     private ScrollViewer? _scrollViewerEntities;
@@ -39,11 +39,11 @@ public partial class MainWindow : Window
         Loaded += MainWindow_Loaded; // Attach loaded event handler
     }
 
-    // On window loaded, find ScrollViewers and hook up scroll sync events
+    // On window loaded, hook up scroll sync events for FlowDocumentScrollViewer's internal ScrollViewer
     private void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
-        _scrollViewerPaths = GetScrollViewer(RtbMapDisplayPaths);
-        _scrollViewerEntities = GetScrollViewer(RtbMapDisplayEntities);
+        _scrollViewerPaths = GetDescendantScrollViewer(MapDisplayPaths);
+        _scrollViewerEntities = GetDescendantScrollViewer(MapDisplayEntities);
         if (_scrollViewerPaths != null)
         {
             _scrollViewerPaths.ScrollChanged += ScrollViewer_ScrollChanged;
@@ -55,18 +55,18 @@ public partial class MainWindow : Window
         }
     }
 
-    // Recursively search for a ScrollViewer in the visual tree
-    private ScrollViewer? GetScrollViewer(DependencyObject o)
+    // Helper to get the internal ScrollViewer of a FlowDocumentScrollViewer
+    private static ScrollViewer? GetDescendantScrollViewer(DependencyObject d)
     {
-        if (o is ScrollViewer sv)
+        if (d is ScrollViewer sv)
         {
             return sv;
         }
 
-        for (int i = 0; i < VisualTreeHelper.GetChildrenCount(o); i++)
+        for (int i = 0; i < VisualTreeHelper.GetChildrenCount(d); i++)
         {
-            DependencyObject child = VisualTreeHelper.GetChild(o, i);
-            ScrollViewer? result = GetScrollViewer(child);
+            DependencyObject child = VisualTreeHelper.GetChild(d, i);
+            ScrollViewer? result = GetDescendantScrollViewer(child);
             if (result != null)
             {
                 return result;
@@ -83,13 +83,18 @@ public partial class MainWindow : Window
             return;
         }
 
+        if (_scrollViewerPaths == null || _scrollViewerEntities == null)
+        {
+            return;
+        }
+
         _syncingScroll = true;
-        if (sender == _scrollViewerPaths && _scrollViewerEntities != null)
+        if (sender == _scrollViewerPaths)
         {
             _scrollViewerEntities.ScrollToVerticalOffset(_scrollViewerPaths.VerticalOffset);
             _scrollViewerEntities.ScrollToHorizontalOffset(_scrollViewerPaths.HorizontalOffset);
         }
-        else if (sender == _scrollViewerEntities && _scrollViewerPaths != null)
+        else if (sender == _scrollViewerEntities)
         {
             _scrollViewerPaths.ScrollToVerticalOffset(_scrollViewerEntities.VerticalOffset);
             _scrollViewerPaths.ScrollToHorizontalOffset(_scrollViewerEntities.HorizontalOffset);
@@ -143,7 +148,7 @@ public partial class MainWindow : Window
     // Render the map displays in both modes (paths only, with entities)
     private void ShowMaps()
     {
-        if (RtbMapDisplayPaths == null || RtbMapDisplayEntities == null)
+        if (MapDisplayPaths == null || MapDisplayEntities == null)
         {
             return;
         }
@@ -151,19 +156,19 @@ public partial class MainWindow : Window
         if (_dungeon == null)
         {
             // Show placeholder if no dungeon loaded
-            RtbMapDisplayPaths.Document = new FlowDocument(new Paragraph(new Run("No dungeon loaded.")));
-            RtbMapDisplayEntities.Document = new FlowDocument(new Paragraph(new Run("No dungeon loaded.")));
+            MapDisplayPaths.Document = new FlowDocument(new Paragraph(new Run("No dungeon loaded.")));
+            MapDisplayEntities.Document = new FlowDocument(new Paragraph(new Run("No dungeon loaded.")));
             return;
         }
         // Render map (paths only)
         FlowDocument docPaths = BuildColoredMapDocument(_dungeon, false);
         docPaths.PageWidth = 420; // Use a smaller static value for max map width
-        RtbMapDisplayPaths.Document = docPaths;
+        MapDisplayPaths.Document = docPaths;
 
         // Render map (with entities)
         FlowDocument docEntities = BuildColoredMapDocument(_dungeon, true);
         docEntities.PageWidth = 420;
-        RtbMapDisplayEntities.Document = docEntities;
+        MapDisplayEntities.Document = docEntities;
     }
 
     // Build a FlowDocument for the map, coloring each cell appropriately
@@ -171,33 +176,91 @@ public partial class MainWindow : Window
     {
         FlowDocument doc = new FlowDocument();
         doc.Background = Brushes.Black;
+        doc.FontFamily = new FontFamily("Consolas"); // Ensure monospaced font
         Paragraph para = new Paragraph { Margin = new Thickness(0) };
+        para.FontFamily = new FontFamily("Consolas"); // Ensure monospaced font
+
         MapCellInfo[,] cells = dungeon.GetMapCells(showEntities);
         int mapWidth = cells.GetLength(0);
         int mapHeight = cells.GetLength(1);
+
+        Room[,] roomGrid = dungeon.Grid;
+
         for (int y = 0; y < mapHeight; y++)
         {
             for (int x = 0; x < mapWidth; x++)
             {
                 MapCellInfo cell = cells[x, y];
                 char ch = cell.Symbol;
-                // Choose color based on cell type
+
                 SolidColorBrush color = cell.CellType switch
                 {
                     MapCellType.Entrance => Brushes.Green,
                     MapCellType.Exit => Brushes.Red,
                     MapCellType.TreasureChest => Brushes.Cyan,
                     MapCellType.Enemy => Brushes.Magenta,
-                    MapCellType.TreasureAndEnemy => Brushes.Yellow, // New: yellow for both
+                    MapCellType.TreasureAndEnemy => Brushes.Yellow,
                     MapCellType.MainPath => Brushes.Yellow,
                     MapCellType.Room => Brushes.Gray,
                     MapCellType.Empty => Brushes.DarkGray,
                     _ => Brushes.Gray
                 };
-                para.Inlines.Add(new Run(ch.ToString()) { Foreground = color });
+
+                Run run = new Run(ch.ToString()) { Foreground = color };
+
+                Room? room = null;
+                int rx = cell.X;
+                int ry = cell.Y;
+                if (rx >= 0 && rx < roomGrid.GetLength(0) && ry >= 0 && ry < roomGrid.GetLength(1))
+                {
+                    room = roomGrid[rx, ry];
+                }
+
+                if (room != null)
+                {
+                    string entityList;
+                    if (room.Contents != null && room.Contents.Count > 0)
+                    {
+                        entityList = string.Join("\n", room.Contents.Select(e =>
+                        {
+                            string type = e.GetType().Name;
+                            if (type == "TreasureChest" && e is TreasureChest chest)
+                            {
+                                return chest.IsLocked
+                                    ? "- Treasure Chest: Locked"
+                                    : "- Treasure Chest: Unlocked";
+                            }
+                            else if (type == "Enemy")
+                            {
+                                return $"- Enemy: {e.Name}";
+                            }
+                            else if (!string.IsNullOrWhiteSpace(e.Name))
+                            {
+                                return $"- {type}: {e.Name}";
+                            }
+                            else
+                            {
+                                return $"- {type}";
+                            }
+                        }));
+                    }
+                    else
+                    {
+                        entityList = "- None";
+                    }
+
+                    run.ToolTip = $"Coords: ({room.X},{room.Y})\nEntities:\n{entityList}";
+                }
+                else
+                {
+                    run.ToolTip = $"Coords: (n/a)\nEntities:\n- None";
+                }
+
+                para.Inlines.Add(run);
             }
-            para.Inlines.Add(new Run("\n")); // Newline after each row
+            para.Inlines.Add(new Run("\n"));
         }
+
         // Add legend at the bottom
         para.Inlines.Add(new Run("\nLegend:\n") { Foreground = Brushes.White });
         foreach (MapLegendEntry entry in MapLegend.GetLegend(showEntities))
@@ -208,7 +271,7 @@ public partial class MainWindow : Window
                 MapCellType.Exit => Brushes.Red,
                 MapCellType.TreasureChest => Brushes.Cyan,
                 MapCellType.Enemy => Brushes.Magenta,
-                MapCellType.TreasureAndEnemy => Brushes.Yellow, // New: yellow for both
+                MapCellType.TreasureAndEnemy => Brushes.Yellow,
                 MapCellType.MainPath => Brushes.Yellow,
                 MapCellType.Room => Brushes.Gray,
                 MapCellType.Empty => Brushes.DarkGray,
