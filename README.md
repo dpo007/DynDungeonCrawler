@@ -104,10 +104,10 @@ The engine is highly configurable, supports multiple LLM providers, and features
 | Folder / File         | Purpose                                                                                  |
 |:----------------------|:----------------------------------------------------------------------------------------|
 | `GameLoop/`           | Modular game loop logic: input handling, command processing, room rendering, main loop  |
-| └ `InputHandler.cs`      | Handles all player input and command key validation                        |
-| └ `CommandProcessor.cs`  | Processes player commands, movement, inventory, and look actions           |
-| └ `RoomRenderer.cs`      | Renders the current room and its contents to the UI                        |
-| └ `GameLoopRunner.cs`    | Orchestrates the main game loop                                            |
+| └&nbsp;`InputHandler.cs`      | Handles all player input and command key validation                        |
+| └&nbsp;`CommandProcessor.cs`  | Processes player commands, movement, inventory, and look actions           |
+| └&nbsp;`RoomRenderer.cs`      | Renders the current room and its contents to the UI                        |
+| └&nbsp;`GameLoopRunner.cs`    | Orchestrates the main game loop                                            |
 | `GameInitializer.cs`  | Handles all game setup and initialization logic                                         |
 | `ConDungeon.cs`       | Entry point; wires up initialization and the main game loop                             |
 
