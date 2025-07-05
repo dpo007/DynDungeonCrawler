@@ -8,7 +8,8 @@ namespace DynDungeonCrawler.Engine.Classes
         Exit,
         MainPath,
         TreasureChest,
-        Enemy
+        Enemy,
+        TreasureAndEnemy // Added for rooms with both treasure and enemy
     }
 
     public class MapCellInfo
@@ -40,6 +41,7 @@ namespace DynDungeonCrawler.Engine.Classes
             {
                 legend.Add(new MapLegendEntry { Symbol = 'T', CellType = MapCellType.TreasureChest, Description = "Treasure Chest" });
                 legend.Add(new MapLegendEntry { Symbol = '@', CellType = MapCellType.Enemy, Description = "Enemy" });
+                legend.Add(new MapLegendEntry { Symbol = '&', CellType = MapCellType.TreasureAndEnemy, Description = "Treasure & Enemy" }); // Add after T and @
             }
             else
             {

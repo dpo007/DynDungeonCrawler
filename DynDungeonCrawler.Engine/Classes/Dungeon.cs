@@ -245,6 +245,11 @@ namespace DynDungeonCrawler.Engine.Classes
                         Console.ForegroundColor = ConsoleColor.Red;
                         Console.Write("X");
                     }
+                    else if (showEntities && room.Contents.Any(c => c.Type == EntityType.TreasureChest) && room.Contents.Any(c => c.Type == EntityType.Enemy))
+                    {
+                        Console.ForegroundColor = ConsoleColor.Yellow;
+                        Console.Write("&");
+                    }
                     else if (showEntities && room.Contents.Any(c => c.Type == EntityType.TreasureChest))
                     {
                         Console.ForegroundColor = ConsoleColor.Cyan;
@@ -316,6 +321,8 @@ namespace DynDungeonCrawler.Engine.Classes
                 Console.WriteLine(" T = Treasure Chest");
                 Console.ForegroundColor = ConsoleColor.Magenta;
                 Console.WriteLine(" @ = Enemy");
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine(" & = Treasure & Enemy");
             }
             else
             {
@@ -616,6 +623,11 @@ namespace DynDungeonCrawler.Engine.Classes
                     {
                         cell.Symbol = 'X';
                         cell.CellType = MapCellType.Exit;
+                    }
+                    else if (showEntities && room.Contents.Any(c => c.Type == EntityType.TreasureChest) && room.Contents.Any(c => c.Type == EntityType.Enemy))
+                    {
+                        cell.Symbol = '&';
+                        cell.CellType = MapCellType.TreasureAndEnemy;
                     }
                     else if (showEntities && room.Contents.Any(c => c.Type == EntityType.TreasureChest))
                     {

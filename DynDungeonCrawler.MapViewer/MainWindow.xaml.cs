@@ -188,6 +188,7 @@ public partial class MainWindow : Window
                     MapCellType.Exit => Brushes.Red,
                     MapCellType.TreasureChest => Brushes.Cyan,
                     MapCellType.Enemy => Brushes.Magenta,
+                    MapCellType.TreasureAndEnemy => Brushes.Yellow, // New: yellow for both
                     MapCellType.MainPath => Brushes.Yellow,
                     MapCellType.Room => Brushes.Gray,
                     MapCellType.Empty => Brushes.DarkGray,
@@ -207,6 +208,7 @@ public partial class MainWindow : Window
                 MapCellType.Exit => Brushes.Red,
                 MapCellType.TreasureChest => Brushes.Cyan,
                 MapCellType.Enemy => Brushes.Magenta,
+                MapCellType.TreasureAndEnemy => Brushes.Yellow, // New: yellow for both
                 MapCellType.MainPath => Brushes.Yellow,
                 MapCellType.Room => Brushes.Gray,
                 MapCellType.Empty => Brushes.DarkGray,
