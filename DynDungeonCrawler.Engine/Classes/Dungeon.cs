@@ -188,7 +188,7 @@ namespace DynDungeonCrawler.Engine.Classes
         /// <summary>
         /// Prints the dungeon map to the console, showing rooms and their connections.
         /// </summary>
-        /// <param name="showEntities">Wether to show entities in the map.</param>
+        /// <param name="showEntities">Whether to show entities in the map.</param>
         public void PrintDungeonMap(bool showEntities = false)
         {
             int minX = width, minY = height, maxX = 0, maxY = 0;
@@ -297,14 +297,14 @@ namespace DynDungeonCrawler.Engine.Classes
 
             Console.ResetColor();
 
-            // 🗺️ Print Map Legend
+            // Print Map Legend
             PrintLegend(showEntities);
         }
 
         /// <summary>
         /// Prints a legend for the dungeon map to the console.
         /// </summary>
-        /// <param name="showEntities">Wether to show entities in the legend.</param>
+        /// <param name="showEntities">Whether to show entities in the legend.</param>
         private static void PrintLegend(bool showEntities)
         {
             Console.WriteLine();
