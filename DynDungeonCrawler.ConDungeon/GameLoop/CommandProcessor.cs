@@ -156,7 +156,7 @@ namespace DynDungeonCrawler.ConDungeon.GameLoop
             }
 
             // Build a list of lookable things
-            List<(string name, string description, string color)> lookables = new();
+            List<(string name, string description, string color, Entity entity)> lookables = new();
 
             foreach (Entity entity in player.CurrentRoom.Contents)
             {
@@ -167,8 +167,7 @@ namespace DynDungeonCrawler.ConDungeon.GameLoop
                 switch (entity)
                 {
                     case TreasureChest chest:
-                        string chestState = chest.IsOpened ? "opened" : (chest.IsLocked ? "locked" : "unlocked");
-                        name = $"{chest.Name} ({chestState})";
+                        name = chest.Name;
                         description = !string.IsNullOrWhiteSpace(chest.Description)
                             ? chest.Description
                             : "A mysterious chest with no further details.";
@@ -184,7 +183,7 @@ namespace DynDungeonCrawler.ConDungeon.GameLoop
                         break;
                 }
 
-                lookables.Add((name, description, color));
+                lookables.Add((name, description, color, entity));
             }
 
             // If there are no entities to look at, inform the user
@@ -213,11 +212,21 @@ namespace DynDungeonCrawler.ConDungeon.GameLoop
             }
 
             // Otherwise, show the selected item's details
-            (string name, string description, string color) selected = lookables[selectedIndex];
+            (string name, string description, string color, Entity entity) selected = lookables[selectedIndex];
             ui.WriteLine();
             ui.WriteLine($"[italic]You take a closer look at the [bold][{selected.color}]{selected.name}[/][/]...[/]");
             ui.WriteLine();
-            ui.WriteLine(selected.description);
+
+            // For TreasureChest, append the status after the description
+            if (selected.entity is TreasureChest chestEntity)
+            {
+                string chestState = chestEntity.IsOpened ? "opened" : (chestEntity.IsLocked ? "locked" : "unlocked");
+                ui.WriteLine($"{selected.description}\n\nStatus: {chestState}");
+            }
+            else
+            {
+                ui.WriteLine(selected.description);
+            }
             ui.WriteLine();
             ui.Write("[dim]Press any key to continue...[/]");
             await ui.ReadKeyAsync();
