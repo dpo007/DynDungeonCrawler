@@ -94,8 +94,8 @@ namespace DynDungeonCrawler.ConDungeon
             ui.WriteLine();
             ui.WriteLine($"Welcome to the dungeon [bold underline]{playerName}[/]!", true);
             ui.WriteLine();
-            ui.WriteLine("Press any key to start your adventure!", true);
-            ui.ReadKeyAsync(intercept: true).Wait(); // Wait for user to acknowledge
+            ui.WriteLine("[dim italic]Press any key to start your adventure...[/]", true);
+            ui.ReadKeyAsync(intercept: true, hideCursor: true).Wait(); // Wait for user to acknowledge
             ui.Clear();
 
             return (ui, logger, llmClient, dungeon, player);
