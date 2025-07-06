@@ -44,18 +44,17 @@ namespace DynDungeonCrawler.ConDungeon.GameLoop
                     switch (entity)
                     {
                         case TreasureChest chest:
-                            string chestState = chest.IsOpened ? "opened" : (chest.IsLocked ? "locked" : "unlocked");
                             string displayDesc = !string.IsNullOrWhiteSpace(chest.ShortDescription)
                                 ? chest.ShortDescription
-                                : "";
+                                : "A chest of treasures.";
 
                             if (!string.IsNullOrWhiteSpace(displayDesc))
                             {
-                                ui.WriteLine($"[dim]-[/] [bold]{chest.Name}[/] ({chestState}): {displayDesc}");
+                                ui.WriteLine($"[dim]-[/] [bold]{chest.Name}[/]: {displayDesc}");
                             }
                             else
                             {
-                                ui.WriteLine($"[dim]-[/] [bold]{chest.Name}[/] ({chestState})");
+                                ui.WriteLine($"[dim]-[/] [bold]{chest.Name}[/]");
                             }
                             break;
 
@@ -71,7 +70,6 @@ namespace DynDungeonCrawler.ConDungeon.GameLoop
                             {
                                 ui.WriteLine($"[dim]-[/] [bold]{entity.Name}[/]");
                             }
-
                             break;
                     }
                 }

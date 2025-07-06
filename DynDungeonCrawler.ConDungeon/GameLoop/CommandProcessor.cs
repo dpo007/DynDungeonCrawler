@@ -171,15 +171,23 @@ namespace DynDungeonCrawler.ConDungeon.GameLoop
                         description = !string.IsNullOrWhiteSpace(chest.Description)
                             ? chest.Description
                             : "A mysterious chest with no further details.";
-                        color = "cyan1";
+                        color = "yellow";
+                        break;
+
+                    case Enemy enemy:
+                        name = enemy.Name;
+                        description = !string.IsNullOrWhiteSpace(enemy.Description)
+                            ? enemy.Description
+                            : "A fearsome creature lurking in the shadows.";
+                        color = "red";
                         break;
 
                     default:
                         name = entity.Name;
                         description = !string.IsNullOrWhiteSpace(entity.Description)
                             ? entity.Description
-                            : "No detailed description available.";
-                        color = "yellow";
+                            : "I can't tell what this is.";
+                        color = "cyan1";
                         break;
                 }
 
@@ -220,7 +228,7 @@ namespace DynDungeonCrawler.ConDungeon.GameLoop
             // For TreasureChest, append the status after the description
             if (selected.entity is TreasureChest chestEntity)
             {
-                string chestState = chestEntity.IsOpened ? "opened" : (chestEntity.IsLocked ? "locked" : "unlocked");
+                string chestState = chestEntity.IsOpened ? "Opened" : (chestEntity.IsLocked ? "Locked" : "Unlocked");
                 ui.WriteLine($"{selected.description}\n\nStatus: {chestState}");
             }
             else
