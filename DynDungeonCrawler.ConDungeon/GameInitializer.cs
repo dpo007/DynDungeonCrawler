@@ -80,7 +80,7 @@ namespace DynDungeonCrawler.ConDungeon
                 }
 
                 playerName = await ui.ShowSpinnerAsync(
-                    "Generating a name for your adventurer...",
+                    "[italic]Generating a name for your adventurer...[/]",
                     () => Adventurer.GenerateNameAsync(llmClient, dungeon.Theme, gender)
                 );
             }

@@ -64,8 +64,8 @@ namespace DynDungeonCrawler.ConDungeon.GameLoop
                 }
 
                 ui.WriteLine();
-                ui.Write("[dim]Press any key to continue...[/]");
-                await ui.ReadKeyAsync();
+                ui.WriteLine("[dim italic]Press any key to continue...[/]");
+                await ui.ReadKeyAsync(intercept: true, hideCursor: true);
                 ui.Clear();
                 return true; // Continue the loop to allow further commands
             }
@@ -102,7 +102,7 @@ namespace DynDungeonCrawler.ConDungeon.GameLoop
                             }
                         }
 
-                        await ui.ShowSpinnerAsync($"Generating rooms...", async () =>
+                        await ui.ShowSpinnerAsync("[italic]Generating rooms...[/]", async () =>
                         {
                             await RoomDescriptionGenerator.GenerateRoomDescriptionsAsync(roomsToProcess.ToList(), dungeon.Theme, llmClient, logger);
 
