@@ -15,7 +15,8 @@
         /// Writes a message to the output followed by a newline.
         /// </summary>
         /// <param name="message">The message to write.</param>
-        void WriteLine(string message);
+        /// <param name="center">Whether to center the message horizontally in the output view.</param>
+        void WriteLine(string message, bool center = false);
 
         /// <summary>
         /// Writes a newline to the output.
@@ -53,7 +54,7 @@
         /// <param name="durationMs">Optional duration for the effect, in milliseconds.</param>
         /// <param name="center">Whether to center the message in the display area.</param>
         /// <param name="writeLine">Whether to move the cursor to the next line after displaying.</param>
-        void ShowSpecialMessage(string message, int durationMs = 2000, bool center = false, bool writeLine = false);
+        void WriteSpecialMessage(string message, int durationMs = 2000, bool center = false, bool writeLine = false);
 
         /// <summary>
         /// Displays a pick list of items and returns the selected item's index or -1 if cancelled.

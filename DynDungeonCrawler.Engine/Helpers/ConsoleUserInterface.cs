@@ -10,7 +10,36 @@ namespace DynDungeonCrawler.Engine.Helpers
     {
         public void Write(string message) => Console.Write(message);
 
-        public void WriteLine(string message) => Console.WriteLine(message);
+        /// <summary>
+        /// Writes a message to the output followed by a newline.
+        /// </summary>
+        /// <param name="message">The message to write.</param>
+        /// <param name="center">Whether to center the message horizontally in the output view.</param>
+        public void WriteLine(string message, bool center = false)
+        {
+            if (center)
+            {
+                int consoleWidth;
+                try
+                {
+                    consoleWidth = Console.WindowWidth;
+                }
+                catch
+                {
+                    consoleWidth = 80;
+                }
+                int padLeft = Math.Max(0, (consoleWidth - message.Length) / 2);
+                string padded = new string(' ', padLeft) + message;
+                Console.WriteLine(padded);
+            }
+            else
+            {
+                Console.WriteLine(message);
+            }
+        }
+
+        // Legacy overload for compatibility
+        public void WriteLine(string message) => WriteLine(message, false);
 
         public void WriteLine() => Console.WriteLine();
 
@@ -52,7 +81,7 @@ namespace DynDungeonCrawler.Engine.Helpers
 
         public void Clear() => Console.Clear();
 
-        public void ShowSpecialMessage(string message, int durationMs = 2000, bool center = false, bool writeLine = false)
+        public void WriteSpecialMessage(string message, int durationMs = 2000, bool center = false, bool writeLine = false)
         {
             // Prepare the message in uppercase and with some padding
             string decorated = $"*** {message.ToUpper()} ***";

@@ -88,12 +88,16 @@ namespace DynDungeonCrawler.ConDungeon
             // Log the player's name
             logger.Log($"Adventurer's name: {playerName}");
 
+            Room entrance = dungeon.Rooms.First(r => r.Type == RoomType.Entrance);
+            Adventurer player = new Adventurer(playerName, entrance);
+
             ui.WriteLine();
             ui.WriteLine($"Welcome to the dungeon [bold underline]{playerName}[/]!");
             ui.WriteLine();
-
-            Room entrance = dungeon.Rooms.First(r => r.Type == RoomType.Entrance);
-            Adventurer player = new Adventurer(playerName, entrance);
+            ui.WriteLine();
+            ui.WriteLine("Press any key to start your adventure!");
+            ui.ReadKeyAsync(intercept: true).Wait(); // Wait for user to acknowledge
+            ui.Clear();
 
             return (ui, logger, llmClient, dungeon, player);
         }

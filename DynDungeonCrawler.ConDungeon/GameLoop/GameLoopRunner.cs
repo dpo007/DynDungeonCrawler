@@ -33,7 +33,7 @@ namespace DynDungeonCrawler.ConDungeon.GameLoop
                 {
                     RoomRenderer.DrawRoom(ui, player);
 
-                    ui.ShowSpecialMessage("Congratulations! You have found the exit and escaped the dungeon!", center: true, writeLine: true);
+                    ui.WriteSpecialMessage("Congratulations! You have found the exit and escaped the dungeon!", center: true, writeLine: true);
                     break;
                 }
                 if (player.CurrentRoom == null)

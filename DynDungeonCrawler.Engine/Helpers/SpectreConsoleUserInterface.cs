@@ -7,7 +7,28 @@ namespace DynDungeonCrawler.Engine.Helpers
     {
         public void Write(string message) => SafeMarkup(message, newline: false);
 
-        public void WriteLine(string message) => SafeMarkup(message, newline: true);
+        /// <summary>
+        /// Writes a message to the output followed by a newline.
+        /// </summary>
+        /// <param name="message">The message to write.</param>
+        /// <param name="center">Whether to center the message horizontally in the output view.</param>
+        public void WriteLine(string message, bool center = false)
+        {
+            if (center)
+            {
+                int consoleWidth = Console.WindowWidth;
+                int padLeft = Math.Max(0, (consoleWidth - message.Length) / 2);
+                string padded = new string(' ', padLeft) + message;
+                SafeMarkup(padded, newline: true);
+            }
+            else
+            {
+                SafeMarkup(message, newline: true);
+            }
+        }
+
+        // Legacy overload for compatibility
+        public void WriteLine(string message) => WriteLine(message, false);
 
         public void WriteLine() => AnsiConsole.MarkupLine(string.Empty);
 
@@ -58,7 +79,7 @@ namespace DynDungeonCrawler.Engine.Helpers
             AnsiConsole.Write(rule);
         }
 
-        public void ShowSpecialMessage(string message, int durationMs = 2000, bool center = false, bool writeLine = false)
+        public void WriteSpecialMessage(string message, int durationMs = 2000, bool center = false, bool writeLine = false)
         {
             string[] rainbowColors = { "red", "orange1", "yellow1", "green", "deepskyblue1", "blue", "magenta" };
             int delay = 100;
