@@ -171,7 +171,7 @@ namespace DynDungeonCrawler.ConDungeon.GameLoop
                         description = !string.IsNullOrWhiteSpace(chest.Description)
                             ? chest.Description
                             : "A mysterious chest with no further details.";
-                        color = "yellow";
+                        color = "gold3_1";
                         break;
 
                     case Enemy enemy:
@@ -229,7 +229,7 @@ namespace DynDungeonCrawler.ConDungeon.GameLoop
             if (selected.entity is TreasureChest chestEntity)
             {
                 string chestState = chestEntity.IsOpened ? "Opened" : (chestEntity.IsLocked ? "Locked" : "Unlocked");
-                ui.WriteLine($"{selected.description}\n\nStatus: {chestState}");
+                ui.WriteLine($"{selected.description}\n\nStatus: [violet]{chestState}[/]");
             }
             else
             {
