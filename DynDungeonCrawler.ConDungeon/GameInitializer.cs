@@ -92,10 +92,9 @@ namespace DynDungeonCrawler.ConDungeon
             Adventurer player = new Adventurer(playerName, entrance);
 
             ui.WriteLine();
-            ui.WriteLine($"Welcome to the dungeon [bold underline]{playerName}[/]!");
+            ui.WriteLine($"Welcome to the dungeon [bold underline]{playerName}[/]!", true);
             ui.WriteLine();
-            ui.WriteLine();
-            ui.WriteLine("Press any key to start your adventure!");
+            ui.WriteLine("Press any key to start your adventure!", true);
             ui.ReadKeyAsync(intercept: true).Wait(); // Wait for user to acknowledge
             ui.Clear();
 

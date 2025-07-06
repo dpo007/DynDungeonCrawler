@@ -37,10 +37,12 @@
 
         /// <summary>
         /// Reads a key press from the user asynchronously.
+        /// Optionally hides the cursor while waiting for input (Windows only).
         /// </summary>
         /// <param name="intercept">If true, the key is not displayed in the output.</param>
+        /// <param name="hideCursor">If true, hides the cursor while waiting for input (default: false, Windows only).</param>
         /// <returns>A task that resolves to a string representing the key that was pressed.</returns>
-        Task<string> ReadKeyAsync(bool intercept = false);
+        Task<string> ReadKeyAsync(bool intercept = false, bool hideCursor = false);
 
         /// <summary>
         /// Clears the output display.

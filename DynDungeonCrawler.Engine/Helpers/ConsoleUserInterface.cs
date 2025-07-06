@@ -76,8 +76,44 @@ namespace DynDungeonCrawler.Engine.Helpers
         // Async implementations (preparing for HTML UI comatability)
         public Task<string> ReadLineAsync() => Task.FromResult(Console.ReadLine() ?? string.Empty);
 
-        public Task<string> ReadKeyAsync(bool intercept = false) =>
-            Task.FromResult(Console.ReadKey(intercept).KeyChar.ToString());
+        public Task<string> ReadKeyAsync(bool intercept = false, bool hideCursor = false)
+        {
+            bool originalCursorVisible = true;
+            bool changedCursor = false;
+
+            if (hideCursor && OperatingSystem.IsWindows())
+            {
+                try
+                {
+                    originalCursorVisible = Console.CursorVisible;
+                    Console.CursorVisible = false;
+                    changedCursor = true;
+                }
+                catch
+                {
+                    // Ignore if not supported in this environment
+                }
+            }
+
+            try
+            {
+                return Task.FromResult(Console.ReadKey(intercept).KeyChar.ToString());
+            }
+            finally
+            {
+                if (hideCursor && changedCursor && OperatingSystem.IsWindows())
+                {
+                    try
+                    {
+                        Console.CursorVisible = originalCursorVisible;
+                    }
+                    catch
+                    {
+                        // Ignore if not supported in this environment
+                    }
+                }
+            }
+        }
 
         public void Clear() => Console.Clear();
 

@@ -17,7 +17,8 @@ namespace DynDungeonCrawler.Engine.Helpers
             if (center)
             {
                 int consoleWidth = Console.WindowWidth;
-                int padLeft = Math.Max(0, (consoleWidth - message.Length) / 2);
+                int visibleLength = GetVisibleLength(message);
+                int padLeft = Math.Max(0, (consoleWidth - visibleLength) / 2);
                 string padded = new string(' ', padLeft) + message;
                 SafeMarkup(padded, newline: true);
             }
@@ -27,15 +28,60 @@ namespace DynDungeonCrawler.Engine.Helpers
             }
         }
 
-        // Legacy overload for compatibility
-        public void WriteLine(string message) => WriteLine(message, false);
+        // Helper to strip Spectre.Console markup tags for visible length calculation
+        private static int GetVisibleLength(string markup)
+        {
+            // Replace escaped brackets with placeholders
+            string temp = markup.Replace("[[", "\uFFF0").Replace("]]", "\uFFF1");
+            // Remove Spectre.Console markup tags: [tag]...[/], [tag], [/tag]
+            string noMarkup = System.Text.RegularExpressions.Regex.Replace(temp, @"\[[^\]]*\]", "");
+            // Restore placeholders to single brackets
+            noMarkup = noMarkup.Replace("\uFFF0", "[").Replace("\uFFF1", "]");
+            return noMarkup.Length;
+        }
 
         public void WriteLine() => AnsiConsole.MarkupLine(string.Empty);
 
         public Task<string> ReadLineAsync() => Task.FromResult(Console.ReadLine() ?? string.Empty);
 
-        public Task<string> ReadKeyAsync(bool intercept = false) =>
-            Task.FromResult(Console.ReadKey(intercept).KeyChar.ToString());
+        public Task<string> ReadKeyAsync(bool intercept = false, bool hideCursor = false)
+        {
+            bool originalCursorVisible = true;
+            bool changedCursor = false;
+
+            if (hideCursor && OperatingSystem.IsWindows())
+            {
+                try
+                {
+                    originalCursorVisible = Console.CursorVisible;
+                    Console.CursorVisible = false;
+                    changedCursor = true;
+                }
+                catch
+                {
+                    // Ignore if not supported in this environment
+                }
+            }
+
+            try
+            {
+                return Task.FromResult(Console.ReadKey(intercept).KeyChar.ToString());
+            }
+            finally
+            {
+                if (hideCursor && changedCursor && OperatingSystem.IsWindows())
+                {
+                    try
+                    {
+                        Console.CursorVisible = originalCursorVisible;
+                    }
+                    catch
+                    {
+                        // Ignore if not supported in this environment
+                    }
+                }
+            }
+        }
 
         public void Clear() => AnsiConsole.Clear();
 
