@@ -78,28 +78,30 @@ namespace DynDungeonCrawler.Engine.Helpers
 
                 logger.Log($"[RoomGen] Normal rooms: {normalRooms.Count}, batching into {normalBatches.Count} batches of up to {batchSize} (processing up to {maxParallelBatches} in parallel)");
 
-                string systemPrompt = "You are an expert fantasy narrator who writes vivid, concise, and immersive room descriptions and evocative room names for procedurally generated RPG dungeons. Your style is atmospheric and rich with sensory detail, while staying brief and game-ready. You always respect the input structure and never invent content not grounded in the data.";
+                string systemPrompt = "You are a masterful fantasy narrator who writes vivid, immersive, and richly detailed room descriptions for procedurally generated RPG dungeons. You always structure your descriptions with a full paragraph about the room itself, followed by a blank line, then a second paragraph describing each exit. You never invent content beyond the input data and always preserve the JSON structure.";
 
                 string promptTemplate = @"
 You are a fantasy world-building assistant.
 
-Given the following dungeon **theme** and a list of **room objects** in JSON format, generate a vivid and immersive **description** and a fitting **name** for each room.
+Your task is to name and describe rooms in a procedurally generated RPG dungeon, based on the given **dungeon theme** and a list of room objects in JSON format.
 
-Instructions for each room:
-- Incorporate the overall dungeon **theme** and the **room type**.
-- Always include the **available exits** (north, east, south, west).
-- For **each exit**, vividly describe the physical appearance of the portal (doorway, arch, gate, passage, etc.).
-  - Mention style, materials, damage, age, light, markings, carvings, or magical effects.
-  - Use varied vocabulary to avoid repetition.
-  - Each exit's description should begin with the direction (e.g., 'To the north, a cracked stone arch...').
-- Use concise, sensory-rich language - imagine you are writing for a text-based adventure or dungeon crawler game.
-- Limit each description to approximately 3-5 sentences.
-- Generate a room name that is evocative, thematic, and suitable for a fantasy dungeon. The name should be short (2-5 words), unique, and inspired by the room's description and type.
+For each room:
+- Use the dungeon **theme** and each room’s **type** as inspiration.
+- Write a vivid, richly detailed **description** of the room:
+  - Begin with a full **paragraph (4–6 sentences)** describing the room’s interior, atmosphere, sounds, smells, lighting, features, or signs of history or danger.
+  - Then insert a **blank line**.
+  - Follow with a second paragraph describing the **exits**, one per available direction.
+    - Begin each with the direction (e.g., “To the north, ...”).
+    - Use varied language to describe each portal: its structure, material, wear, carvings, magical traits, lighting, or design.
+- Use evocative, sensory-rich language suitable for a text-based dungeon crawler.
+- Generate a **room name** that is:
+  - Short (2–5 words)
+  - Unique, atmospheric, and fitting for a fantasy dungeon
 
-Response format:
-- Return the exact same JSON structure, with added 'name' and 'description' fields in each room object.
-- Do not modify any existing fields (IDs, coordinates, or exits).
-- Return only valid, minified JSON - no markdown, no comments, no extra output.
+Output rules:
+- Return the **same JSON structure**, adding only `name` and `description` fields to each room.
+- Do **not** modify or reformat any existing fields (IDs, coordinates, exits).
+- Return only **valid, minified JSON** — no markdown, no comments, no extra output.
 
 {{inputJson}}
 ";
@@ -140,23 +142,27 @@ Response format:
 
                 logger.Log($"[RoomGen] Exit rooms: {exitRooms.Count}, batching into {exitBatches.Count} batches of up to {batchSize} (processing up to {maxParallelBatches} in parallel)");
 
-                string exitSystemPrompt = "You are a creative fantasy narrator celebrating a dungeon escape, and you also invent fitting room names.";
+                string exitSystemPrompt = "You are a fantasy narrator who writes vivid, emotionally powerful descriptions for dungeon escape rooms. You evoke relief, triumph, or finality, and invent fitting names for each space. Your tone is dramatic, poetic, or serene — depending on the moment.";
 
                 string exitPromptTemplate = @"
 You are a fantasy narrative generator.
 
-Given the theme and room data, generate a vivid, and triumphant description congratulating the adventurer on escaping the dungeon, and a fitting room name.
+Given a dungeon **theme** and a list of **exit rooms** in JSON format, write an emotionally rich **description** and an evocative **room name** for each one.
 
 For each room:
-- Do NOT mention exits or physical portals.
-- Describe the sense of relief, victory, or dramatic escape.
-- Make it thematic, vivid, and emotionally resonant.
-- Keep it concise (1-3 sentences).
-- Generate a room name that is evocative, thematic, and suitable for a fantasy dungeon exit. The name should be short (2-5 words), unique, and inspired by the sense of escape.
+- Do not mention exits or doors.
+- Focus entirely on the **atmosphere of escape** — feelings of victory, exhaustion, awe, or transition.
+- Describe the room’s **appearance, lighting, sounds, symbols, or magic** that signal the end of the dungeon journey.
+- Write at least **a full paragraph (4–6 sentences)** of vivid, poetic, or dramatic language.
+- Create a **room name** that is:
+  - Short (2–5 words)
+  - Unique, thematic, and emotionally resonant
+  - Inspired by the feeling of closure, transcendence, or freedom
 
-Return the same JSON structure, but with new 'name' and 'description' fields for each room.
-
-Do not change any other data. Only return valid JSON, with no markdown formatting.
+Output rules:
+- Return the exact same JSON structure, with added `name` and `description` fields for each room.
+- Do not change any existing fields.
+- Return only valid, minified JSON — no markdown, no extra output.
 
 {{exitJson}}
 ";
