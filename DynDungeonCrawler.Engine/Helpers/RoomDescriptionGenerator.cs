@@ -83,25 +83,33 @@ namespace DynDungeonCrawler.Engine.Helpers
                 string promptTemplate = @"
 You are a fantasy world-building assistant.
 
-Your task is to name and describe rooms in a procedurally generated RPG dungeon, based on the given **dungeon theme** and a list of room objects in JSON format.
+Your task is to name and describe rooms in a procedurally generated RPG dungeon, using the given **dungeon theme** and a list of room objects in JSON format.
 
 For each room:
-- Use the dungeon **theme** and each room’s **type** as inspiration.
-- Write a vivid, richly detailed **description** of the room:
-  - Begin with a full **paragraph (4–6 sentences)** describing the room’s interior, atmosphere, sounds, smells, lighting, features, or signs of history or danger.
-  - Then insert a **blank line**.
-  - Follow with a second paragraph describing the **exits**, one per available direction.
-    - Begin each with the direction (e.g., “To the north, ...”).
-    - Use varied language to describe each portal: its structure, material, wear, carvings, magical traits, lighting, or design.
-- Use evocative, sensory-rich language suitable for a text-based dungeon crawler.
-- Generate a **room name** that is:
-  - Short (2–5 words)
-  - Unique, atmospheric, and fitting for a fantasy dungeon
 
-Output rules:
-- Return the **same JSON structure**, adding only `name` and `description` fields to each room.
-- Do **not** modify or reformat any existing fields (IDs, coordinates, exits).
-- Return only **valid, minified JSON** — no markdown, no comments, no extra output.
+- Use the **dungeon theme** and **room type** to inspire your writing.
+- Write a detailed, vivid **description** that is always split into **two clearly separated paragraphs**:
+
+  1. The first paragraph must be **4–6 full sentences** describing the room's interior:
+     - Include sensory details such as architecture, lighting, sound, temperature, smell, remnants of prior use, and magical corruption or ambiance.
+
+  2. Then insert a **literal blank line** (`\n\n`) between the first and second paragraphs.
+
+  3. In the second paragraph, describe **each available exit**, using the room's `exits` field:
+     - Begin each exit with the direction (e.g., “To the north, ...”).
+     - Describe the portal’s materials, style, age, carvings, damage, magical effects, light, or markings.
+     - Provide **at least one sentence per exit**. Vary language to avoid repetition.
+
+- The tone should be immersive, moody, and suitable for a fantasy dungeon crawler.
+- Generate a **room name** that is:
+  - 2 to 5 words long
+  - Unique, thematic, and inspired by the room’s mood, type, and features
+
+Output Format:
+
+- Return the **exact same JSON structure**, but add a `name` and `description` to each room.
+- Do **not** change or remove any existing fields (such as `id`, `type`, or `exits`).
+- Return only **valid, minified JSON** — no markdown, no line breaks outside of the paragraph split, no extra text.
 
 {{inputJson}}
 ";
