@@ -48,11 +48,22 @@ namespace DynDungeonCrawler.GeneratorApp
             }
 
             // Get dungeon theme from user
-            Console.Write("Enter a theme for the dungeon (or press Enter for default): ");
-            string? dungeonTheme = Console.ReadLine();
-            if (string.IsNullOrWhiteSpace(dungeonTheme))
+            string? dungeonTheme = null;
+            while (true)
             {
-                dungeonTheme = DungeonDefaults.DefaultDungeonDescription;
+                Console.Write("Enter a theme for the dungeon (or press Enter for default): ");
+                dungeonTheme = Console.ReadLine();
+                if (string.IsNullOrWhiteSpace(dungeonTheme))
+                {
+                    dungeonTheme = DungeonDefaults.DefaultDungeonDescription;
+                    break;
+                }
+                if (dungeonTheme.Length > 255)
+                {
+                    Console.WriteLine("Theme must be 255 characters or fewer. Please try again.\n");
+                    continue;
+                }
+                break;
             }
 
             // Initialize the dungeon with the specified theme

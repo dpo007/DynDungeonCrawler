@@ -26,6 +26,7 @@ namespace DynDungeonCrawler.Engine.Classes
 
         public const int MaxDungeonWidth = 1000;
         public const int MaxDungeonHeight = 1000;
+        public const int MaxThemeLength = 255;
 
         /// <summary>
         /// Initializes a new instance of the Dungeon class with the specified width, height, theme, and LLM client.
@@ -52,6 +53,10 @@ namespace DynDungeonCrawler.Engine.Classes
             if (string.IsNullOrWhiteSpace(theme))
             {
                 throw new ArgumentException("Theme cannot be empty or whitespace.", nameof(theme));
+            }
+            if (theme.Length > MaxThemeLength)
+            {
+                throw new ArgumentException($"Theme must be {MaxThemeLength} characters or fewer.", nameof(theme));
             }
 
             ArgumentNullException.ThrowIfNull(llmClient);
@@ -513,6 +518,13 @@ namespace DynDungeonCrawler.Engine.Classes
             string json = File.ReadAllText(filePath);
             DungeonData dungeonData = JsonSerializer.Deserialize<DungeonData>(json)
                               ?? throw new InvalidOperationException("Failed to deserialize dungeon data.");
+
+            // Truncate theme if too long
+            if (dungeonData.Theme != null && dungeonData.Theme.Length > MaxThemeLength)
+            {
+                logger.Log($"[LoadFromJson] Truncating overlong theme to {MaxThemeLength} characters.");
+                dungeonData.Theme = dungeonData.Theme.Substring(0, MaxThemeLength);
+            }
 
             // Create the dungeon instance
             Dungeon dungeon = new Dungeon(dungeonData.Width, dungeonData.Height, dungeonData.Theme, llmClient, logger);
