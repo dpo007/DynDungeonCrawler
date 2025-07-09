@@ -31,15 +31,8 @@ namespace DynDungeonCrawler.Engine.Helpers
         /// <returns>A random dungeon theme string.</returns>
         public static async Task<string> GetRandomThemeAsync(ILLMClient llmClient, ILogger logger, int llmBatchSize = 5)
         {
-            if (llmClient == null)
-            {
-                throw new ArgumentNullException(nameof(llmClient));
-            }
-
-            if (logger == null)
-            {
-                throw new ArgumentNullException(nameof(logger));
-            }
+            ArgumentNullException.ThrowIfNull(llmClient);
+            ArgumentNullException.ThrowIfNull(logger);
 
             // Decide if we should call the LLM (~2% chance)
             bool useLlm = Random.Shared.NextDouble() < 0.02;
