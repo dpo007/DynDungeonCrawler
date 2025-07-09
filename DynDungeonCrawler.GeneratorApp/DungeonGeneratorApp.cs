@@ -51,11 +51,13 @@ namespace DynDungeonCrawler.GeneratorApp
             string? dungeonTheme = null;
             while (true)
             {
-                Console.Write("Enter a theme for the dungeon (or press Enter for default): ");
+                Console.Write("Enter a theme for the dungeon (or press Enter for a random one): ");
                 dungeonTheme = Console.ReadLine();
                 if (string.IsNullOrWhiteSpace(dungeonTheme))
                 {
-                    dungeonTheme = DungeonDefaults.DefaultDungeonDescription;
+                    // Use DungeonThemeProvider for a random theme
+                    dungeonTheme = await DungeonThemeProvider.GetRandomThemeAsync(llmClient, logger);
+                    Console.WriteLine($"[Info] Using random theme: {dungeonTheme}");
                     break;
                 }
                 if (dungeonTheme.Length > 255)

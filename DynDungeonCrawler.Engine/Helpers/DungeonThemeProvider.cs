@@ -14,7 +14,7 @@ namespace DynDungeonCrawler.Engine.Helpers
 
         private static readonly string[] DefaultThemes = new[]
         {
-            // All themes are under 255 characters
+            "A D&D style dungeon filled with ancient secrets.",
             "Ancient Crypts: A labyrinth of crumbling tombs and haunted mausoleums.",
             "Mushroom Caverns: Bioluminescent fungi and spore-filled tunnels.",
             "Clockwork Fortress: Gears, pistons, and mechanical guardians.",
@@ -28,14 +28,21 @@ namespace DynDungeonCrawler.Engine.Helpers
         /// <param name="llmClient">The LLM client to use for theme generation.</param>
         /// <param name="logger">Logger for progress and error messages.</param>
         /// <param name="llmBatchSize">How many new themes to request from the LLM if generating (default 5).</param>
+        /// <param name="isPrimingFile">Indicates if the method is being used for file priming.</param>
         /// <returns>A random dungeon theme string.</returns>
-        public static async Task<string> GetRandomThemeAsync(ILLMClient llmClient, ILogger logger, int llmBatchSize = 5)
+        public static async Task<string> GetRandomThemeAsync(ILLMClient llmClient, ILogger logger, int llmBatchSize = 5, bool isPrimingFile = false)
         {
             ArgumentNullException.ThrowIfNull(llmClient);
             ArgumentNullException.ThrowIfNull(logger);
 
-            // Decide if we should call the LLM (~2% chance)
-            bool useLlm = Random.Shared.NextDouble() < 0.02;
+            // Only check for file population if not priming
+            if (!isPrimingFile)
+            {
+                await EnsureThemeFilePopulatedAsync(llmClient, logger);
+            }
+
+            // Use LLM always during priming, otherwise use ~2% chance
+            bool useLlm = isPrimingFile || Random.Shared.NextDouble() < 0.02;
 
             if (useLlm)
             {
@@ -58,7 +65,6 @@ namespace DynDungeonCrawler.Engine.Helpers
                     {
                         break;
                     }
-
                     retries++;
                 }
 
@@ -93,12 +99,62 @@ namespace DynDungeonCrawler.Engine.Helpers
                     FileLock.Release();
                 }
 
-                // Return one of the new themes at random
-                return newThemes[Random.Shared.Next(newThemes.Count)];
+                // Return one of the new themes at random (or the whole batch if priming)
+                return isPrimingFile ? string.Join("\n", newThemes) : newThemes[Random.Shared.Next(newThemes.Count)];
             }
             else
             {
                 return await GetRandomThemeFromFileAsync(logger);
+            }
+        }
+
+        /// <summary>
+        /// Ensures the theme file exists and, if not, creates it with defaults and then appends 10 LLM-generated themes.
+        /// </summary>
+        /// <param name="llmClient">The LLM client to use for theme generation.</param>
+        /// <param name="logger">Logger for progress and error messages.</param>
+        private static async Task EnsureThemeFilePopulatedAsync(ILLMClient llmClient, ILogger logger)
+        {
+            if (File.Exists(ThemeFilePath))
+            {
+                return;
+            }
+
+            logger.Log("[ThemeGen] DungeonThemes.json not found. Creating with defaults and LLM-generated themes...");
+
+            // Write defaults
+            Directory.CreateDirectory(Path.GetDirectoryName(ThemeFilePath)!);
+            List<string> allThemes = DefaultThemes.ToList();
+            await File.WriteAllTextAsync(ThemeFilePath, JsonSerializer.Serialize(allThemes));
+
+            // Use GetRandomThemeAsync to get up to 10 LLM themes (in one call)
+            try
+            {
+                string llmBatch = await GetRandomThemeAsync(llmClient, logger, 10, isPrimingFile: true);
+                List<string> llmThemes = llmBatch
+                    .Split(new[] { "\r\n", "\n", "\r" }, StringSplitOptions.RemoveEmptyEntries)
+                    .Select(line => line.Trim())
+                    .Where(line => !string.IsNullOrWhiteSpace(line) && line.Length <= MaxThemeLength)
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .ToList();
+
+                int beforeCount = allThemes.Count;
+                foreach (string theme in llmThemes)
+                {
+                    if (!allThemes.Contains(theme, StringComparer.OrdinalIgnoreCase))
+                    {
+                        allThemes.Add(theme);
+                    }
+                }
+                if (allThemes.Count > beforeCount)
+                {
+                    await File.WriteAllTextAsync(ThemeFilePath, JsonSerializer.Serialize(allThemes));
+                    logger.Log($"[ThemeGen] Added {allThemes.Count - beforeCount} LLM-generated themes to DungeonThemes.json.");
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.Log($"[ThemeGen] LLM theme generation failed: {ex.Message}");
             }
         }
 

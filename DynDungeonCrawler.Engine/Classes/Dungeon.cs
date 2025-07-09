@@ -1,5 +1,4 @@
-﻿using DynDungeonCrawler.Engine.Constants;
-using DynDungeonCrawler.Engine.Data;
+﻿using DynDungeonCrawler.Engine.Data;
 using DynDungeonCrawler.Engine.Interfaces;
 using System.Text.Json;
 
@@ -70,19 +69,6 @@ namespace DynDungeonCrawler.Engine.Classes
             grid = new Room[width, height];
 
             _logger.Log($"Dungeon space initialized with maximum dimensions of {width}x{height}.");
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the Dungeon class with the specified width and height.
-        /// The theme is set to the default value.
-        /// </summary>
-        /// <param name="width">The width of the dungeon grid.</param>
-        /// <param name="height">The height of the dungeon grid.</param>
-        /// <param name="llmClient">The LLM client used for generating content.</param>
-        /// <param name="logger">The logger used for logging messages.</param>
-        public Dungeon(int width, int height, ILLMClient llmClient, ILogger logger)
-            : this(width, height, DungeonDefaults.DefaultDungeonDescription, llmClient, logger)
-        {
         }
 
         /// <summary>
