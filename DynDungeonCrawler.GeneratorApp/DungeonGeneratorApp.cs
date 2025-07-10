@@ -1,5 +1,4 @@
 ﻿using DynDungeonCrawler.Engine.Classes;
-using DynDungeonCrawler.Engine.Configuration;
 using DynDungeonCrawler.Engine.Constants;
 using DynDungeonCrawler.Engine.Helpers;
 using DynDungeonCrawler.Engine.Interfaces;
@@ -12,7 +11,7 @@ namespace DynDungeonCrawler.GeneratorApp
         private static async Task Main(string[] args)
         {
             // Load settings
-            Settings settings = Settings.Load();
+            GeneratorAppSettings settings = GeneratorAppSettings.Load();
 
             // Initialize logging
             ILogger logger;

@@ -1,5 +1,4 @@
 ﻿using DynDungeonCrawler.Engine.Classes;
-using DynDungeonCrawler.Engine.Configuration;
 using DynDungeonCrawler.Engine.Helpers;
 using DynDungeonCrawler.Engine.Interfaces;
 using Microsoft.Win32;
@@ -115,7 +114,7 @@ public partial class MainWindow : Window
             try
             {
                 _currentFilePath = dlg.FileName;
-                Settings settings = Settings.Load();
+                MapViewerSettings settings = MapViewerSettings.Load();
                 _llmClient = new DummyLLMClient(); // No LLM needed for map display
                 _logger = new ConsoleLogger();
                 // Load the dungeon from JSON file
