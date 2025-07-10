@@ -17,8 +17,8 @@ public partial class MainWindow : Window
     // The currently loaded dungeon instance
     private Dungeon? _dungeon;
 
-    // Logger for diagnostic output (console only in viewer)
-    private ILogger _logger = new ConsoleLogger();
+    // Logger for diagnostic output (file logger in viewer)
+    private ILogger _logger;
 
     // Dummy LLM client (no LLM calls needed for map viewing)
     private ILLMClient _llmClient = new DummyLLMClient();
@@ -34,6 +34,8 @@ public partial class MainWindow : Window
 
     public MainWindow()
     {
+        MapViewerSettings settings = MapViewerSettings.Load();
+        _logger = new FileLogger(settings.LogFilePath);
         InitializeComponent();
         Loaded += MainWindow_Loaded; // Attach loaded event handler
     }
@@ -116,7 +118,6 @@ public partial class MainWindow : Window
                 _currentFilePath = dlg.FileName;
                 MapViewerSettings settings = MapViewerSettings.Load();
                 _llmClient = new DummyLLMClient(); // No LLM needed for map display
-                _logger = new ConsoleLogger();
                 // Load the dungeon from JSON file
                 _dungeon = Dungeon.LoadFromJson(_currentFilePath, _llmClient, _logger);
                 UpdateDungeonInfoUI(); // Update theme/room count

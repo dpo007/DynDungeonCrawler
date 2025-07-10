@@ -13,11 +13,6 @@ namespace DynDungeonCrawler.MapViewer
         /// </summary>
         public string LogFilePath { get; set; } = @"C:\temp\MapViewer.log";
 
-        /// <summary>
-        /// Path to the dungeon JSON file.
-        /// </summary>
-        public string DungeonFilePath { get; set; } = "Dungeons/MyDungeon.json";
-
         public const string SettingsFilePath = "mapviewer.settings.json";
 
         /// <summary>
