@@ -47,20 +47,46 @@ namespace DynDungeonCrawler.Engine.Helpers
             if (useLlm)
             {
                 logger.Log($"[ThemeGen] Requesting {llmBatchSize} new themes from LLM...");
-                string userPrompt = $"Give me {llmBatchSize} RPG dungeon theme ideas, mixing traditional and funny styles. Each theme must be 255 characters or fewer. Format each as a single line like: <title> <description>. Return only the list, no extra text.";
-                string systemPrompt = "You are a creative fantasy RPG dungeon theme generator. You only reply with a list of unique, vivid, and imaginative dungeon themes, each as a single line: <title> <description>. Each theme must be 255 characters or fewer. Do not include any extra text, explanations, or markdown.";
+
+                string userPrompt = $"Give me {llmBatchSize} RPG dungeon theme ideas, mixing traditional and funny styles. Each theme must be 255 characters or fewer. Format each as a single line like: <title>: <description>. Return only the list, no extra text.";
+                string systemPrompt = "You are a creative fantasy RPG dungeon theme generator. You only reply with a list of unique, vivid, and imaginative dungeon themes, each as a single line: <title>: <description>. Each theme must be 255 characters or fewer. Do not include any extra text, explanations, or markdown.";
 
                 int retries = 0;
                 List<string> newThemes = new();
                 while (retries < 3)
                 {
                     string llmResponse = await llmClient.GetResponseAsync(userPrompt, systemPrompt);
-                    newThemes = llmResponse
+
+                    // Split the response into lines, trim whitespace, and filter out empty lines
+                    List<string> allLines = llmResponse
                         .Split(new[] { "\r\n", "\n", "\r" }, StringSplitOptions.RemoveEmptyEntries)
                         .Select(line => line.Trim())
-                        .Where(line => !string.IsNullOrWhiteSpace(line) && line.Length <= MaxThemeLength)
-                        .Distinct(StringComparer.OrdinalIgnoreCase)
                         .ToList();
+
+                    HashSet<string> uniqueThemes = new(StringComparer.OrdinalIgnoreCase);
+                    List<string> acceptedThemes = new();
+
+                    foreach (string line in allLines)
+                    {
+                        if (string.IsNullOrWhiteSpace(line))
+                        {
+                            logger.Log("[ThemeGen] Rejected LLM theme: empty or whitespace.");
+                            continue;
+                        }
+                        if (line.Length > MaxThemeLength)
+                        {
+                            logger.Log($"[ThemeGen] Rejected LLM theme (too long): \"{line}\"");
+                            continue;
+                        }
+                        if (!uniqueThemes.Add(line))
+                        {
+                            logger.Log($"[ThemeGen] Rejected LLM theme (duplicate): \"{line}\"");
+                            continue;
+                        }
+                        acceptedThemes.Add(line);
+                    }
+                    newThemes = acceptedThemes;
+
                     if (newThemes.Count > 0)
                     {
                         break;
