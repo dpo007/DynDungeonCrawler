@@ -26,7 +26,8 @@ namespace DynDungeonCrawler.MapViewer
             {
                 MapViewerSettings defaultSettings = new MapViewerSettings();
                 File.WriteAllText(SettingsFilePath, JsonSerializer.Serialize(defaultSettings, new JsonSerializerOptions { WriteIndented = true }));
-                throw new InvalidOperationException($"Settings file created. Please update '{SettingsFilePath}' and restart the application.");
+                System.Windows.MessageBox.Show($"A new settings file has been created at:\n{Path.GetFullPath(SettingsFilePath)}", "Settings File Created", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+                return defaultSettings;
             }
 
             string json = File.ReadAllText(SettingsFilePath);
