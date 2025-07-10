@@ -3,7 +3,7 @@
 ![Made with C#](https://img.shields.io/badge/Made%20with-C%23-239120)
 ![.NET](https://img.shields.io/badge/.NET-9.0-blueviolet)
 
-**DynDungeonCrawler** is a modular C# engine for procedural dungeon generation, interactive console exploration, and graphical map visualization.  
+**DynDungeonCrawler** is a modular C#/.NET 9 solution for procedural dungeon generation, interactive console exploration, and graphical map visualization.  
 It creates complex, solvable dungeon layouts, populates them with AI-generated enemies and treasures, and exports structured JSON for integration into games, visualization tools, or other projects.  
 The engine is highly configurable, supports multiple LLM providers, and features robust logging and configuration management.
 
@@ -20,7 +20,7 @@ The engine is highly configurable, supports multiple LLM providers, and features
   - Distinct room types: Entrance, Exit, Normal
   - Each room has a unique GUID for external linking
   - 4-way connectivity (north, south, east, west)
-  - LLM-powered room descriptions generated on demand during exploration
+  - LLM-powered room descriptions generated on demand or in batch
 
 - **Entity & Loot System**
   - Supports Enemies and Treasure Chests (easily extensible)
@@ -32,8 +32,8 @@ The engine is highly configurable, supports multiple LLM providers, and features
 - **AI (LLM) Integration**
   - **OpenAI** and **Azure OpenAI**: Generate fantasy names, descriptions, and content based on dungeon themes
   - **Ollama Compatibility**: Switch to local LLMs via the `ILLMClient` abstraction
-  - Easily extend or swap AI providers without modifying engine code
   - Used for enemies, rooms, adventurers, and dynamic world flavor
+  - Efficient batching and parallelization for LLM calls
 
 - **Serialization and Export**
   - Full dungeon (rooms, entities, connections) serialized to JSON
@@ -76,7 +76,7 @@ The engine is highly configurable, supports multiple LLM providers, and features
 
 | Project                                 | Purpose                                                                 |
 |:-----------------------------------------|:------------------------------------------------------------------------|
-| **DynDungeonCrawler.Engine**             | Core engine: dungeon generation, room/entity structures, AI, serialization, logging |
+| **DynDungeonCrawler.Engine**             | Core engine: dungeon generation, room/entity structures, LLM integration, serialization, logging |
 | **DynDungeonCrawler.GeneratorApp**       | Console runner: generates, populates, prints, and exports dungeons to JSON |
 | **DynDungeonCrawler.ConDungeon**         | Interactive console dungeon crawler: play through a generated dungeon    |
 | **DynDungeonCrawler.MapViewer**          | WPF graphical map viewer: load and visualize dungeon JSON files          |
@@ -90,7 +90,7 @@ The engine is highly configurable, supports multiple LLM providers, and features
 | `Configuration/` | `Settings.cs` for managing OpenAI/Ollama/Azure keys and settings                        |
 | `Constants/`     | Default values for dungeon generation and LLM prompts (`DungeonDefaults`, `LLMDefaults`)|
 | `Interfaces/`    | `ILLMClient`, `ILogger` interfaces for AI and logging abstraction                       |
-| `Helpers/`       | Logging and LLM integration helpers (e.g., `ConsoleLogger`, `FileLogger`, `LLMClientBase`) |
+| `Helpers/`       | Logging and LLM integration helpers (e.g., `ConsoleLogger`, `FileLogger`, `RoomDescriptionGenerator`, `OpenAIHelper`, `DungeonThemeProvider`) |
 | `Factories/`     | Entity factories (e.g., `TreasureChestFactory`, `EnemyFactory`)                         |
 
 **DynDungeonCrawler.GeneratorApp Project Folders**:
@@ -110,6 +110,11 @@ The engine is highly configurable, supports multiple LLM providers, and features
 | &nbsp;└&nbsp;`GameLoopRunner.cs`    | Orchestrates the main game loop                                            |
 | `GameInitializer.cs`  | Handles all game setup and initialization logic                                         |
 | `ConDungeon.cs`       | Entry point; wires up initialization and the main game loop                             |
+
+**DynDungeonCrawler.MapViewer Project**:
+
+- WPF project for graphical dungeon visualization from JSON files.
+- Features color-coded map display, entity overlays, and synchronized scrolling.
 
 ---
 
@@ -149,7 +154,7 @@ The engine is highly configurable, supports multiple LLM providers, and features
 - **Inventory and basic player stats supported**
 - **Game ends on player death or escape**
 
-> The ConDungeon project is now fully modular, with separate classes for game initialization, input handling, command processing, room rendering, and the main game loop. This makes the codebase easier to maintain and extend.
+> The ConDungeon project is fully modular, with separate classes for game initialization, input handling, command processing, room rendering, and the main game loop.
 
 ---
 
