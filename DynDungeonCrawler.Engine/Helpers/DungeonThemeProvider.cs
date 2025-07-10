@@ -48,8 +48,9 @@ namespace DynDungeonCrawler.Engine.Helpers
             {
                 logger.Log($"[ThemeGen] Requesting {llmBatchSize} new themes from LLM...");
 
-                string userPrompt = $"Give me {llmBatchSize} RPG dungeon theme ideas, mixing traditional and funny styles. Each theme must be 255 characters or fewer. Format each as a single line like: <title>: <description>. Return only the list, no extra text.";
-                string systemPrompt = "You are a creative fantasy RPG dungeon theme generator. You only reply with a list of unique, vivid, and imaginative dungeon themes, each as a single line: <title>: <description>. Each theme must be 255 characters or fewer. Do not include any extra text, explanations, or markdown.";
+                string userPrompt = $"Give me {llmBatchSize} unique RPG dungeon theme ideas, mixing traditional and funny styles. Each theme must be a single line, 255 characters or fewer. Format exactly like: <title>: <description>. Return only the list, with one theme per line. Do not include any extra text.";
+
+                string systemPrompt = "You are a creative fantasy RPG dungeon theme generator. Your job is to return a list of vivid, imaginative dungeon themes. Each theme must be a single line and strictly 255 characters or fewer, including the title and description. Format exactly like: <title>: <description>. Return only the list, with one theme per line. Do not include numbering, markdown, or any extra text. If a theme exceeds the limit, shorten or omit it.";
 
                 int retries = 0;
                 List<string> newThemes = new();
