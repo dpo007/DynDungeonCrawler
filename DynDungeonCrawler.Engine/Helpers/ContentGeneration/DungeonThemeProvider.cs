@@ -1,7 +1,8 @@
+using DynDungeonCrawler.Engine.Helpers.LLM;
 using DynDungeonCrawler.Engine.Interfaces;
 using System.Text.Json;
 
-namespace DynDungeonCrawler.Engine.Helpers
+namespace DynDungeonCrawler.Engine.Helpers.ContentGeneration
 {
     /// <summary>
     /// Provides a random dungeon theme from a persistent list, with a small chance to generate new themes using the LLM.
@@ -12,8 +13,7 @@ namespace DynDungeonCrawler.Engine.Helpers
         private static readonly SemaphoreSlim FileLock = new SemaphoreSlim(1, 1);
         private const int MaxThemeLength = 255;
 
-        private static readonly string[] DefaultThemes = new[]
-        {
+        private static readonly string[] DefaultThemes = new[] {
             "A D&D style dungeon filled with ancient secrets.",
             "Ancient Crypts: A labyrinth of crumbling tombs and haunted mausoleums.",
             "Mushroom Caverns: Bioluminescent fungi and spore-filled tunnels.",

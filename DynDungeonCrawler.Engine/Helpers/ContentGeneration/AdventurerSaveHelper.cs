@@ -1,7 +1,7 @@
 using DynDungeonCrawler.Engine.Classes;
 using System.Text.Json;
 
-namespace DynDungeonCrawler.Engine.Helpers
+namespace DynDungeonCrawler.Engine.Helpers.ContentGeneration
 {
     public static class AdventurerSaveHelper
     {

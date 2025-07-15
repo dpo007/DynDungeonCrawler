@@ -1,6 +1,6 @@
 using DynDungeonCrawler.Engine.Interfaces;
 
-namespace DynDungeonCrawler.Engine.Helpers
+namespace DynDungeonCrawler.Engine.Helpers.Logging
 {
     public class ConsoleLogger : ILogger
     {

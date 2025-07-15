@@ -2,7 +2,7 @@
 using System.Text;
 using System.Text.Json;
 
-namespace DynDungeonCrawler.Engine.Helpers
+namespace DynDungeonCrawler.Engine.Helpers.LLM
 {
     /// <summary>
     /// Base class for LLM clients, handling common request construction and response parsing.

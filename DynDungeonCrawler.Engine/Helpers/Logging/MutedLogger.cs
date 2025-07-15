@@ -1,6 +1,6 @@
 using DynDungeonCrawler.Engine.Interfaces;
 
-namespace DynDungeonCrawler.Engine.Helpers
+namespace DynDungeonCrawler.Engine.Helpers.Logging
 {
     /// <summary>
     /// An ILogger implementation that ignores all log messages.

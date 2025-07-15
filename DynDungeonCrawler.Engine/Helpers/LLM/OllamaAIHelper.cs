@@ -1,4 +1,4 @@
-namespace DynDungeonCrawler.Engine.Helpers
+namespace DynDungeonCrawler.Engine.Helpers.LLM
 {
     /// <summary>
     /// Local LLM integration using Ollama's REST API.

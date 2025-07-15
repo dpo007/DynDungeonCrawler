@@ -1,6 +1,6 @@
 using DynDungeonCrawler.Engine.Interfaces;
 
-namespace DynDungeonCrawler.Engine.Helpers
+namespace DynDungeonCrawler.Engine.Helpers.LLM
 {
     /// <summary>
     /// Dummy LLM client for scenarios where no LLM calls are needed (e.g., map viewing).

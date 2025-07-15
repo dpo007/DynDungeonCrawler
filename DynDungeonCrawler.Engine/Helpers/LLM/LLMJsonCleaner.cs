@@ -1,4 +1,4 @@
-namespace DynDungeonCrawler.Engine.Helpers
+namespace DynDungeonCrawler.Engine.Helpers.LLM
 {
     /// <summary>
     /// Provides utility methods for cleaning and preparing JSON responses from LLMs.
@@ -38,6 +38,7 @@ namespace DynDungeonCrawler.Engine.Helpers
 
             // Remove language tag if present at the beginning (e.g., json, csharp, etc.)
             if (cleaned.Length > 0 && char.IsLetter(cleaned[0]) && !char.IsDigit(cleaned[0]) && !cleaned.StartsWith("{") && !cleaned.StartsWith("["))
+
             {
                 int firstLineBreak = cleaned.IndexOfAny(new[] { '\r', '\n' });
                 if (firstLineBreak > 0 && firstLineBreak < 20) // Reasonable language tag length

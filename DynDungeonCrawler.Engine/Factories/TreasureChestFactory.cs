@@ -1,6 +1,6 @@
 using DynDungeonCrawler.Engine.Classes;
 using DynDungeonCrawler.Engine.Constants;
-using DynDungeonCrawler.Engine.Helpers;
+using DynDungeonCrawler.Engine.Helpers.LLM;
 using DynDungeonCrawler.Engine.Interfaces;
 using System.Text.Json;
 

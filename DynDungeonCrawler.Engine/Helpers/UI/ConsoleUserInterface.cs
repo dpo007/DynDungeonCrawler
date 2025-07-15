@@ -1,6 +1,6 @@
 ﻿using DynDungeonCrawler.Engine.Interfaces;
 
-namespace DynDungeonCrawler.Engine.Helpers
+namespace DynDungeonCrawler.Engine.Helpers.UI
 {
     /// <summary>
     /// Provides a basic, plain-text, mono-colored console user interface implementation of <see cref="IUserInterface"/>.

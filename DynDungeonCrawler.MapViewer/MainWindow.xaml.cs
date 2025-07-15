@@ -1,5 +1,6 @@
 ﻿using DynDungeonCrawler.Engine.Classes;
-using DynDungeonCrawler.Engine.Helpers;
+using DynDungeonCrawler.Engine.Helpers.LLM;
+using DynDungeonCrawler.Engine.Helpers.Logging;
 using DynDungeonCrawler.Engine.Interfaces;
 using Microsoft.Win32;
 using System.Windows;

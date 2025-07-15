@@ -1,7 +1,7 @@
 ﻿using DynDungeonCrawler.Engine.Interfaces;
 using Spectre.Console;
 
-namespace DynDungeonCrawler.Engine.Helpers
+namespace DynDungeonCrawler.Engine.Helpers.UI
 {
     public class SpectreConsoleUserInterface : IUserInterface
     {

@@ -1,7 +1,9 @@
 using DynDungeonCrawler.ConDungeon.Configuration;
 using DynDungeonCrawler.Engine.Classes;
 using DynDungeonCrawler.Engine.Configuration;
-using DynDungeonCrawler.Engine.Helpers;
+using DynDungeonCrawler.Engine.Helpers.LLM;
+using DynDungeonCrawler.Engine.Helpers.Logging;
+using DynDungeonCrawler.Engine.Helpers.UI;
 using DynDungeonCrawler.Engine.Interfaces;
 
 namespace DynDungeonCrawler.ConDungeon

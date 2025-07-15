@@ -1,10 +1,11 @@
 ﻿using DynDungeonCrawler.Engine.Classes;
+using DynDungeonCrawler.Engine.Helpers.LLM;
 using DynDungeonCrawler.Engine.Interfaces;
 using Spectre.Console;
 using System.Collections.Concurrent;
 using System.Text.Json;
 
-namespace DynDungeonCrawler.Engine.Helpers
+namespace DynDungeonCrawler.Engine.Helpers.ContentGeneration
 {
     /// <summary>
     /// Provides utilities for generating names and descriptions for dungeon rooms using an LLM client.

@@ -1,7 +1,7 @@
 ﻿using DynDungeonCrawler.Engine.Classes;
 using DynDungeonCrawler.Engine.Constants;
 using DynDungeonCrawler.Engine.Factories;
-using DynDungeonCrawler.Engine.Helpers;
+using DynDungeonCrawler.Engine.Helpers.ContentGeneration;
 using DynDungeonCrawler.Engine.Interfaces;
 
 namespace DynDungeonCrawler.GeneratorApp.Utilities

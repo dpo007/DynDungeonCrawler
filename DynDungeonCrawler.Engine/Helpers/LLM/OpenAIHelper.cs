@@ -1,4 +1,4 @@
-﻿namespace DynDungeonCrawler.Engine.Helpers
+﻿namespace DynDungeonCrawler.Engine.Helpers.LLM
 {
     /// <summary>
     /// Implementation of LLMClientBase using OpenAI's API.
