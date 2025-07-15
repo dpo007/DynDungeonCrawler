@@ -1,5 +1,6 @@
 using DynDungeonCrawler.ConDungeon.Configuration;
 using DynDungeonCrawler.Engine.Classes;
+using DynDungeonCrawler.Engine.Configuration;
 using DynDungeonCrawler.Engine.Helpers;
 using DynDungeonCrawler.Engine.Interfaces;
 
@@ -22,9 +23,19 @@ namespace DynDungeonCrawler.ConDungeon
             ui.WriteLine("*** [bold]Dynamic Dungeon Crawler![/] ***");
 
             ConDungeonSettings settings = ConDungeonSettings.Load();
-            if (string.IsNullOrWhiteSpace(settings.OpenAIApiKey) || settings.OpenAIApiKey == "your-api-key-here")
+            LLMSettings llmSettings = LLMSettings.Load();
+
+            // Check for missing API key or provider
+            if (string.IsNullOrWhiteSpace(llmSettings.LLMProvider))
             {
-                ui.WriteLine($"OpenAI API key is not set. Please update '{ConDungeonSettings.SettingsFilePath}' with your actual API key.");
+                ui.WriteLine($"LLM provider is not set. Please update '{LLMSettings.SettingsFilePath}' with your provider.");
+                ui.WriteLine("Press any key to exit.");
+                await ui.ReadKeyAsync();
+                return (null, null, null, null, null);
+            }
+            if (llmSettings.LLMProvider.ToLowerInvariant() == "openai" && string.IsNullOrWhiteSpace(llmSettings.OpenAIApiKey))
+            {
+                ui.WriteLine($"OpenAI API key is not set. Please update '{LLMSettings.SettingsFilePath}' with your actual API key.");
                 ui.WriteLine("Press any key to exit.");
                 await ui.ReadKeyAsync();
                 return (null, null, null, null, null);
@@ -34,23 +45,23 @@ namespace DynDungeonCrawler.ConDungeon
 
             ILLMClient llmClient;
             string[] validProviders = { "OpenAI", "Azure", "Ollama", "Dummy" };
-            switch ((settings.LLMProvider ?? "OpenAI").ToLowerInvariant())
+            switch (llmSettings.LLMProvider.ToLowerInvariant())
             {
                 case "openai":
-                    llmClient = new OpenAIHelper(new HttpClient(), settings.OpenAIApiKey);
+                    llmClient = new OpenAIHelper(new HttpClient(), llmSettings.OpenAIApiKey);
                     break;
 
                 case "azure":
                     llmClient = new AzureOpenAIHelper(
                         new HttpClient(),
-                        settings.AzureOpenAIApiKey,
-                        settings.AzureOpenAIEndpoint,
-                        settings.AzureOpenAIDeployment
+                        llmSettings.AzureOpenAIApiKey,
+                        llmSettings.AzureOpenAIEndpoint,
+                        llmSettings.AzureOpenAIDeployment
                     );
                     break;
 
                 case "ollama":
-                    llmClient = new OllamaAIHelper(new HttpClient(), settings.OllamaEndpoint);
+                    llmClient = new OllamaAIHelper(new HttpClient(), llmSettings.OllamaEndpoint);
                     break;
 
                 case "dummy":
@@ -58,7 +69,7 @@ namespace DynDungeonCrawler.ConDungeon
                     break;
 
                 default:
-                    ui.WriteLine($"Unknown LLM provider: {settings.LLMProvider}. Valid choices: {string.Join(", ", validProviders)}");
+                    ui.WriteLine($"Unknown LLM provider: {llmSettings.LLMProvider}. Valid choices: {string.Join(", ", validProviders)}");
                     ui.WriteLine("Press any key to exit.");
                     await ui.ReadKeyAsync();
                     return (null, null, null, null, null);

@@ -1,4 +1,5 @@
 ﻿using DynDungeonCrawler.Engine.Classes;
+using DynDungeonCrawler.Engine.Configuration;
 using DynDungeonCrawler.Engine.Constants;
 using DynDungeonCrawler.Engine.Helpers;
 using DynDungeonCrawler.Engine.Interfaces;
@@ -12,6 +13,7 @@ namespace DynDungeonCrawler.GeneratorApp
         {
             // Load settings
             GeneratorAppSettings settings = GeneratorAppSettings.Load();
+            LLMSettings llmSettings = LLMSettings.Load();
 
             // Initialize logging
             ILogger logger;
@@ -30,23 +32,23 @@ namespace DynDungeonCrawler.GeneratorApp
             string[] validProviders = { "OpenAI", "Azure", "Ollama", "Dummy" };
             try
             {
-                switch ((settings.LLMProvider ?? "OpenAI").ToLowerInvariant())
+                switch ((llmSettings.LLMProvider ?? "OpenAI").ToLowerInvariant())
                 {
                     case "openai":
-                        llmClient = new OpenAIHelper(httpClient, settings.OpenAIApiKey);
+                        llmClient = new OpenAIHelper(httpClient, llmSettings.OpenAIApiKey);
                         break;
 
                     case "azure":
                         llmClient = new AzureOpenAIHelper(
                             httpClient,
-                            settings.AzureOpenAIApiKey,
-                            settings.AzureOpenAIEndpoint,
-                            settings.AzureOpenAIDeployment
+                            llmSettings.AzureOpenAIApiKey,
+                            llmSettings.AzureOpenAIEndpoint,
+                            llmSettings.AzureOpenAIDeployment
                         );
                         break;
 
                     case "ollama":
-                        llmClient = new OllamaAIHelper(httpClient, settings.OllamaEndpoint);
+                        llmClient = new OllamaAIHelper(httpClient, llmSettings.OllamaEndpoint);
                         break;
 
                     case "dummy":
@@ -54,7 +56,7 @@ namespace DynDungeonCrawler.GeneratorApp
                         break;
 
                     default:
-                        throw new ArgumentException($"Unknown LLM provider: {settings.LLMProvider}. Valid choices: {string.Join(", ", validProviders)}");
+                        throw new ArgumentException($"Unknown LLM provider: {llmSettings.LLMProvider}. Valid choices: {string.Join(", ", validProviders)}");
                 }
             }
             catch (ArgumentException ex)

@@ -18,43 +18,13 @@ namespace DynDungeonCrawler.ConDungeon.Configuration
         /// </summary>
         public string DungeonFilePath { get; set; } = "Dungeons/MyDungeon.json";
 
-        /// <summary>
-        /// LLM provider name (e.g., OpenAI, Azure, Ollama).
-        /// </summary>
-        public string LLMProvider { get; set; } = "OpenAI";
-
-        /// <summary>
-        /// OpenAI API key.
-        /// </summary>
-        public string OpenAIApiKey { get; set; } = "your-api-key-here";
-
-        /// <summary>
-        /// Azure OpenAI API key.
-        /// </summary>
-        public string AzureOpenAIApiKey { get; set; } = "your-azure-api-key-here";
-
-        /// <summary>
-        /// Azure OpenAI endpoint URL.
-        /// </summary>
-        public string AzureOpenAIEndpoint { get; set; } = "https://your-resource-name.openai.azure.com/";
-
-        /// <summary>
-        /// Azure OpenAI deployment name.
-        /// </summary>
-        public string AzureOpenAIDeployment { get; set; } = "your-deployment-name";
-
-        /// <summary>
-        /// Ollama endpoint URL.
-        /// </summary>
-        public string OllamaEndpoint { get; set; } = "http://localhost:11434";
-
         public const string SettingsFilePath = "condugeon.settings.json";
 
         /// <summary>
         /// Loads settings from the project-specific JSON file, creating a default if missing.
-        /// Ensures all required fields (including LLMProvider and OllamaEndpoint) are present.
-        /// Logs a message if the settings file is updated.
+        /// Ensures all required fields are present and updates the file if needed.
         /// </summary>
+        /// <param name="logger">Logger for progress and error messages.</param>
         /// <returns>The loaded <see cref="ConDungeonSettings"/> instance.</returns>
         /// <exception cref="InvalidOperationException">Thrown if the settings file is created or updated and needs user editing.</exception>
         public static ConDungeonSettings Load(ILogger? logger = null)
@@ -71,27 +41,30 @@ namespace DynDungeonCrawler.ConDungeon.Configuration
             ConDungeonSettings? settings = JsonSerializer.Deserialize<ConDungeonSettings>(json) ?? new ConDungeonSettings();
 
             bool updated = false;
-            // Check for OllamaEndpoint in the raw JSON to catch missing property
             using (JsonDocument doc = JsonDocument.Parse(json))
             {
-                if (!doc.RootElement.TryGetProperty("OllamaEndpoint", out _))
+                if (!doc.RootElement.TryGetProperty("LogFilePath", out _))
                 {
-                    settings.OllamaEndpoint = "http://localhost:11434";
+                    settings.LogFilePath = @"C:\temp\ConDungeon.log";
+                    updated = true;
+                }
+                if (!doc.RootElement.TryGetProperty("DungeonFilePath", out _))
+                {
+                    settings.DungeonFilePath = "Dungeons/MyDungeon.json";
                     updated = true;
                 }
             }
-            // Also ensure OllamaEndpoint is not empty
-            if (string.IsNullOrWhiteSpace(settings.OllamaEndpoint))
+            // Also ensure fields are not empty
+            if (string.IsNullOrWhiteSpace(settings.LogFilePath))
             {
-                settings.OllamaEndpoint = "http://localhost:11434";
+                settings.LogFilePath = @"C:\temp\ConDungeon.log";
                 updated = true;
             }
-            if (string.IsNullOrWhiteSpace(settings.LLMProvider))
+            if (string.IsNullOrWhiteSpace(settings.DungeonFilePath))
             {
-                settings.LLMProvider = "OpenAI";
+                settings.DungeonFilePath = "Dungeons/MyDungeon.json";
                 updated = true;
             }
-            // ...add checks for other required fields here...
 
             if (updated)
             {
