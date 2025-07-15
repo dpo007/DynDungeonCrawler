@@ -1,3 +1,4 @@
+using DynDungeonCrawler.Engine.Interfaces;
 using System.Text.Json;
 
 namespace DynDungeonCrawler.GeneratorApp
@@ -42,39 +43,60 @@ namespace DynDungeonCrawler.GeneratorApp
         /// </summary>
         public string AzureOpenAIDeployment { get; set; } = "your-deployment-name";
 
+        /// <summary>
+        /// Ollama endpoint URL.
+        /// </summary>
+        public string OllamaEndpoint { get; set; } = "http://localhost:11434";
+
         public const string SettingsFilePath = "generatorapp.settings.json";
 
         /// <summary>
         /// Loads settings from the project-specific JSON file, creating a default if missing.
-        /// Ensures all required fields (including LLMProvider) are present.
+        /// Ensures all required fields (including LLMProvider and OllamaEndpoint) are present.
+        /// Logs a message if the settings file is updated.
         /// </summary>
         /// <returns>The loaded <see cref="GeneratorAppSettings"/> instance.</returns>
         /// <exception cref="InvalidOperationException">Thrown if the settings file is created or updated and needs user editing.</exception>
-        public static GeneratorAppSettings Load()
+        public static GeneratorAppSettings Load(ILogger? logger = null)
         {
             if (!File.Exists(SettingsFilePath))
             {
                 GeneratorAppSettings defaultSettings = new GeneratorAppSettings();
                 File.WriteAllText(SettingsFilePath, JsonSerializer.Serialize(defaultSettings, new JsonSerializerOptions { WriteIndented = true }));
+                logger?.Log($"Settings file created. Please update '{SettingsFilePath}' and restart the application.");
                 throw new InvalidOperationException($"Settings file created. Please update '{SettingsFilePath}' and restart the application.");
             }
 
             string json = File.ReadAllText(SettingsFilePath);
             GeneratorAppSettings? settings = JsonSerializer.Deserialize<GeneratorAppSettings>(json) ?? new GeneratorAppSettings();
 
-            // Check for missing or empty LLMProvider
             bool updated = false;
+            // Check for OllamaEndpoint in the raw JSON to catch missing property
+            using (JsonDocument doc = JsonDocument.Parse(json))
+            {
+                if (!doc.RootElement.TryGetProperty("OllamaEndpoint", out _))
+                {
+                    settings.OllamaEndpoint = "http://localhost:11434";
+                    updated = true;
+                }
+            }
+            // Also ensure OllamaEndpoint is not empty
+            if (string.IsNullOrWhiteSpace(settings.OllamaEndpoint))
+            {
+                settings.OllamaEndpoint = "http://localhost:11434";
+                updated = true;
+            }
             if (string.IsNullOrWhiteSpace(settings.LLMProvider))
             {
                 settings.LLMProvider = "OpenAI";
                 updated = true;
             }
-
-            // Optionally check for other required fields here...
+            // ...add checks for other required fields here...
 
             if (updated)
             {
                 File.WriteAllText(SettingsFilePath, JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true }));
+                logger?.Log($"Settings file updated with missing defaults. Please review and edit '{SettingsFilePath}' as needed, then restart the application.");
                 throw new InvalidOperationException($"Settings file updated with missing defaults. Please review and edit '{SettingsFilePath}' as needed, then restart the application.");
             }
 

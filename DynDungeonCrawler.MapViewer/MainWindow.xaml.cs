@@ -34,8 +34,9 @@ public partial class MainWindow : Window
 
     public MainWindow()
     {
-        MapViewerSettings settings = MapViewerSettings.Load();
-        _logger = new FileLogger(settings.LogFilePath);
+        // Remove MapViewerSettings usage, use default log path
+        string logFilePath = @"C:\temp\MapViewer.log";
+        _logger = new FileLogger(logFilePath);
         InitializeComponent();
         Loaded += MainWindow_Loaded; // Attach loaded event handler
     }
@@ -116,7 +117,6 @@ public partial class MainWindow : Window
             try
             {
                 _currentFilePath = dlg.FileName;
-                MapViewerSettings settings = MapViewerSettings.Load();
                 _llmClient = new DummyLLMClient(); // No LLM needed for map display
                 // Load the dungeon from JSON file
                 _dungeon = Dungeon.LoadFromJson(_currentFilePath, _llmClient, _logger);

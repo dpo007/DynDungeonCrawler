@@ -46,7 +46,7 @@ namespace DynDungeonCrawler.GeneratorApp
                         break;
 
                     case "ollama":
-                        llmClient = new OllamaAIHelper(httpClient);
+                        llmClient = new OllamaAIHelper(httpClient, settings.OllamaEndpoint);
                         break;
 
                     case "dummy":
@@ -75,7 +75,8 @@ namespace DynDungeonCrawler.GeneratorApp
                 {
                     // Use DungeonThemeProvider for a random theme
                     dungeonTheme = await DungeonThemeProvider.GetRandomThemeAsync(llmClient, logger);
-                    Console.WriteLine($"[Info] Using random theme: {dungeonTheme}");
+
+                    logger.Log($"[Info] Using random theme: {dungeonTheme}");
                     break;
                 }
                 if (dungeonTheme.Length > 255)
