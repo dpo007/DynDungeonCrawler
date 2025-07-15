@@ -235,5 +235,38 @@ namespace DynDungeonCrawler.Engine.Helpers
                 });
             return result;
         }
+
+        /// <summary>
+        /// Updates the player's status at the top-left of the console, showing health and money between two rules.
+        /// Restores the cursor to its original position after drawing.
+        /// </summary>
+        /// <param name="health">Player's current health.</param>
+        /// <param name="money">Player's current money.</param>
+        public void UpdateStatus(int health, int money)
+        {
+            // Save current cursor position
+            int origLeft = Console.CursorLeft;
+            int origTop = Console.CursorTop;
+
+            // Move to top-left
+            Console.SetCursorPosition(0, 0);
+
+            // Draw top rule
+            WriteRule();
+
+            // Build and center the status line with Spectre.Console markup
+            string status = $"[bold green]Health:[/] {health}   [bold yellow]Money:[/] {money}";
+            int consoleWidth = Console.WindowWidth;
+            int visibleLength = GetVisibleLength(status);
+            int padLeft = Math.Max(0, (consoleWidth - visibleLength) / 2);
+            string paddedStatus = new string(' ', padLeft) + status;
+            SafeMarkup(paddedStatus, newline: true);
+
+            // Draw bottom rule
+            WriteRule();
+
+            // Restore cursor position
+            Console.SetCursorPosition(origLeft, origTop);
+        }
     }
 }

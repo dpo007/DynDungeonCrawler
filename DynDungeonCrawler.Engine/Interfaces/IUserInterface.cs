@@ -83,5 +83,12 @@
         /// <param name="operation">The async operation to run.</param>
         /// <returns>The result of the operation.</returns>
         Task<T> ShowSpinnerAsync<T>(string message, Func<Task<T>> operation);
+
+        /// <summary>
+        /// Updates the player's status at the top of the UI, showing health and money.
+        /// </summary>
+        /// <param name="health">Player's current health.</param>
+        /// <param name="money">Player's current money.</param>
+        void UpdateStatus(int health, int money);
     }
 }
