@@ -63,7 +63,11 @@ namespace DynDungeonCrawler.ConDungeon
                     break;
 
                 case "ollama":
-                    llmClient = new OllamaAIHelper(new HttpClient(), llmSettings.OllamaEndpoint);
+                    llmClient = new OllamaAIHelper(
+                        new HttpClient(),
+                        llmSettings.OllamaEndpoint,
+                        llmSettings.OllamaModel
+                    );
                     break;
 
                 case "dummy":

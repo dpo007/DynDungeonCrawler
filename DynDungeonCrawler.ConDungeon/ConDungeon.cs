@@ -36,10 +36,10 @@ namespace DynDungeonCrawler.ConDungeon
             catch (InvalidOperationException ex)
             {
                 // Use SpectreConsoleUserInterface for error output
-                IUserInterface ui = new SpectreConsoleUserInterface();
-                ui.WriteLine($"Error: {ex.Message}");
-                ui.WriteLine("Press any key to exit.");
-                await ui.ReadKeyAsync();
+                SpectreConsoleUserInterface errorUi = new SpectreConsoleUserInterface();
+                errorUi.WriteLine($"Error: {ex.Message}");
+                errorUi.WriteLine("Press any key to exit.");
+                await errorUi.ReadKeyAsync();
                 return;
             }
 
@@ -57,11 +57,7 @@ namespace DynDungeonCrawler.ConDungeon
             }
 
             // Safe to deconstruct into non-nullable locals
-            (IUserInterface ui,
-             ILogger logger,
-             ILLMClient llmClient,
-             Dungeon dungeon,
-             Adventurer player) = init;
+            (IUserInterface ui, ILogger logger, ILLMClient llmClient, Dungeon dungeon, Adventurer player) = init;
 
             // Show status after initial clear (if needed)
             ClearAndShowStatus(ui, player);

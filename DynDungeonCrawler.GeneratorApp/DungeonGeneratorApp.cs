@@ -61,7 +61,11 @@ namespace DynDungeonCrawler.GeneratorApp
                         break;
 
                     case "ollama":
-                        llmClient = new OllamaAIHelper(httpClient, llmSettings.OllamaEndpoint);
+                        llmClient = new OllamaAIHelper(
+                            httpClient,
+                            llmSettings.OllamaEndpoint,
+                            llmSettings.OllamaModel
+                        );
                         break;
 
                     case "dummy":

@@ -39,6 +39,11 @@ namespace DynDungeonCrawler.Engine.Configuration
         /// </summary>
         public string OllamaEndpoint { get; set; } = "http://localhost:11434";
 
+        /// <summary>
+        /// Ollama model name (e.g., "mistral-nemo").
+        /// </summary>
+        public string OllamaModel { get; set; } = "mistral-nemo";
+
         public const string SettingsFilePath = "llm.settings.json";
 
         /// <summary>
@@ -95,6 +100,11 @@ namespace DynDungeonCrawler.Engine.Configuration
                     settings.OllamaEndpoint = "http://localhost:11434";
                     updated = true;
                 }
+                if (!doc.RootElement.TryGetProperty("OllamaModel", out _))
+                {
+                    settings.OllamaModel = "mistral-nemo";
+                    updated = true;
+                }
             }
             // Also ensure fields are not empty
             if (string.IsNullOrWhiteSpace(settings.LLMProvider))
@@ -105,6 +115,11 @@ namespace DynDungeonCrawler.Engine.Configuration
             if (string.IsNullOrWhiteSpace(settings.OllamaEndpoint))
             {
                 settings.OllamaEndpoint = "http://localhost:11434";
+                updated = true;
+            }
+            if (string.IsNullOrWhiteSpace(settings.OllamaModel))
+            {
+                settings.OllamaModel = "mistral-nemo";
                 updated = true;
             }
             if (string.IsNullOrWhiteSpace(settings.OpenAIApiKey))
