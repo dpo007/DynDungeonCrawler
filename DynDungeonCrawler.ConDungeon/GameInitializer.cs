@@ -33,13 +33,35 @@ namespace DynDungeonCrawler.ConDungeon
             ILogger logger = new FileLogger(settings.LogFilePath ?? @"C:\temp\ConDungeon.log");
 
             ILLMClient llmClient;
+            string[] validProviders = { "OpenAI", "Azure", "Ollama", "Dummy" };
             switch ((settings.LLMProvider ?? "OpenAI").ToLowerInvariant())
             {
                 case "openai":
-                default:
                     llmClient = new OpenAIHelper(new HttpClient(), settings.OpenAIApiKey);
                     break;
-                    // Add other providers here as needed (e.g., Azure, Ollama)
+
+                case "azure":
+                    llmClient = new AzureOpenAIHelper(
+                        new HttpClient(),
+                        settings.AzureOpenAIApiKey,
+                        settings.AzureOpenAIEndpoint,
+                        settings.AzureOpenAIDeployment
+                    );
+                    break;
+
+                case "ollama":
+                    llmClient = new OllamaAIHelper(new HttpClient());
+                    break;
+
+                case "dummy":
+                    llmClient = new DummyLLMClient();
+                    break;
+
+                default:
+                    ui.WriteLine($"Unknown LLM provider: {settings.LLMProvider}. Valid choices: {string.Join(", ", validProviders)}");
+                    ui.WriteLine("Press any key to exit.");
+                    await ui.ReadKeyAsync();
+                    return (null, null, null, null, null);
             }
 
             string filePath = settings.DungeonFilePath ?? "DungeonExports/MyDungeon.json";

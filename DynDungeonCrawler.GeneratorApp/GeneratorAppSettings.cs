@@ -46,9 +46,10 @@ namespace DynDungeonCrawler.GeneratorApp
 
         /// <summary>
         /// Loads settings from the project-specific JSON file, creating a default if missing.
+        /// Ensures all required fields (including LLMProvider) are present.
         /// </summary>
         /// <returns>The loaded <see cref="GeneratorAppSettings"/> instance.</returns>
-        /// <exception cref="InvalidOperationException">Thrown if the settings file is created and needs user editing.</exception>
+        /// <exception cref="InvalidOperationException">Thrown if the settings file is created or updated and needs user editing.</exception>
         public static GeneratorAppSettings Load()
         {
             if (!File.Exists(SettingsFilePath))
@@ -59,7 +60,25 @@ namespace DynDungeonCrawler.GeneratorApp
             }
 
             string json = File.ReadAllText(SettingsFilePath);
-            return JsonSerializer.Deserialize<GeneratorAppSettings>(json) ?? new GeneratorAppSettings();
+            GeneratorAppSettings? settings = JsonSerializer.Deserialize<GeneratorAppSettings>(json) ?? new GeneratorAppSettings();
+
+            // Check for missing or empty LLMProvider
+            bool updated = false;
+            if (string.IsNullOrWhiteSpace(settings.LLMProvider))
+            {
+                settings.LLMProvider = "OpenAI";
+                updated = true;
+            }
+
+            // Optionally check for other required fields here...
+
+            if (updated)
+            {
+                File.WriteAllText(SettingsFilePath, JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true }));
+                throw new InvalidOperationException($"Settings file updated with missing defaults. Please review and edit '{SettingsFilePath}' as needed, then restart the application.");
+            }
+
+            return settings;
         }
     }
 }

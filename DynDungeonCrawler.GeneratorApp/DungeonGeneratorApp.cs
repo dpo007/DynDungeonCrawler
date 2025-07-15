@@ -27,15 +27,34 @@ namespace DynDungeonCrawler.GeneratorApp
             // Create LLM client with shared HttpClient
             HttpClient httpClient = new HttpClient();
             ILLMClient llmClient;
+            string[] validProviders = { "OpenAI", "Azure", "Ollama", "Dummy" };
             try
             {
                 switch ((settings.LLMProvider ?? "OpenAI").ToLowerInvariant())
                 {
                     case "openai":
-                    default:
                         llmClient = new OpenAIHelper(httpClient, settings.OpenAIApiKey);
                         break;
-                        // Add other providers here as needed (e.g., Azure, Ollama)
+
+                    case "azure":
+                        llmClient = new AzureOpenAIHelper(
+                            httpClient,
+                            settings.AzureOpenAIApiKey,
+                            settings.AzureOpenAIEndpoint,
+                            settings.AzureOpenAIDeployment
+                        );
+                        break;
+
+                    case "ollama":
+                        llmClient = new OllamaAIHelper(httpClient);
+                        break;
+
+                    case "dummy":
+                        llmClient = new DummyLLMClient();
+                        break;
+
+                    default:
+                        throw new ArgumentException($"Unknown LLM provider: {settings.LLMProvider}. Valid choices: {string.Join(", ", validProviders)}");
                 }
             }
             catch (ArgumentException ex)
