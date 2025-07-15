@@ -260,32 +260,35 @@ namespace DynDungeonCrawler.Engine.Helpers
         }
 
         /// <summary>
-        /// Updates the player's status at the top-left of the console, showing health and money between two rules.
-        /// Restores the cursor to its original position after drawing.
+        /// Updates the player's status at the top-left of the console, showing name, health, and money between two rules.
+        /// Only moves and restores the cursor position if the current position is not (0,0).
         /// </summary>
         /// <param name="health">Player's current health.</param>
         /// <param name="money">Player's current money.</param>
-        public void UpdateStatus(int health, int money)
+        /// <param name="name">Player's name.</param>
+        public void UpdateStatus(int health, int money, string name)
         {
-            // Save current cursor position
             int origLeft = Console.CursorLeft;
             int origTop = Console.CursorTop;
+            bool shouldRestoreCursor = !(origLeft == 0 && origTop == 0);
 
-            // Move to top-left
-            Console.SetCursorPosition(0, 0);
+            if (shouldRestoreCursor)
+            {
+                Console.SetCursorPosition(0, 0);
+            }
 
-            // Draw top rule
             WriteRule();
 
-            // Center the status line using WriteLine's center parameter
-            string status = $"Health: {health}   Money: {money}";
+            // Status line: name, health, and money spaced evenly, no hyphen after name
+            string status = $"{name}   Health: {health}   Money: {money}";
             WriteLine(status, center: true);
 
-            // Draw bottom rule
             WriteRule();
 
-            // Restore cursor position
-            Console.SetCursorPosition(origLeft, origTop);
+            if (shouldRestoreCursor)
+            {
+                Console.SetCursorPosition(origLeft, origTop);
+            }
         }
     }
 }

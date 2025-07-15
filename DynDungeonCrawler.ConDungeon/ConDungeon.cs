@@ -7,6 +7,17 @@ namespace DynDungeonCrawler.ConDungeon
     internal class ConDungeon
     {
         /// <summary>
+        /// Clears the UI and updates the player's status at the top of the console.
+        /// </summary>
+        /// <param name="ui">The user interface instance.</param>
+        /// <param name="player">The current player.</param>
+        private static void ClearAndShowStatus(IUserInterface ui, Adventurer player)
+        {
+            ui.Clear();
+            ui.UpdateStatus(player.Health, player.Wealth, player.Name);
+        }
+
+        /// <summary>
         /// Entry point for the console dungeon crawler. Initializes the game and starts the main game loop asynchronously.
         /// </summary>
         private static async Task Main(string[] args)
@@ -33,6 +44,9 @@ namespace DynDungeonCrawler.ConDungeon
              ILLMClient llmClient,
              Dungeon dungeon,
              Adventurer player) = init;
+
+            // Show status after initial clear (if needed)
+            ClearAndShowStatus(ui, player);
 
             // Start the game loop
             await GameLoopRunner.GameLoopAsync(ui, logger, llmClient, dungeon, player);

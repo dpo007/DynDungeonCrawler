@@ -5,6 +5,7 @@ namespace DynDungeonCrawler.Engine.Helpers
 {
     public class SpectreConsoleUserInterface : IUserInterface
     {
+        // Output methods
         public void Write(string message) => SafeMarkup(message, newline: false);
 
         /// <summary>
@@ -28,20 +29,20 @@ namespace DynDungeonCrawler.Engine.Helpers
             }
         }
 
-        // Helper to strip Spectre.Console markup tags for visible length calculation
-        private static int GetVisibleLength(string markup)
-        {
-            // Replace escaped brackets with placeholders
-            string temp = markup.Replace("[[", "\uFFF0").Replace("]]", "\uFFF1");
-            // Remove Spectre.Console markup tags: [tag]...[/], [tag], [/tag]
-            string noMarkup = System.Text.RegularExpressions.Regex.Replace(temp, @"\[[^\]]*\]", "");
-            // Restore placeholders to single brackets
-            noMarkup = noMarkup.Replace("\uFFF0", "[").Replace("\uFFF1", "]");
-            return noMarkup.Length;
-        }
-
         public void WriteLine() => AnsiConsole.MarkupLine(string.Empty);
 
+        public void WriteRule(string? text = null)
+        {
+            Rule rule = text is not null
+                ? new Rule(text) { Style = Style.Parse("grey dim") }
+                : new Rule() { Style = Style.Parse("grey dim") };
+
+            AnsiConsole.Write(rule);
+        }
+
+        public void Clear() => AnsiConsole.Clear();
+
+        // Input methods
         public Task<string> ReadLineAsync() => Task.FromResult(Console.ReadLine() ?? string.Empty);
 
         public Task<string> ReadKeyAsync(bool intercept = false, bool hideCursor = false)
@@ -83,8 +84,7 @@ namespace DynDungeonCrawler.Engine.Helpers
             }
         }
 
-        public void Clear() => AnsiConsole.Clear();
-
+        // Markup helpers
         private void SafeMarkup(string message, bool newline)
         {
             try
@@ -116,15 +116,21 @@ namespace DynDungeonCrawler.Engine.Helpers
         private static string EscapeMarkup(string input) =>
             input.Replace("[", "[[").Replace("]", "]]");
 
-        public void WriteRule(string? text = null)
+        // Visible length calculation
+        private static int GetVisibleLength(string markup)
         {
-            Rule rule = text is not null
-                ? new Rule(text) { Style = Style.Parse("grey dim") }
-                : new Rule() { Style = Style.Parse("grey dim") };
-
-            AnsiConsole.Write(rule);
+            // Replace escaped brackets with placeholders
+            string temp = markup.Replace("[[", "\uFFF0").Replace("]]", "\uFFF1");
+            // Remove Spectre.Console markup tags: [tag]...[/], [tag], [/tag]
+            string noMarkup = System.Text.RegularExpressions.Regex.Replace(temp, @"\[[^\]]*\]", "");
+            // Remove Spectre.Console emoji shortcodes: :emoji_name:
+            noMarkup = System.Text.RegularExpressions.Regex.Replace(noMarkup, @":([a-zA-Z0-9_]+):", "");
+            // Restore placeholders to single brackets
+            noMarkup = noMarkup.Replace("\uFFF0", "[").Replace("\uFFF1", "]");
+            return noMarkup.Length;
         }
 
+        // Special output
         public void WriteSpecialMessage(string message, int durationMs = 2000, bool center = false, bool writeLine = false)
         {
             string[] rainbowColors = { "red", "orange1", "yellow1", "green", "deepskyblue1", "blue", "magenta" };
@@ -161,6 +167,7 @@ namespace DynDungeonCrawler.Engine.Helpers
             }
         }
 
+        // Pick list
         /// <summary>
         /// Displays a pick list of items using Spectre.Console's styling and returns the selected item's index.
         /// Uses Spectre.Console's SelectionPrompt for a native, interactive pick list with color support and a cancel option.
@@ -224,6 +231,7 @@ namespace DynDungeonCrawler.Engine.Helpers
             return Task.FromResult(-1);
         }
 
+        // Spinner
         public async Task<T> ShowSpinnerAsync<T>(string message, Func<Task<T>> operation)
         {
             T result = default!;
@@ -236,37 +244,42 @@ namespace DynDungeonCrawler.Engine.Helpers
             return result;
         }
 
+        // Status update
         /// <summary>
-        /// Updates the player's status at the top-left of the console, showing health and money between two rules.
-        /// Restores the cursor to its original position after drawing.
+        /// Updates the player's status at the top-left of the console, showing name, health, and money between two rules.
+        /// Only moves and restores the cursor position if the current position is not (0,0).
+        /// Uses Spectre.Console emojis for visual clarity.
         /// </summary>
         /// <param name="health">Player's current health.</param>
         /// <param name="money">Player's current money.</param>
-        public void UpdateStatus(int health, int money)
+        /// <param name="name">Player's name.</param>
+        public void UpdateStatus(int health, int money, string name)
         {
-            // Save current cursor position
             int origLeft = Console.CursorLeft;
             int origTop = Console.CursorTop;
+            bool shouldRestoreCursor = !(origLeft == 0 && origTop == 0);
 
-            // Move to top-left
-            Console.SetCursorPosition(0, 0);
+            if (shouldRestoreCursor)
+            {
+                Console.SetCursorPosition(0, 0);
+            }
 
-            // Draw top rule
             WriteRule();
 
-            // Build and center the status line with Spectre.Console markup
-            string status = $"[bold green]Health:[/] {health}   [bold yellow]Money:[/] {money}";
+            // Use Spectre.Console emojis for name, health, and money
+            string status = $"[bold white]:bust_in_silhouette: {EscapeMarkup(name)}[/]   [bold green]:beating_heart: Health:[/] {health}   [bold yellow]:money_bag: Money:[/] {money}";
             int consoleWidth = Console.WindowWidth;
             int visibleLength = GetVisibleLength(status);
             int padLeft = Math.Max(0, (consoleWidth - visibleLength) / 2);
             string paddedStatus = new string(' ', padLeft) + status;
             SafeMarkup(paddedStatus, newline: true);
 
-            // Draw bottom rule
             WriteRule();
 
-            // Restore cursor position
-            Console.SetCursorPosition(origLeft, origTop);
+            if (shouldRestoreCursor)
+            {
+                Console.SetCursorPosition(origLeft, origTop);
+            }
         }
     }
 }

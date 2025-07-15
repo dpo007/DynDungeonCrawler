@@ -67,6 +67,7 @@ namespace DynDungeonCrawler.ConDungeon.GameLoop
                 ui.WriteLine("[dim italic]Press any key to continue...[/]");
                 await ui.ReadKeyAsync(intercept: true, hideCursor: true);
                 ui.Clear();
+                ui.UpdateStatus(player.Health, player.Wealth, player.Name);
                 return true; // Continue the loop to allow further commands
             }
             else if (directions.Contains(cmdChar.ToString().ToUpper()))
@@ -123,6 +124,7 @@ namespace DynDungeonCrawler.ConDungeon.GameLoop
                     player.CurrentRoom = nextRoom;
                     player.VisitedRoomIds.Add(nextRoom.Id);
                     ui.Clear();
+                    ui.UpdateStatus(player.Health, player.Wealth, player.Name);
                 }
                 else
                 {
@@ -202,6 +204,7 @@ namespace DynDungeonCrawler.ConDungeon.GameLoop
                 ui.Write("[dim]Press any key to continue...[/]");
                 await ui.ReadKeyAsync();
                 ui.Clear();
+                ui.UpdateStatus(player.Health, player.Wealth, player.Name);
                 return;
             }
 
@@ -216,6 +219,8 @@ namespace DynDungeonCrawler.ConDungeon.GameLoop
             // If the user cancelled (selectedIndex == -1), return
             if (selectedIndex == -1)
             {
+                ui.Clear();
+                ui.UpdateStatus(player.Health, player.Wealth, player.Name);
                 return;
             }
 
@@ -239,6 +244,7 @@ namespace DynDungeonCrawler.ConDungeon.GameLoop
             ui.Write("[dim]Press any key to continue...[/]");
             await ui.ReadKeyAsync();
             ui.Clear();
+            ui.UpdateStatus(player.Health, player.Wealth, player.Name);
         }
     }
 }
