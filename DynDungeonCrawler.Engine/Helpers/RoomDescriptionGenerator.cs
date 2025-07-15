@@ -110,6 +110,7 @@ Output Format:
 - Return the **exact same JSON structure**, but add a `name` and `description` to each room.
 - Do **not** change or remove any existing fields (such as `id`, `type`, or `exits`).
 - Return only **valid, minified JSON** — no markdown, no line breaks outside of the paragraph split, no extra text.
+- DO NOT RETURN MARKDOWN.
 
 {{inputJson}}
 ";
@@ -242,6 +243,9 @@ Output rules:
             ILogger logger)
         {
             string llmResponse = await llmClient.GetResponseAsync(userPrompt, systemPrompt);
+
+            // Clean the LLM response to remove markdown formatting and other unwanted elements
+            llmResponse = LLMJsonCleaner.CleanJsonResponse(llmResponse);
 
             const int maxAttempts = 5;
             int attempt = 0;

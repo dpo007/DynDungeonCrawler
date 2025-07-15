@@ -1,5 +1,6 @@
 using DynDungeonCrawler.Engine.Classes;
 using DynDungeonCrawler.Engine.Constants;
+using DynDungeonCrawler.Engine.Helpers;
 using DynDungeonCrawler.Engine.Interfaces;
 using System.Text.Json;
 
@@ -118,6 +119,9 @@ Do not change the IDs or other fields. Only return valid JSON, with no markdown 
 
             // Call LLM
             string llmResponse = await llmClient.GetResponseAsync(userPrompt, systemPrompt);
+
+            // Clean the LLM response to remove markdown formatting and other unwanted elements
+            llmResponse = LLMJsonCleaner.CleanJsonResponse(llmResponse);
 
             // Parse response and assign descriptions
             JsonDocument? doc = null;

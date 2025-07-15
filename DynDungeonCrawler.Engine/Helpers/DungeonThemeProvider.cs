@@ -58,6 +58,13 @@ namespace DynDungeonCrawler.Engine.Helpers
                 {
                     string llmResponse = await llmClient.GetResponseAsync(userPrompt, systemPrompt);
 
+                    // For theme generation, we don't need full JSON cleaning since we're expecting a plain text list
+                    // but we should clean up potential markdown code blocks
+                    if (llmResponse.Contains("```"))
+                    {
+                        llmResponse = LLMJsonCleaner.CleanJsonResponse(llmResponse);
+                    }
+
                     // Split the response into lines, trim whitespace, and filter out empty lines
                     List<string> allLines = llmResponse
                         .Split(new[] { "\r\n", "\n", "\r" }, StringSplitOptions.RemoveEmptyEntries)
