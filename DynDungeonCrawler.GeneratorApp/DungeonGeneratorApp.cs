@@ -13,7 +13,18 @@ namespace DynDungeonCrawler.GeneratorApp
         {
             // Load settings
             GeneratorAppSettings settings = GeneratorAppSettings.Load();
-            LLMSettings llmSettings = LLMSettings.Load();
+            LLMSettings llmSettings;
+            try
+            {
+                llmSettings = LLMSettings.Load();
+            }
+            catch (InvalidOperationException ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                Console.WriteLine("Press any key to exit.");
+                Console.ReadKey();
+                return;
+            }
 
             // Initialize logging
             ILogger logger;

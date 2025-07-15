@@ -134,7 +134,7 @@ namespace DynDungeonCrawler.Engine.Configuration
                 throw new InvalidOperationException($"LLM settings file updated with missing defaults. Please review and edit '{SettingsFilePath}' as needed, then restart the application.");
             }
 
-            // Validate only fields with 'your-' in their value
+            // Validate only LLM/API credential fields for 'your-' and empty/whitespace
             if (string.IsNullOrWhiteSpace(settings.OpenAIApiKey) || settings.OpenAIApiKey.Contains("your-", StringComparison.OrdinalIgnoreCase))
             {
                 throw new InvalidOperationException($"OpenAI API key is missing or not set. Please update '{SettingsFilePath}' with your actual OpenAI API key.");
@@ -150,6 +150,16 @@ namespace DynDungeonCrawler.Engine.Configuration
             if (string.IsNullOrWhiteSpace(settings.AzureOpenAIDeployment) || settings.AzureOpenAIDeployment.Contains("your-", StringComparison.OrdinalIgnoreCase))
             {
                 throw new InvalidOperationException($"Azure OpenAI deployment name is missing or not set. Please update '{SettingsFilePath}' with your actual deployment name.");
+            }
+
+            // For non-LLM settings, only check for empty/whitespace
+            if (string.IsNullOrWhiteSpace(settings.LLMProvider))
+            {
+                throw new InvalidOperationException($"LLMProvider is missing or not set. Please update '{SettingsFilePath}' with a valid LLM provider name.");
+            }
+            if (string.IsNullOrWhiteSpace(settings.OllamaEndpoint))
+            {
+                throw new InvalidOperationException($"OllamaEndpoint is missing or not set. Please update '{SettingsFilePath}' with a valid Ollama endpoint URL.");
             }
 
             return settings;

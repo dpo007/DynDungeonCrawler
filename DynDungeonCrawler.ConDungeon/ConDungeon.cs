@@ -1,6 +1,8 @@
 ﻿using DynDungeonCrawler.ConDungeon.GameLoop;
 using DynDungeonCrawler.Engine.Classes;
 using DynDungeonCrawler.Engine.Interfaces;
+using DynDungeonCrawler.Engine.Configuration;
+using DynDungeonCrawler.Engine.Helpers;
 
 namespace DynDungeonCrawler.ConDungeon
 {
@@ -24,6 +26,21 @@ namespace DynDungeonCrawler.ConDungeon
         {
             // Set the console output encoding to UTF-8 to support special characters
             Console.OutputEncoding = System.Text.Encoding.UTF8;
+
+            // Gracefully handle LLMSettings errors
+            try
+            {
+                LLMSettings.Load();
+            }
+            catch (InvalidOperationException ex)
+            {
+                // Use SpectreConsoleUserInterface for error output
+                var errorUi = new SpectreConsoleUserInterface();
+                errorUi.WriteLine($"Error: {ex.Message}");
+                errorUi.WriteLine("Press any key to exit.");
+                await errorUi.ReadKeyAsync();
+                return;
+            }
 
             // Capture the nullable tuple
             (IUserInterface? ui, ILogger? logger, ILLMClient? llmClient, Dungeon? dungeon, Adventurer? player) init = await GameInitializer.InitializeGameAsync();
