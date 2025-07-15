@@ -28,12 +28,14 @@ The engine is highly configurable, supports multiple LLM providers, and features
   - Randomized placement of entities in appropriate rooms
   - Treasure Chests contain randomly generated loot (Money, Gold, Jewels)
   - Loot value scales with rarity; some chests may be locked
+  - Treasure Chests receive LLM-generated detailed and short descriptions, inspired by their room context
 
 - **AI (LLM) Integration**
   - **OpenAI** and **Azure OpenAI**: Generate fantasy names, descriptions, and content based on dungeon themes
   - **Ollama Compatibility**: Switch to local LLMs via the `ILLMClient` abstraction
   - Used for enemies, rooms, adventurers, and dynamic world flavor
-  - Efficient batching and parallelization for LLM calls
+  - Efficient batching and parallelization for LLM calls (rooms and treasure chests)
+  - Robust error handling and JSON validation for all LLM-generated content
 
 - **Serialization and Export**
   - Full dungeon (rooms, entities, connections) serialized to JSON
@@ -56,18 +58,14 @@ The engine is highly configurable, supports multiple LLM providers, and features
   - Room descriptions and names generated on-the-fly as you explore
 
 - **Settings and Configuration**
-  - `settings.json` manages API keys, LLM provider selection (OpenAI, Azure OpenAI, Ollama), and global settings
-  - Includes:
-    - `OpenAIApiKey`, `AzureOpenAIApiKey`, `AzureOpenAIEndpoint`, `AzureOpenAIDeployment`
-    - `LogFilePath`: Path to the log file for file-based logging
-    - `DungeonFilePath`: Default path to the dungeon JSON file
-    - `LLMProvider`: Selects the LLM provider (e.g., OpenAI, Azure, Ollama)
-  - Auto-generates a default settings file if missing
-  - Validates LLM configuration and alerts if missing or incomplete
+  - Centralized LLM settings in `DynDungeonCrawler.Engine/Configuration/LLMSettings.cs` and `settings.json` (API keys, provider selection, etc.)
+  - Each app manages its own settings file (e.g., `condugeon.settings.json` for ConDungeon, `GeneratorApp.settings.json` for GeneratorApp) for app-specific paths and options
+  - App settings auto-generate defaults if missing and validate required fields
+  - LLM settings are validated and shared across all projects via the engine
 
 - **Robust Logging**
   - Pluggable logging via the `ILogger` interface
-  - Console and file logging included; easily extendable for other targets
+  - Console and file logging included; easily extensible for other targets
   - Logs key events: dungeon generation steps, entity placement, LLM usage, and errors
 
 ---
@@ -83,33 +81,33 @@ The engine is highly configurable, supports multiple LLM providers, and features
 
 **DynDungeonCrawler.Engine Project Folders**:
 
-| Folder           | Purpose                                                                                  |
-|:-----------------|:----------------------------------------------------------------------------------------|
-| `Classes/`       | Core classes (`Dungeon`, `Room`, `Entity`, `Enemy`, `TreasureChest`, `Adventurer`, etc.)|
-| `Data/`          | DTOs for dungeon export/import (`DungeonData`, `RoomData`, `EntityData`)                |
-| `Configuration/` | `Settings.cs` for managing OpenAI/Ollama/Azure keys and settings                        |
-| `Constants/`     | Default values for dungeon generation and LLM prompts (`DungeonDefaults`, `LLMDefaults`)|
-| `Interfaces/`    | `ILLMClient`, `ILogger` interfaces for AI and logging abstraction                       |
-| `Helpers/`       | Logging and LLM integration helpers (e.g., `ConsoleLogger`, `FileLogger`, `RoomDescriptionGenerator`, `OpenAIHelper`, `DungeonThemeProvider`) |
-| `Factories/`     | Entity factories (e.g., `TreasureChestFactory`, `EnemyFactory`)                         |
+| Folder                       | Purpose                                                                                  |
+|:-----------------------------|:----------------------------------------------------------------------------------------|
+| `Classes/`                   | Core dungeon, room, entity, and adventurer types                                        |
+| `Configuration/`             | Engine and LLM settings management                                                      |
+| `Constants/`                 | Default values for dungeon generation and LLM prompts                                   |
+| `Data/`                      | Data transfer objects for dungeon import/export                                         |
+| `Factories/`                 | Entity creation logic                                                                   |
+| `Helpers/ContentGeneration/` | Content generation utilities (room descriptions, themes, adventurer save)               |
+| `Helpers/LLM/`               | LLM integration helpers                                                                 |
+| `Helpers/Logging/`           | Logging utilities                                                                       |
+| `Helpers/UI/`                | Console and UI helpers                                                                  |
+| `Interfaces/`                | Abstractions for LLM, logging, and UI                                                   |
 
 **DynDungeonCrawler.GeneratorApp Project Folders**:
 
 | Folder           | Purpose                                                                                  |
 |:-----------------|:----------------------------------------------------------------------------------------|
-| `Utilities/`     | Utility classes for dungeon generation and app logic                                    |
+| `Utilities/`     | General utilities for dungeon generation and app logic                                   |
 
 **DynDungeonCrawler.ConDungeon Project Folders**:
 
 | Folder / File         | Purpose                                                                                  |
 |:----------------------|:----------------------------------------------------------------------------------------|
-| `GameLoop/`           | Modular game loop logic: input handling, command processing, room rendering, main loop  |
-| &nbsp;└&nbsp;`InputHandler.cs`      | Handles all player input and command key validation                        |
-| &nbsp;└&nbsp;`CommandProcessor.cs`  | Processes player commands, movement, inventory, and look actions           |
-| &nbsp;└&nbsp;`RoomRenderer.cs`      | Renders the current room and its contents to the UI                        |
-| &nbsp;└&nbsp;`GameLoopRunner.cs`    | Orchestrates the main game loop                                            |
-| `GameInitializer.cs`  | Handles all game setup and initialization logic                                         |
-| `ConDungeon.cs`       | Entry point; wires up initialization and the main game loop                             |
+| `Configuration/`      | Project-specific settings management                                                    |
+| `ConDungeon.cs`       | Application entry point and main loop wiring                                            |
+| `GameInitializer.cs`  | Game setup and initialization logic                                                    |
+| `GameLoop/`           | Game loop logic: input handling, command processing, room rendering, main loop         |
 
 **DynDungeonCrawler.MapViewer Project**:
 
@@ -126,9 +124,11 @@ The engine is highly configurable, supports multiple LLM providers, and features
   - **Azure OpenAI**: Native support via endpoint, deployment name, and key
   - **Ollama**: Easily switch to local LLMs (such as Llama 3) by implementing the interface
 - **Usage:**  
-  LLMs are used to generate enemy names and descriptions, room descriptions, and adventurer names
+  LLMs are used to generate enemy names and descriptions, room descriptions, treasure chest descriptions, and adventurer names
+- **Batching and Parallelization:**  
+  Room and treasure chest descriptions are generated in batches, with parallel LLM calls and automatic JSON validation/retry
 - **Configuration:**  
-  Choose your LLM provider and set credentials in `settings.json`
+  Centralized LLM settings in the engine; app-specific settings for file paths and options
 
 ---
 
@@ -192,9 +192,11 @@ The engine is highly configurable, supports multiple LLM providers, and features
     - `DynDungeonCrawler.GeneratorApp` (for generation/export)
     - `DynDungeonCrawler.ConDungeon` (for interactive play)
     - `DynDungeonCrawler.MapViewer` (for graphical map viewing)
-5. Update your `settings.json`:
-    - Set your OpenAI or Azure OpenAI credentials, or
-    - Configure Ollama/local LLM settings as needed.
+5. Update your app-specific settings file:
+    - Central LLM settings: `DynDungeonCrawler.Engine/Configuration/settings.json` and `LLMSettings.cs`
+    - App settings: e.g., `condugeon.settings.json` for ConDungeon, `GeneratorApp.settings.json` for GeneratorApp (auto-generated if missing)
+    - Set your OpenAI or Azure OpenAI credentials, or configure Ollama/local LLM settings as needed
+    - Set file paths and other options as needed
 6. Run the selected app to generate a dungeon, play through it, or visualize/export to JSON.
 
 ---
