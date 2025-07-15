@@ -1,4 +1,5 @@
 using DynDungeonCrawler.Engine.Interfaces;
+using System.Reflection;
 using System.Text.Json;
 
 namespace DynDungeonCrawler.Engine.Configuration
@@ -43,7 +44,7 @@ namespace DynDungeonCrawler.Engine.Configuration
         /// <summary>
         /// Loads LLM settings from the central JSON file, creating defaults if missing.
         /// Ensures all required fields are present and updates the file if needed.
-        /// Throws if any hint field is empty, whitespace, or still contains 'your-'.
+        /// Validates only the settings relevant to the selected LLM provider using reflection.
         /// </summary>
         /// <param name="logger">Logger for progress and error messages.</param>
         /// <returns>The loaded <see cref="LLMSettings"/> instance.</returns>
@@ -134,32 +135,51 @@ namespace DynDungeonCrawler.Engine.Configuration
                 throw new InvalidOperationException($"LLM settings file updated with missing defaults. Please review and edit '{SettingsFilePath}' as needed, then restart the application.");
             }
 
-            // Validate only LLM/API credential fields for 'your-' and empty/whitespace
-            if (string.IsNullOrWhiteSpace(settings.OpenAIApiKey) || settings.OpenAIApiKey.Contains("your-", StringComparison.OrdinalIgnoreCase))
-            {
-                throw new InvalidOperationException($"OpenAI API key is missing or not set. Please update '{SettingsFilePath}' with your actual OpenAI API key.");
-            }
-            if (string.IsNullOrWhiteSpace(settings.AzureOpenAIApiKey) || settings.AzureOpenAIApiKey.Contains("your-", StringComparison.OrdinalIgnoreCase))
-            {
-                throw new InvalidOperationException($"Azure OpenAI API key is missing or not set. Please update '{SettingsFilePath}' with your actual Azure OpenAI API key.");
-            }
-            if (string.IsNullOrWhiteSpace(settings.AzureOpenAIEndpoint) || settings.AzureOpenAIEndpoint.Contains("your-", StringComparison.OrdinalIgnoreCase))
-            {
-                throw new InvalidOperationException($"Azure OpenAI endpoint is missing or not set. Please update '{SettingsFilePath}' with your actual Azure OpenAI endpoint.");
-            }
-            if (string.IsNullOrWhiteSpace(settings.AzureOpenAIDeployment) || settings.AzureOpenAIDeployment.Contains("your-", StringComparison.OrdinalIgnoreCase))
-            {
-                throw new InvalidOperationException($"Azure OpenAI deployment name is missing or not set. Please update '{SettingsFilePath}' with your actual deployment name.");
-            }
-
-            // For non-LLM settings, only check for empty/whitespace
+            // Always validate the LLMProvider field itself
             if (string.IsNullOrWhiteSpace(settings.LLMProvider))
             {
                 throw new InvalidOperationException($"LLMProvider is missing or not set. Please update '{SettingsFilePath}' with a valid LLM provider name.");
             }
-            if (string.IsNullOrWhiteSpace(settings.OllamaEndpoint))
+
+            // Provider-specific validation using reflection
+            string provider = settings.LLMProvider.Trim();
+            string prefix = provider.ToLowerInvariant() switch
             {
-                throw new InvalidOperationException($"OllamaEndpoint is missing or not set. Please update '{SettingsFilePath}' with a valid Ollama endpoint URL.");
+                "openai" => "OpenAI",
+                "azure" => "Azure",
+                "ollama" => "Ollama",
+                _ => throw new InvalidOperationException($"Unknown provider: {provider}")
+            };
+
+            PropertyInfo[] properties = typeof(LLMSettings).GetProperties(BindingFlags.Public | BindingFlags.Instance);
+            foreach (PropertyInfo property in properties)
+            {
+                if (property.Name == nameof(LLMProvider))
+                {
+                    continue;
+                }
+
+                if (property.Name.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                {
+                    object? value = property.GetValue(settings);
+                    string? stringValue = value as string;
+                    // For Ollama, only check for empty/whitespace (no "your-" hint)
+                    if (prefix == "Ollama")
+                    {
+                        if (string.IsNullOrWhiteSpace(stringValue))
+                        {
+                            throw new InvalidOperationException($"{property.Name} is missing or not set. Please update '{SettingsFilePath}' with a valid value for {property.Name}.");
+                        }
+                    }
+                    else
+                    {
+                        // For OpenAI and Azure, check for both empty/whitespace and "your-" hints
+                        if (string.IsNullOrWhiteSpace(stringValue) || stringValue.Contains("your-", StringComparison.OrdinalIgnoreCase))
+                        {
+                            throw new InvalidOperationException($"{property.Name} is missing or not set. Please update '{SettingsFilePath}' with a valid value for {property.Name}.");
+                        }
+                    }
+                }
             }
 
             return settings;

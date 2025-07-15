@@ -1,8 +1,8 @@
 ﻿using DynDungeonCrawler.ConDungeon.GameLoop;
 using DynDungeonCrawler.Engine.Classes;
-using DynDungeonCrawler.Engine.Interfaces;
 using DynDungeonCrawler.Engine.Configuration;
 using DynDungeonCrawler.Engine.Helpers;
+using DynDungeonCrawler.Engine.Interfaces;
 
 namespace DynDungeonCrawler.ConDungeon
 {
@@ -35,7 +35,7 @@ namespace DynDungeonCrawler.ConDungeon
             catch (InvalidOperationException ex)
             {
                 // Use SpectreConsoleUserInterface for error output
-                var errorUi = new SpectreConsoleUserInterface();
+                SpectreConsoleUserInterface errorUi = new SpectreConsoleUserInterface();
                 errorUi.WriteLine($"Error: {ex.Message}");
                 errorUi.WriteLine("Press any key to exit.");
                 await errorUi.ReadKeyAsync();
