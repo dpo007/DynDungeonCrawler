@@ -33,9 +33,6 @@ public partial class MainWindow : Window
     private ScrollViewer? _scrollViewerEntities;
     private bool _syncingScroll = false; // Prevents recursive scroll events
 
-    // Track toggle state for lock pick highlighting
-    private bool _isHighlightingLockPick = false;
-
     public MainWindow()
     {
         // Remove MapViewerSettings usage, use default log path
@@ -134,25 +131,6 @@ public partial class MainWindow : Window
         }
     }
 
-    // Handle the Highlight Magical Lock Pick button click (toggle)
-    private void BtnHighlightLockPick_Click(object sender, RoutedEventArgs e)
-    {
-        if (_dungeon == null)
-        {
-            MessageBox.Show(
-                "No dungeon map is revealed!\n\nBrave adventurer, you must first load a dungeon before seeking magical treasures.",
-                "Dungeon Not Loaded",
-                MessageBoxButton.OK,
-                MessageBoxImage.Information);
-            return;
-        }
-        _isHighlightingLockPick = !_isHighlightingLockPick;
-        ShowMaps(highlightLockPick: _isHighlightingLockPick);
-        BtnHighlightLockPick.Content = _isHighlightingLockPick
-            ? "Hide Magical Lock Pick Highlight"
-            : "Highlight Magical Lock Pick";
-    }
-
     // Update the theme and room count UI elements
     private void UpdateDungeonInfoUI()
     {
@@ -169,7 +147,7 @@ public partial class MainWindow : Window
     }
 
     // Render the map displays in both modes (paths only, with entities)
-    private void ShowMaps(bool highlightLockPick = false)
+    private void ShowMaps()
     {
         if (MapDisplayPaths == null || MapDisplayEntities == null)
         {
@@ -183,13 +161,12 @@ public partial class MainWindow : Window
             MapDisplayEntities.Document = new FlowDocument(new Paragraph(new Run("No dungeon loaded.")));
             return;
         }
-        // Render map (paths only)
-        FlowDocument docPaths = BuildColoredMapDocument(_dungeon, false, highlightLockPick);
+        // Always highlight the magical lock pick room
+        FlowDocument docPaths = BuildColoredMapDocument(_dungeon, false, true);
         docPaths.PageWidth = 420; // Use a smaller static value for max map width
         MapDisplayPaths.Document = docPaths;
 
-        // Render map (with entities)
-        FlowDocument docEntities = BuildColoredMapDocument(_dungeon, true, highlightLockPick);
+        FlowDocument docEntities = BuildColoredMapDocument(_dungeon, true, true);
         docEntities.PageWidth = 420;
         MapDisplayEntities.Document = docEntities;
     }
