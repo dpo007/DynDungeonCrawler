@@ -113,7 +113,8 @@ namespace DynDungeonCrawler.GeneratorApp
                 DungeonDefaults.MaxDungeonHeight,
                 dungeonTheme,
                 llmClient,
-                logger);
+                logger,
+                settings);
 
             // Populate rooms with treasure chests and enemies
             Console.WriteLine("Populating rooms with treasure and enemies...");
@@ -122,7 +123,8 @@ namespace DynDungeonCrawler.GeneratorApp
                   dungeonTheme,
                   llmClient,
                   logger,
-                  Random.Shared);
+                  Random.Shared,
+                  settings);
 
             // Print maps
             Console.WriteLine("\nDungeon Map (Paths Only):");

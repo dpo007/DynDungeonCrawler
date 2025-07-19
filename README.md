@@ -62,6 +62,7 @@ The engine is highly configurable, supports multiple LLM providers, and features
 - **Settings and Configuration**
   - Centralized LLM settings in `DynDungeonCrawler.Engine/Configuration/LLMSettings.cs` and `settings.json` (API keys, provider selection, etc.)
   - Each app manages its own settings file (e.g., `condugeon.settings.json` for ConDungeon, `generatorapp.settings.json` for GeneratorApp) for app-specific paths and options
+  - Customizable entity placement probabilities in GeneratorApp (chest spawn chance, enemy chances, etc.)
   - All settings files are auto-generated and validated at startup; missing or invalid fields prompt user action
   - LLM settings are validated and shared across all projects via the engine
 
@@ -101,6 +102,22 @@ The engine is highly configurable, supports multiple LLM providers, and features
 | Folder           | Purpose                                                                                  |
 |:-----------------|:----------------------------------------------------------------------------------------|
 | `Utilities/`     | General utilities for dungeon generation and app logic                                   |
+
+**DynDungeonCrawler.GeneratorApp Settings**:
+
+| Setting                     | Purpose                                                       | Default Value |
+|:----------------------------|:--------------------------------------------------------------|:--------------|
+| `MaxChestsPerRoom`          | Maximum treasure chests per room                              | 1             |
+| `MaxEnemiesPerRoom`         | Maximum enemies per room                                      | 2             |
+| `ChestSpawnChance`          | Probability (0-1) of a chest spawning in a room               | 0.10 (10%)    |
+| `ChestLockChance`           | Probability (0-1) of a chest being locked                     | 0.30 (30%)    |
+| `ChestRoomFirstEnemyChance` | Probability (0-1) of first enemy in a room with a chest       | 0.40 (40%)    |
+| `ChestRoomSecondEnemyChance`| Probability (0-1) of second enemy in a room with a chest      | 0.05 (5%)     |
+| `EmptyRoomFirstEnemyChance` | Probability (0-1) of first enemy in a room without a chest    | 0.10 (10%)    |
+| `EmptyRoomSecondEnemyChance`| Probability (0-1) of second enemy in a room without a chest   | 0.03 (3%)     |
+| `StrongestEnemyMinStrength` | Minimum strength for the enemy guarding the magical lock pick | 20            |
+
+All these settings can be customized in the `generatorapp.settings.json` file, which is automatically created or updated when the application runs.
 
 **DynDungeonCrawler.ConDungeon Project Folders**:
 

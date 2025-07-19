@@ -18,6 +18,51 @@ namespace DynDungeonCrawler.GeneratorApp
         /// </summary>
         public string DungeonFilePath { get; set; } = "DungeonExports/MyDungeon.json";
 
+        /// <summary>
+        /// The maximum number of treasure chests that can appear in a single room.
+        /// </summary>
+        public int MaxChestsPerRoom { get; set; } = 1;
+
+        /// <summary>
+        /// The maximum number of enemies that can appear in a single room.
+        /// </summary>
+        public int MaxEnemiesPerRoom { get; set; } = 2;
+
+        /// <summary>
+        /// Chance (0.0 to 1.0) of a treasure chest being added to a room.
+        /// </summary>
+        public double ChestSpawnChance { get; set; } = 0.10;
+
+        /// <summary>
+        /// Chance (0.0 to 1.0) of a chest being locked.
+        /// </summary>
+        public double ChestLockChance { get; set; } = 0.30;
+
+        /// <summary>
+        /// Chance (0.0 to 1.0) of the first enemy in a room with a chest.
+        /// </summary>
+        public double ChestRoomFirstEnemyChance { get; set; } = 0.40;
+
+        /// <summary>
+        /// Chance (0.0 to 1.0) of a second enemy in a room with a chest.
+        /// </summary>
+        public double ChestRoomSecondEnemyChance { get; set; } = 0.05;
+
+        /// <summary>
+        /// Chance (0.0 to 1.0) of the first enemy in an empty room.
+        /// </summary>
+        public double EmptyRoomFirstEnemyChance { get; set; } = 0.10;
+
+        /// <summary>
+        /// Chance (0.0 to 1.0) of a second enemy in an empty room.
+        /// </summary>
+        public double EmptyRoomSecondEnemyChance { get; set; } = 0.03;
+
+        /// <summary>
+        /// Minimum strength value for the strongest enemy guarding the lock pick.
+        /// </summary>
+        public int StrongestEnemyMinStrength { get; set; } = 20;
+
         public const string SettingsFilePath = "generatorapp.settings.json";
 
         /// <summary>
@@ -44,6 +89,7 @@ namespace DynDungeonCrawler.GeneratorApp
             bool updated = false;
             using (JsonDocument doc = JsonDocument.Parse(json))
             {
+                // Check for existing file paths
                 if (!doc.RootElement.TryGetProperty("LogFilePath", out _))
                 {
                     settings.LogFilePath = @"C:\temp\GeneratorApp.log";
@@ -54,8 +100,56 @@ namespace DynDungeonCrawler.GeneratorApp
                     settings.DungeonFilePath = "DungeonExports/MyDungeon.json";
                     updated = true;
                 }
+
+                // Check for entity spawn settings
+                if (!doc.RootElement.TryGetProperty("MaxChestsPerRoom", out _))
+                {
+                    settings.MaxChestsPerRoom = 1;
+                    updated = true;
+                }
+                if (!doc.RootElement.TryGetProperty("MaxEnemiesPerRoom", out _))
+                {
+                    settings.MaxEnemiesPerRoom = 2;
+                    updated = true;
+                }
+                if (!doc.RootElement.TryGetProperty("ChestSpawnChance", out _))
+                {
+                    settings.ChestSpawnChance = 0.10;
+                    updated = true;
+                }
+                if (!doc.RootElement.TryGetProperty("ChestLockChance", out _))
+                {
+                    settings.ChestLockChance = 0.30;
+                    updated = true;
+                }
+                if (!doc.RootElement.TryGetProperty("ChestRoomFirstEnemyChance", out _))
+                {
+                    settings.ChestRoomFirstEnemyChance = 0.40;
+                    updated = true;
+                }
+                if (!doc.RootElement.TryGetProperty("ChestRoomSecondEnemyChance", out _))
+                {
+                    settings.ChestRoomSecondEnemyChance = 0.05;
+                    updated = true;
+                }
+                if (!doc.RootElement.TryGetProperty("EmptyRoomFirstEnemyChance", out _))
+                {
+                    settings.EmptyRoomFirstEnemyChance = 0.10;
+                    updated = true;
+                }
+                if (!doc.RootElement.TryGetProperty("EmptyRoomSecondEnemyChance", out _))
+                {
+                    settings.EmptyRoomSecondEnemyChance = 0.03;
+                    updated = true;
+                }
+                if (!doc.RootElement.TryGetProperty("StrongestEnemyMinStrength", out _))
+                {
+                    settings.StrongestEnemyMinStrength = 20;
+                    updated = true;
+                }
             }
-            // Also ensure fields are not empty
+
+            // Also ensure string fields are not empty
             if (string.IsNullOrWhiteSpace(settings.LogFilePath))
             {
                 settings.LogFilePath = @"C:\temp\GeneratorApp.log";
@@ -64,6 +158,55 @@ namespace DynDungeonCrawler.GeneratorApp
             if (string.IsNullOrWhiteSpace(settings.DungeonFilePath))
             {
                 settings.DungeonFilePath = "DungeonExports/MyDungeon.json";
+                updated = true;
+            }
+
+            // Validate numerical settings for common errors
+            if (settings.MaxChestsPerRoom <= 0)
+            {
+                settings.MaxChestsPerRoom = 1;
+                updated = true;
+            }
+            if (settings.MaxEnemiesPerRoom <= 0)
+            {
+                settings.MaxEnemiesPerRoom = 2;
+                updated = true;
+            }
+
+            // Ensure probabilities are between 0 and 1
+            if (settings.ChestSpawnChance < 0 || settings.ChestSpawnChance > 1)
+            {
+                settings.ChestSpawnChance = 0.10;
+                updated = true;
+            }
+            if (settings.ChestLockChance < 0 || settings.ChestLockChance > 1)
+            {
+                settings.ChestLockChance = 0.30;
+                updated = true;
+            }
+            if (settings.ChestRoomFirstEnemyChance < 0 || settings.ChestRoomFirstEnemyChance > 1)
+            {
+                settings.ChestRoomFirstEnemyChance = 0.40;
+                updated = true;
+            }
+            if (settings.ChestRoomSecondEnemyChance < 0 || settings.ChestRoomSecondEnemyChance > 1)
+            {
+                settings.ChestRoomSecondEnemyChance = 0.05;
+                updated = true;
+            }
+            if (settings.EmptyRoomFirstEnemyChance < 0 || settings.EmptyRoomFirstEnemyChance > 1)
+            {
+                settings.EmptyRoomFirstEnemyChance = 0.10;
+                updated = true;
+            }
+            if (settings.EmptyRoomSecondEnemyChance < 0 || settings.EmptyRoomSecondEnemyChance > 1)
+            {
+                settings.EmptyRoomSecondEnemyChance = 0.03;
+                updated = true;
+            }
+            if (settings.StrongestEnemyMinStrength <= 0)
+            {
+                settings.StrongestEnemyMinStrength = 20;
                 updated = true;
             }
 
