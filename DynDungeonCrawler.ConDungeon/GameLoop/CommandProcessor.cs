@@ -234,11 +234,41 @@ namespace DynDungeonCrawler.ConDungeon.GameLoop
             ui.WriteLine($"[italic]You take a closer look at the [bold][{selected.color}]{selected.name}[/][/]...[/]");
             ui.WriteLine();
 
-            // For TreasureChest, append the status after the description
+            // For TreasureChest, prompt to open
             if (selected.entity is TreasureChest chestEntity)
             {
                 string chestState = chestEntity.IsOpened ? "Opened" : (chestEntity.IsLocked ? "Locked" : "Unlocked");
                 ui.WriteLine($"{selected.description}\n\nStatus: [violet]{chestState}[/]");
+                ui.WriteLine();
+                // Prompt to open chest if not already opened
+                if (!chestEntity.IsOpened)
+                {
+                    ui.Write("Do you want to try to open this chest? (y/n): ");
+                    string openInput = (await ui.ReadLineAsync()).Trim().ToLowerInvariant();
+                    ui.WriteLine();
+                    if (openInput == "y" || openInput == "yes")
+                    {
+                        if (chestEntity.IsLocked)
+                        {
+                            ui.WriteLine("[bold red]The chest is locked. You cannot open it.[/]");
+                        }
+                        else
+                        {
+                            chestEntity.Open();
+                            int value = chestEntity.ContainedTreasure?.Value ?? 0;
+                            player.AddWealth(value);
+                            ui.WriteLine($"[bold green]You open the chest and find treasure worth {value} coins![/]");
+                        }
+                    }
+                    else
+                    {
+                        ui.WriteLine("You decide not to open the chest.");
+                    }
+                }
+                else
+                {
+                    ui.WriteLine("[dim]This chest is already opened.[/]");
+                }
             }
             else if (selected.entity is Enemy enemyEntity)
             {
