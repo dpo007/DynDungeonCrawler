@@ -23,12 +23,14 @@ The engine is highly configurable, supports multiple LLM providers, and features
   - LLM-powered room descriptions generated on demand or in batch
 
 - **Entity & Loot System**
-  - Supports Enemies and Treasure Chests (easily extensible)
+  - Supports Enemies, Treasure Chests, Magical Lock Picks, and more (extensible)
+  - All entities derive from the abstract base class `Entity` and are created via factories (`EntityFactory`, `EnemyFactory`, `TreasureChestFactory`, `LockPickFactory`, etc.)
   - Each entity has a Name, Description, Type, and unique ID
   - Randomized placement of entities in appropriate rooms
   - Treasure Chests contain randomly generated loot (Money, Gold, Jewels)
   - Loot value scales with rarity; some chests may be locked
   - Treasure Chests receive LLM-generated detailed and short descriptions, inspired by their room context
+  - Easily extensible for new entity types: Bosses, Keys, NPCs, Magical Items, etc.
 
 - **AI (LLM) Integration**
   - **OpenAI** and **Azure OpenAI**: Generate fantasy names, descriptions, and content based on dungeon themes
@@ -39,7 +41,7 @@ The engine is highly configurable, supports multiple LLM providers, and features
 
 - **Serialization and Export**
   - Full dungeon (rooms, entities, connections) serialized to JSON
-  - DTOs (`DungeonData`, `RoomData`, `EntityData`) separate runtime logic from export format
+  - Structured DTOs (`DungeonData`, `RoomData`, `EntityData`) separate runtime logic from export format
 
 - **Console Map Visualization**
   - Dual-mode console printer:
@@ -59,8 +61,8 @@ The engine is highly configurable, supports multiple LLM providers, and features
 
 - **Settings and Configuration**
   - Centralized LLM settings in `DynDungeonCrawler.Engine/Configuration/LLMSettings.cs` and `settings.json` (API keys, provider selection, etc.)
-  - Each app manages its own settings file (e.g., `condugeon.settings.json` for ConDungeon, `GeneratorApp.settings.json` for GeneratorApp) for app-specific paths and options
-  - App settings auto-generate defaults if missing and validate required fields
+  - Each app manages its own settings file (e.g., `condugeon.settings.json` for ConDungeon, `generatorapp.settings.json` for GeneratorApp) for app-specific paths and options
+  - All settings files are auto-generated and validated at startup; missing or invalid fields prompt user action
   - LLM settings are validated and shared across all projects via the engine
 
 - **Robust Logging**
@@ -83,15 +85,15 @@ The engine is highly configurable, supports multiple LLM providers, and features
 
 | Folder                       | Purpose                                                                                  |
 |:-----------------------------|:----------------------------------------------------------------------------------------|
-| `Classes/`                   | Core dungeon, room, entity, and adventurer types                                        |
+| `Classes/`                   | Core dungeon, room, entity, adventurer, enemy, treasure, magical item, lock pick types   |
 | `Configuration/`             | Engine and LLM settings management                                                      |
 | `Constants/`                 | Default values for dungeon generation and LLM prompts                                   |
 | `Data/`                      | Data transfer objects for dungeon import/export                                         |
-| `Factories/`                 | Entity creation logic                                                                   |
-| `Helpers/ContentGeneration/` | Content generation utilities (room descriptions, themes, adventurer save)               |
-| `Helpers/LLM/`               | LLM integration helpers                                                                 |
-| `Helpers/Logging/`           | Logging utilities                                                                       |
-| `Helpers/UI/`                | Console and UI helpers                                                                  |
+| `Factories/`                 | Entity creation logic (EnemyFactory, EntityFactory, TreasureChestFactory, LockPickFactory, etc.) |
+| `Helpers/ContentGeneration/` | Content generation utilities (room descriptions, themes, adventurer save, chest stories) |
+| `Helpers/LLM/`               | LLM integration helpers (OpenAI, Azure, Ollama, JSON cleaning, dummy client)            |
+| `Helpers/Logging/`           | Logging utilities (ConsoleLogger, FileLogger, DebugLogger, MutedLogger)                 |
+| `Helpers/UI/`                | Console and UI helpers (SpectreConsoleUserInterface, ConsoleUserInterface)              |
 | `Interfaces/`                | Abstractions for LLM, logging, and UI                                                   |
 
 **DynDungeonCrawler.GeneratorApp Project Folders**:
@@ -109,10 +111,14 @@ The engine is highly configurable, supports multiple LLM providers, and features
 | `GameInitializer.cs`  | Game setup and initialization logic                                                    |
 | `GameLoop/`           | Game loop logic: input handling, command processing, room rendering, main loop         |
 
-**DynDungeonCrawler.MapViewer Project**:
+**DynDungeonCrawler.MapViewer Project Folders**:
 
-- WPF project for graphical dungeon visualization from JSON files.
-- Features color-coded map display, entity overlays, and synchronized scrolling.
+| File / Folder         | Purpose                                                                                  |
+|:----------------------|:----------------------------------------------------------------------------------------|
+| `MainWindow.xaml`     | Main WPF map viewer window                                                              |
+| `MainWindow.xaml.cs`  | Map viewer logic                                                                        |
+| `App.xaml`            | WPF application definition                                                              |
+| `App.xaml.cs`         | WPF application startup logic                                                          |
 
 ---
 
@@ -170,7 +176,7 @@ The engine is highly configurable, supports multiple LLM providers, and features
 
 ## 🚀 Future Goals
 
-- Expanded entity types (Bosses, Keys, NPCs, Magical Items)
+- Expanded entity types (Bosses, Keys, NPCs, Magical Items, Lock Picks, etc.)
 - More advanced procedural room and entity description generation
 - Dungeon biomes and theming (lava caves, ice caverns, ancient ruins)
 - Graphical front-end rendering (Unity, WebGL, custom renderers)
@@ -194,7 +200,7 @@ The engine is highly configurable, supports multiple LLM providers, and features
     - `DynDungeonCrawler.MapViewer` (for graphical map viewing)
 5. Update your app-specific settings file:
     - Central LLM settings: `DynDungeonCrawler.Engine/Configuration/settings.json` and `LLMSettings.cs`
-    - App settings: e.g., `condugeon.settings.json` for ConDungeon, `GeneratorApp.settings.json` for GeneratorApp (auto-generated if missing)
+    - App settings: e.g., `condugeon.settings.json` for ConDungeon, `generatorapp.settings.json` for GeneratorApp (auto-generated and validated at startup)
     - Set your OpenAI or Azure OpenAI credentials, or configure Ollama/local LLM settings as needed
     - Set file paths and other options as needed
 6. Run the selected app to generate a dungeon, play through it, or visualize/export to JSON.
