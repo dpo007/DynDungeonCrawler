@@ -35,6 +35,27 @@
             ContainedTreasure = new Treasure(treasureType, treasureValue);
         }
 
+        /// <summary>
+        /// Unlocks the chest using a magical lock pick.
+        /// </summary>
+        /// <param name="lockPick">The magical lock pick to use.</param>
+        /// <returns>True if the chest was successfully unlocked; otherwise, false.</returns>
+        public bool UnlockWith(MagicalLockPick lockPick)
+        {
+            if (lockPick == null)
+            {
+                return false;
+            }
+
+            if (!IsLocked)
+            {
+                return false; // Already unlocked
+            }
+
+            IsLocked = false;
+            return true;
+        }
+
         private void GenerateTreasure()
         {
             double roll = random.NextDouble();

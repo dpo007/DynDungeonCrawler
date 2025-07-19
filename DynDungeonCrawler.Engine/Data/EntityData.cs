@@ -22,5 +22,59 @@ namespace DynDungeonCrawler.Engine.Data
 
         public int? Strength { get; set; }
         public int MoneyReward { get; set; } = 0;
+
+        /// <summary>
+        /// Converts the EntityData to the appropriate Entity type based on the Type property.
+        /// </summary>
+        /// <returns>An Entity object representing this data.</returns>
+        public Entity ToEntity()
+        {
+            Entity entity;
+
+            switch (Type)
+            {
+                case EntityType.Enemy:
+                    entity = new Enemy(
+                        Name,
+                        Description ?? "A fearsome creature",
+                        ShortDescription ?? "",
+                        Health ?? 10,
+                        Strength ?? 2,
+                        MoneyReward);
+                    break;
+
+                case EntityType.TreasureChest:
+                    entity = new TreasureChest(Name, IsLocked ?? false);
+
+                    // Handle opened state
+                    if (IsOpened == true)
+                    {
+                        ((TreasureChest)entity).Open();
+                    }
+                    break;
+
+                case EntityType.MagicalLockPick:
+                    entity = new MagicalLockPick(Name);
+                    break;
+
+                default:
+                    throw new NotSupportedException($"Entity type {Type} is not supported.");
+            }
+
+            // Set the ID and descriptions
+            entity.Id = Id;
+
+            if (!string.IsNullOrWhiteSpace(Description))
+            {
+                entity.Description = Description;
+            }
+
+            if (!string.IsNullOrWhiteSpace(ShortDescription))
+            {
+                entity.ShortDescription = ShortDescription;
+            }
+
+            return entity;
+        }
     }
 }

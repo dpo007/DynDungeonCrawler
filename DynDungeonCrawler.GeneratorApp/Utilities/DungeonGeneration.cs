@@ -196,7 +196,7 @@ namespace DynDungeonCrawler.GeneratorApp.Utilities
                 // Choose one direction at random
                 (int dx, int dy, Action<Room> setExitFrom, Action<Room> setExitTo) chosen = availableDirections[random.Next(availableDirections.Count)];
 
-                // Calculate the new room’s coordinates
+                // Calculate the new room's coordinates
                 int newX = current.X + chosen.dx;
                 int newY = current.Y + chosen.dy;
 
@@ -209,7 +209,7 @@ namespace DynDungeonCrawler.GeneratorApp.Utilities
                 grid[newX, newY] = newRoom;
                 dungeon.AddRoom(newRoom);
 
-                // Advance the “current” pointer
+                // Advance the "current" pointer
                 current = newRoom;
 
                 // Occasionally spawn a side-branch
@@ -375,6 +375,7 @@ namespace DynDungeonCrawler.GeneratorApp.Utilities
         /// For each normal room, attempts to add up to MaxChestsPerRoom treasure chests (10% chance per slot)
         /// and up to MaxEnemiesPerRoom enemies (with decreasing odds for each additional enemy).
         /// The type and properties of each entity are determined randomly and by the dungeon theme.
+        /// Also adds exactly one magical lock pick to a random normal room and informs the user of its location using Console output.
         /// </summary>
         /// <param name="rooms">The list of rooms to populate.</param>
         /// <param name="theme">The dungeon theme for enemy generation.</param>
@@ -436,6 +437,23 @@ namespace DynDungeonCrawler.GeneratorApp.Utilities
                     }
                 }
             });
+
+            // Add exactly one magical lock pick to a random normal room
+            List<Room> normalRooms = rooms.Where(r => r.Type == RoomType.Normal).ToList();
+            if (normalRooms.Count > 0)
+            {
+                int randomRoomIndex = random.Next(normalRooms.Count);
+                Room lockPickRoom = normalRooms[randomRoomIndex];
+
+                MagicalLockPick lockPick = LockPickFactory.CreateMagicalLockPick();
+                lockPickRoom.AddEntity(lockPick);
+                logger.Log($"Magical Lock Pick added to room at ({lockPickRoom.X}, {lockPickRoom.Y}).");
+                Console.WriteLine($"*** Magical Lock Pick placed at coordinates ({lockPickRoom.X}, {lockPickRoom.Y})! ***\n");
+            }
+            else
+            {
+                logger.Log("Warning: No normal rooms available to place the Magical Lock Pick.");
+            }
         }
     }
 }

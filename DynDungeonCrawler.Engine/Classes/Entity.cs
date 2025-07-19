@@ -6,6 +6,7 @@ namespace DynDungeonCrawler.Engine.Classes
     {
         Enemy,
         TreasureChest,
+        MagicalLockPick,
         Key,
         NPC,
         Trap,
