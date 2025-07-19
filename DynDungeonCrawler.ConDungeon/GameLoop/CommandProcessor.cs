@@ -262,9 +262,12 @@ namespace DynDungeonCrawler.ConDungeon.GameLoop
                         }
                         else
                         {
-                            // Display a thematic chest opening story
+                            // Display a thematic chest opening story with the new dramatic sentence-by-sentence display
                             string openingStory = dungeon.GetRandomChestOpeningStory();
-                            ui.WriteLine($"[italic yellow]{openingStory}[/]");
+
+                            // Use the new WriteSlowlyBySentenceAsync method instead of regular WriteLine
+                            // This displays the story one sentence at a time with dramatic pauses
+                            await ui.WriteSlowlyBySentenceAsync($"[italic yellow]{openingStory}[/]");
                             ui.WriteLine();
 
                             // Actually open the chest and award treasure

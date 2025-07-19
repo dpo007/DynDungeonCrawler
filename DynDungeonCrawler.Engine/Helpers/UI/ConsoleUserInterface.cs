@@ -1,4 +1,5 @@
 ﻿using DynDungeonCrawler.Engine.Interfaces;
+using System.Text.RegularExpressions;
 
 namespace DynDungeonCrawler.Engine.Helpers.UI
 {
@@ -288,6 +289,86 @@ namespace DynDungeonCrawler.Engine.Helpers.UI
             if (shouldRestoreCursor)
             {
                 Console.SetCursorPosition(origLeft, origTop);
+            }
+        }
+
+        /// <summary>
+        /// Displays text one sentence at a time with pauses between sentences for dramatic effect.
+        /// </summary>
+        /// <param name="text">The text to display sentence by sentence.</param>
+        /// <param name="pauseMs">Optional fixed pause duration in milliseconds between sentences.
+        /// If not specified, random pauses between 2000-4000ms will be used.</param>
+        /// <param name="endNewLine">Whether to add a newline after all sentences are displayed.</param>
+        /// <returns>A task that completes when all sentences have been displayed.</returns>
+        public async Task WriteSlowlyBySentenceAsync(string text, int? pauseMs = null, bool endNewLine = true)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                return;
+            }
+
+            // Clean any markup codes that might be present (since ConsoleUI doesn't support them)
+            // Remove Spectre.Console markup tags and emoji shortcodes
+            string cleanText = Regex.Replace(text, @"\[[^\]]*\]", ""); // Remove style tags
+            cleanText = Regex.Replace(cleanText, @":[a-zA-Z0-9_]+:", ""); // Remove emoji shortcodes
+
+            // Split text into sentences using regex to handle various end-of-sentence punctuation
+            string pattern = @"(\.|\!|\?|…)(\s+|$)";
+            List<string> sentences = new List<string>();
+
+            int startIndex = 0;
+            foreach (Match match in Regex.Matches(cleanText, pattern))
+            {
+                if (match.Index >= startIndex)
+                {
+                    // Get the sentence including its punctuation and add it to the list
+                    string sentence = cleanText.Substring(startIndex, match.Index + match.Length - startIndex);
+                    sentences.Add(sentence);
+                    startIndex = match.Index + match.Length;
+                }
+            }
+
+            // If there's any text left (e.g., no final punctuation), add it as the last sentence
+            if (startIndex < cleanText.Length)
+            {
+                sentences.Add(cleanText.Substring(startIndex));
+            }
+
+            // If no sentences were found (no punctuation), treat the entire text as one sentence
+            if (sentences.Count == 0)
+            {
+                sentences.Add(cleanText);
+            }
+
+            Random random = Random.Shared;
+
+            // Display each sentence and pause between them
+            for (int i = 0; i < sentences.Count; i++)
+            {
+                string sentence = sentences[i].TrimStart();
+                if (string.IsNullOrWhiteSpace(sentence))
+                {
+                    continue;
+                }
+
+                // Write the entire sentence at once, letting Console handle word wrapping
+                Console.Write(sentence);
+
+                // If this isn't the last sentence, add a pause
+                if (i < sentences.Count - 1)
+                {
+                    // Calculate the pause duration - increased to 2-4 seconds (2000-4000ms)
+                    int actualPauseMs = pauseMs ?? random.Next(2000, 4001);
+
+                    // Use a non-blocking delay
+                    await Task.Delay(actualPauseMs);
+                }
+            }
+
+            // Add final newline if requested
+            if (endNewLine)
+            {
+                Console.WriteLine();
             }
         }
     }

@@ -91,5 +91,15 @@
         /// <param name="money">Player's current money.</param>
         /// <param name="name">Player's name.</param>
         void UpdateStatus(int health, int money, string name);
+
+        /// <summary>
+        /// Displays text one sentence at a time with pauses between sentences for dramatic effect.
+        /// </summary>
+        /// <param name="text">The text to display sentence by sentence.</param>
+        /// <param name="pauseMs">Optional fixed pause duration in milliseconds between sentences.
+        /// If not specified, random pauses between 2000-4000ms will be used.</param>
+        /// <param name="endNewLine">Whether to add a newline after all sentences are displayed.</param>
+        /// <returns>A task that completes when all sentences have been displayed.</returns>
+        Task WriteSlowlyBySentenceAsync(string text, int? pauseMs = null, bool endNewLine = true);
     }
 }
