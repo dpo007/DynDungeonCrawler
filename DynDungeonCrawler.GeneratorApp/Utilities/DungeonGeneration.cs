@@ -375,7 +375,8 @@ namespace DynDungeonCrawler.GeneratorApp.Utilities
         /// For each normal room, attempts to add up to MaxChestsPerRoom treasure chests (10% chance per slot)
         /// and up to MaxEnemiesPerRoom enemies (with decreasing odds for each additional enemy).
         /// The type and properties of each entity are determined randomly and by the dungeon theme.
-        /// Also adds exactly one magical lock pick to a random normal room and informs the user of its location using Console output.
+        /// Also adds exactly one magical lock pick to a random normal room, along with the strongest enemy,
+        /// ensuring they are always placed together. Duplicates of the strongest enemy type can also appear in other rooms.
         /// </summary>
         /// <param name="rooms">The list of rooms to populate.</param>
         /// <param name="theme">The dungeon theme for enemy generation.</param>
@@ -391,32 +392,33 @@ namespace DynDungeonCrawler.GeneratorApp.Utilities
         {
             // Generate a list of enemy types based on the dungeon theme
             List<EnemyTypeInfo> enemyTypes = await EnemyFactory.GenerateEnemyTypesAsync(theme, llmClient, logger);
-
+            
             // Use a thread-local Random instance to avoid contention in parallel processing
             ThreadLocal<Random> threadLocalRandom = new ThreadLocal<Random>(() => new Random(Guid.NewGuid().GetHashCode()));
 
-            Parallel.ForEach(rooms, room =>
+            // Generate all enemies first, storing them in a list
+            List<Enemy> allEnemies = new List<Enemy>();
+            
+            // Create enemies based on probabilities in rooms
+            foreach (Room room in rooms)
             {
                 Random localRandom = threadLocalRandom.Value!;
 
-                // Only populate normal rooms (not entrance/exit)
+                // Only generate enemies for normal rooms (not entrance/exit)
                 if (room.Type == RoomType.Normal)
                 {
-                    // Add up to MaxChestsPerRoom chests (10% chance per slot)
-                    int chestsAdded = 0;
+                    // Add up to MaxEnemiesPerRoom enemies (decreasing odds for each)
+                    int chestsAdded = 0; // Track this for chance adjustment
+                    
+                    // Check if there's a chest (similar to original logic)
                     for (int i = 0; i < MaxChestsPerRoom; i++)
                     {
                         if (localRandom.NextDouble() < 0.10)
                         {
-                            bool isLocked = localRandom.NextDouble() < 0.3;
-                            room.AddEntity(TreasureChestFactory.CreateTreasureChest(isLocked: isLocked));
                             chestsAdded++;
-                            logger.Log($"Treasure chest added to room at ({room.X}, {room.Y}) - {(isLocked ? "Locked" : "Unlocked")}.");
                         }
                     }
-
-                    // Add up to MaxEnemiesPerRoom enemies (decreasing odds for each)
-                    int enemiesAdded = 0;
+                    
                     double[] enemyChances = { 0.10, 0.03, 0.01 }; // Extend as needed for more than 3
                     for (int i = 0; i < MaxEnemiesPerRoom; i++)
                     {
@@ -430,29 +432,100 @@ namespace DynDungeonCrawler.GeneratorApp.Utilities
                         {
                             EnemyTypeInfo enemyType = enemyTypes[localRandom.Next(enemyTypes.Count)];
                             Enemy enemy = EnemyFactory.CreateEnemy(enemyType.Name, enemyType.Description, enemyType.ShortDescription, theme);
-                            room.AddEntity(enemy);
-                            enemiesAdded++;
-                            logger.Log($"Enemy '{enemy.Name}' added to room at ({room.X}, {room.Y}).");
+                            allEnemies.Add(enemy);
+                        }
+                    }
+                }
+            }
+
+            // If no enemies were generated, create at least one
+            if (allEnemies.Count == 0)
+            {
+                logger.Log("No enemies were generated naturally. Creating at least one enemy for the magical lock pick room.");
+                EnemyTypeInfo defaultEnemyType = enemyTypes[random.Next(enemyTypes.Count)];
+                Enemy defaultEnemy = EnemyFactory.CreateEnemy(defaultEnemyType.Name, defaultEnemyType.Description, defaultEnemyType.ShortDescription, theme);
+                allEnemies.Add(defaultEnemy);
+            }
+
+            // Find the strongest enemy based on the Strength property
+            Enemy strongestEnemy = allEnemies.OrderByDescending(e => e.Strength).First();
+            
+            // Remove the strongest enemy from the general pool to avoid duplicating the exact same enemy
+            allEnemies.Remove(strongestEnemy);
+            
+            logger.Log($"Identified strongest enemy: '{strongestEnemy.Name}' with Strength: {strongestEnemy.Strength}");
+
+            // Now place treasure chests in normal rooms
+            Parallel.ForEach(rooms, room =>
+            {
+                Random localRandom = threadLocalRandom.Value!;
+
+                // Only populate normal rooms (not entrance/exit)
+                if (room.Type == RoomType.Normal)
+                {
+                    // Add up to MaxChestsPerRoom chests (10% chance per slot)
+                    for (int i = 0; i < MaxChestsPerRoom; i++)
+                    {
+                        if (localRandom.NextDouble() < 0.10)
+                        {
+                            bool isLocked = localRandom.NextDouble() < 0.3;
+                            room.AddEntity(TreasureChestFactory.CreateTreasureChest(isLocked: isLocked));
+                            logger.Log($"Treasure chest added to room at ({room.X}, {room.Y}) - {(isLocked ? "Locked" : "Unlocked")}.");
                         }
                     }
                 }
             });
 
-            // Add exactly one magical lock pick to a random normal room
+            // Select a random normal room for the magical lock pick
             List<Room> normalRooms = rooms.Where(r => r.Type == RoomType.Normal).ToList();
             if (normalRooms.Count > 0)
             {
                 int randomRoomIndex = random.Next(normalRooms.Count);
                 Room lockPickRoom = normalRooms[randomRoomIndex];
 
+                // Create and place the magical lock pick
                 MagicalLockPick lockPick = LockPickFactory.CreateMagicalLockPick();
                 lockPickRoom.AddEntity(lockPick);
-                logger.Log($"Magical Lock Pick added to room at ({lockPickRoom.X}, {lockPickRoom.Y}).");
-                Console.WriteLine($"*** Magical Lock Pick placed at coordinates ({lockPickRoom.X}, {lockPickRoom.Y})! ***\n");
+                
+                // Place the strongest enemy in the same room as the magical lock pick
+                lockPickRoom.AddEntity(strongestEnemy);
+                
+                logger.Log($"Magical Lock Pick and strongest enemy '{strongestEnemy.Name}' (Strength: {strongestEnemy.Strength}) added to room at ({lockPickRoom.X}, {lockPickRoom.Y}).");
+                Console.WriteLine($"A magical lock pick has been placed in room at coordinates ({lockPickRoom.X}, {lockPickRoom.Y}) along with the strongest enemy '{strongestEnemy.Name}'.");
             }
             else
             {
-                logger.Log("Warning: No normal rooms available to place the Magical Lock Pick.");
+                logger.Log("Warning: No normal rooms available to place the Magical Lock Pick and strongest enemy.");
+            }
+
+            // Generate more enemies of the same type as the strongest enemy
+            // This allows duplicates of the strongest enemy TYPE to appear elsewhere in the dungeon
+            EnemyTypeInfo? strongestEnemyType = enemyTypes.FirstOrDefault(et => et.Name == strongestEnemy.Name);
+            if (strongestEnemyType != null)
+            {
+                // Add a few duplicates of the strongest enemy type, but with potentially different stats
+                for (int i = 0; i < random.Next(1, 4); i++) // 1-3 additional enemies of same type
+                {
+                    Enemy similarEnemy = EnemyFactory.CreateEnemy(
+                        strongestEnemyType.Name, 
+                        strongestEnemyType.Description, 
+                        strongestEnemyType.ShortDescription, 
+                        theme);
+                    allEnemies.Add(similarEnemy);
+                }
+                logger.Log($"Generated additional enemies of type '{strongestEnemyType.Name}' to place in the dungeon.");
+            }
+
+            // Distribute the remaining enemies randomly
+            if (allEnemies.Count > 0 && normalRooms.Count > 0)
+            {
+                foreach (Enemy enemy in allEnemies)
+                {
+                    int randomRoomIndex = random.Next(normalRooms.Count);
+                    Room randomRoom = normalRooms[randomRoomIndex];
+                    randomRoom.AddEntity(enemy);
+                    logger.Log($"Enemy '{enemy.Name}' added to room at ({randomRoom.X}, {randomRoom.Y}).");
+                }
             }
         }
     }
