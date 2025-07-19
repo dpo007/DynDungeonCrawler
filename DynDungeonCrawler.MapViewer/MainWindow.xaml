@@ -17,12 +17,17 @@
         </Grid.RowDefinitions>
         <StackPanel Orientation="Horizontal" Margin="0,0,0,10" Grid.Row="0">
             <Button x:Name="BtnLoadDungeon" Content="Load Dungeon JSON..." Width="160" Margin="0,0,10,0" Click="BtnLoadDungeon_Click" />
+            <Button x:Name="BtnHighlightLockPick" Content="Highlight Magical Lock Pick" Width="200" Margin="0,0,10,0"
+                    Click="BtnHighlightLockPick_Click" />
         </StackPanel>
         <!-- Fancy Theme Display -->
         <Border Grid.Row="1" Margin="0,0,0,10" Padding="10" CornerRadius="8" Background="#222" BorderBrush="#6cf" BorderThickness="2">
-            <TextBlock x:Name="TxtDungeonTheme" Text="🏰 Please load a dungeon 🏰"
-                       FontSize="22" FontWeight="Bold" Foreground="#6cf"
-                       TextWrapping="Wrap" TextAlignment="Center" VerticalAlignment="Top" />
+            <TextBox x:Name="TxtDungeonTheme"
+                     Text="🏰 Please load a dungeon 🏰"
+                     FontSize="22" FontWeight="Bold" Foreground="#6cf"
+                     TextWrapping="Wrap" TextAlignment="Center" VerticalAlignment="Top"
+                     Background="Transparent" BorderThickness="0"
+                     IsReadOnly="True" IsReadOnlyCaretVisible="False" />
         </Border>
         <Grid Grid.Row="2" Margin="0">
             <Grid.ColumnDefinitions>

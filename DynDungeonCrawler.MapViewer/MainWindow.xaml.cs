@@ -33,6 +33,9 @@ public partial class MainWindow : Window
     private ScrollViewer? _scrollViewerEntities;
     private bool _syncingScroll = false; // Prevents recursive scroll events
 
+    // Track toggle state for lock pick highlighting
+    private bool _isHighlightingLockPick = false;
+
     public MainWindow()
     {
         // Remove MapViewerSettings usage, use default log path
@@ -131,6 +134,25 @@ public partial class MainWindow : Window
         }
     }
 
+    // Handle the Highlight Magical Lock Pick button click (toggle)
+    private void BtnHighlightLockPick_Click(object sender, RoutedEventArgs e)
+    {
+        if (_dungeon == null)
+        {
+            MessageBox.Show(
+                "No dungeon map is revealed!\n\nBrave adventurer, you must first load a dungeon before seeking magical treasures.",
+                "Dungeon Not Loaded",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+            return;
+        }
+        _isHighlightingLockPick = !_isHighlightingLockPick;
+        ShowMaps(highlightLockPick: _isHighlightingLockPick);
+        BtnHighlightLockPick.Content = _isHighlightingLockPick
+            ? "Hide Magical Lock Pick Highlight"
+            : "Highlight Magical Lock Pick";
+    }
+
     // Update the theme and room count UI elements
     private void UpdateDungeonInfoUI()
     {
@@ -147,7 +169,7 @@ public partial class MainWindow : Window
     }
 
     // Render the map displays in both modes (paths only, with entities)
-    private void ShowMaps()
+    private void ShowMaps(bool highlightLockPick = false)
     {
         if (MapDisplayPaths == null || MapDisplayEntities == null)
         {
@@ -162,18 +184,18 @@ public partial class MainWindow : Window
             return;
         }
         // Render map (paths only)
-        FlowDocument docPaths = BuildColoredMapDocument(_dungeon, false);
+        FlowDocument docPaths = BuildColoredMapDocument(_dungeon, false, highlightLockPick);
         docPaths.PageWidth = 420; // Use a smaller static value for max map width
         MapDisplayPaths.Document = docPaths;
 
         // Render map (with entities)
-        FlowDocument docEntities = BuildColoredMapDocument(_dungeon, true);
+        FlowDocument docEntities = BuildColoredMapDocument(_dungeon, true, highlightLockPick);
         docEntities.PageWidth = 420;
         MapDisplayEntities.Document = docEntities;
     }
 
     // Build a FlowDocument for the map, coloring each cell appropriately
-    private static FlowDocument BuildColoredMapDocument(Dungeon dungeon, bool showEntities)
+    private static FlowDocument BuildColoredMapDocument(Dungeon dungeon, bool showEntities, bool highlightLockPick = false)
     {
         FlowDocument doc = new FlowDocument();
         doc.Background = Brushes.Black;
@@ -186,6 +208,13 @@ public partial class MainWindow : Window
         int mapHeight = cells.GetLength(1);
 
         Room[,] roomGrid = dungeon.Grid;
+
+        // Find the room containing the magical lock pick
+        Room? lockPickRoom = null;
+        if (highlightLockPick)
+        {
+            lockPickRoom = dungeon.Rooms.FirstOrDefault(r => r.Contents.Any(e => e.Type == EntityType.MagicalLockPick));
+        }
 
         for (int y = 0; y < mapHeight; y++)
         {
@@ -207,14 +236,20 @@ public partial class MainWindow : Window
                     _ => Brushes.Gray
                 };
 
-                Run run = new Run(ch.ToString()) { Foreground = color };
-
                 Room? room = null;
                 int rx = cell.X;
                 int ry = cell.Y;
                 if (rx >= 0 && rx < roomGrid.GetLength(0) && ry >= 0 && ry < roomGrid.GetLength(1))
                 {
                     room = roomGrid[rx, ry];
+                }
+
+                Run run = new Run(ch.ToString()) { Foreground = color };
+
+                // Highlight the magical lock pick room with a gold background
+                if (highlightLockPick && room != null && lockPickRoom != null && room.X == lockPickRoom.X && room.Y == lockPickRoom.Y)
+                {
+                    run.Background = Brushes.Gold;
                 }
 
                 if (room != null)
@@ -294,6 +329,10 @@ public partial class MainWindow : Window
                 _ => Brushes.Gray
             };
             para.Inlines.Add(new Run($" {entry.Symbol} = {entry.Description}\n") { Foreground = color });
+        }
+        if (highlightLockPick)
+        {
+            para.Inlines.Add(new Run(" █ = Room with Magical Lock Pick\n") { Foreground = Brushes.Gold });
         }
         doc.Blocks.Add(para);
         return doc;
