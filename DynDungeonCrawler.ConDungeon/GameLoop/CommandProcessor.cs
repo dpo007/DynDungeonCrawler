@@ -251,35 +251,40 @@ namespace DynDungeonCrawler.ConDungeon.GameLoop
                 // Prompt to open chest if not already opened
                 if (!chestEntity.IsOpened)
                 {
-                    ui.Write("Do you want to try to open this chest? (y/n): ");
-                    string openInput = (await ui.ReadLineAsync()).Trim().ToLowerInvariant();
-                    ui.WriteLine();
-                    if (openInput == "y" || openInput == "yes")
+                    ui.Write("[bold]Open chest?[/] [[[green]Y[/]]]es / [[[red]N[/]]]o [gray](default: N)[/]: ");
+                    while (true)
                     {
-                        if (chestEntity.IsLocked)
+                        string keyStr = await ui.ReadKeyAsync(intercept: true);
+                        if (string.IsNullOrEmpty(keyStr) || keyStr == "\r" || keyStr == "\n" || keyStr.Equals("N", StringComparison.OrdinalIgnoreCase))
                         {
-                            ui.WriteLine("[bold red]The chest is locked. You cannot open it.[/]");
+                            ui.WriteLine("[red]N[/]");
+                            ui.WriteLine("You decide not to open the chest.");
+                            break;
                         }
-                        else
+                        else if (keyStr.Equals("Y", StringComparison.OrdinalIgnoreCase))
                         {
-                            // Display a thematic chest opening story with the new dramatic sentence-by-sentence display
-                            string openingStory = dungeon.GetRandomChestOpeningStory();
-
-                            // Use the new WriteSlowlyBySentenceAsync method instead of regular WriteLine
-                            // This displays the story one sentence at a time with dramatic pauses
-                            await ui.WriteSlowlyBySentenceAsync($"[italic yellow]{openingStory}[/]");
+                            ui.WriteLine("[green]Y[/]");
                             ui.WriteLine();
+                            if (chestEntity.IsLocked)
+                            {
+                                ui.WriteLine("[bold red]The chest is locked. You cannot open it.[/]");
+                            }
+                            else
+                            {
+                                // Display a thematic chest opening story with the new dramatic sentence-by-sentence display
+                                string openingStory = dungeon.GetRandomChestOpeningStory();
+                                await ui.WriteSlowlyBySentenceAsync($"[italic yellow]{openingStory}[/]");
+                                ui.WriteLine();
 
-                            // Actually open the chest and award treasure
-                            chestEntity.Open();
-                            int value = chestEntity.ContainedTreasure?.Value ?? 0;
-                            player.AddWealth(value);
-                            ui.WriteLine($"[bold green]You find treasure worth {value} coins![/]");
+                                // Actually open the chest and award treasure
+                                chestEntity.Open();
+                                int value = chestEntity.ContainedTreasure?.Value ?? 0;
+                                player.AddWealth(value);
+                                ui.WriteLine($"[bold green]You find treasure worth {value} coins![/]");
+                            }
+                            break;
                         }
-                    }
-                    else
-                    {
-                        ui.WriteLine("You decide not to open the chest.");
+                        // Ignore other keys and continue waiting
                     }
                 }
                 else

@@ -285,6 +285,7 @@ namespace DynDungeonCrawler.Engine.Helpers.UI
 
         /// <summary>
         /// Displays text one sentence at a time with pauses between sentences for dramatic effect.
+        /// Each sentence is displayed on its own line to ensure proper wrapping and alignment.
         /// </summary>
         /// <param name="text">The text to display sentence by sentence.</param>
         /// <param name="pauseMs">Optional fixed pause duration in milliseconds between sentences.
@@ -361,15 +362,13 @@ namespace DynDungeonCrawler.Engine.Helpers.UI
                         formattedSentence = sentence;
                     }
 
-                    SafeMarkup(formattedSentence, newline: false);
+                    // Write each sentence on its own line for proper wrapping
+                    SafeMarkup(formattedSentence, newline: true);
 
-                    // If this isn't the last sentence, add space and pause
+                    // If this isn't the last sentence, add a pause
                     if (i < sentences.Count - 1)
                     {
-                        // Calculate the pause duration - increased to 2-4 seconds (2000-4000ms)
                         int actualPauseMs = pauseMs ?? random.Next(2000, 4001);
-
-                        // Use a non-blocking delay
                         await Task.Delay(actualPauseMs);
                     }
                 }

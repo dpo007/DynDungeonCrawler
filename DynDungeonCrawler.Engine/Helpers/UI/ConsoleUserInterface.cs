@@ -294,10 +294,10 @@ namespace DynDungeonCrawler.Engine.Helpers.UI
 
         /// <summary>
         /// Displays text one sentence at a time with pauses between sentences for dramatic effect.
+        /// Each sentence is displayed on its own line to ensure proper wrapping and alignment.
         /// </summary>
         /// <param name="text">The text to display sentence by sentence.</param>
-        /// <param name="pauseMs">Optional fixed pause duration in milliseconds between sentences.
-        /// If not specified, random pauses between 2000-4000ms will be used.</param>
+        /// <param name="pauseMs">Optional fixed pause duration in milliseconds between sentences.</param>
         /// <param name="endNewLine">Whether to add a newline after all sentences are displayed.</param>
         /// <returns>A task that completes when all sentences have been displayed.</returns>
         public async Task WriteSlowlyBySentenceAsync(string text, int? pauseMs = null, bool endNewLine = true)
@@ -351,16 +351,13 @@ namespace DynDungeonCrawler.Engine.Helpers.UI
                     continue;
                 }
 
-                // Write the entire sentence at once, letting Console handle word wrapping
-                Console.Write(sentence);
+                // Write the entire sentence on its own line for proper wrapping
+                Console.WriteLine(sentence);
 
                 // If this isn't the last sentence, add a pause
                 if (i < sentences.Count - 1)
                 {
-                    // Calculate the pause duration - increased to 2-4 seconds (2000-4000ms)
                     int actualPauseMs = pauseMs ?? random.Next(2000, 4001);
-
-                    // Use a non-blocking delay
                     await Task.Delay(actualPauseMs);
                 }
             }
