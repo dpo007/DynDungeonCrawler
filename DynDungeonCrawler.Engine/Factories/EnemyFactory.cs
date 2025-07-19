@@ -245,7 +245,7 @@ Return a JSON object where each key is the enemy name and the value is an object
         public static Enemy CreateEnemy(string name, string description, string shortDescription, string? theme = null)
         {
             int health = random.Next(10, 21); // Random health between 10 and 20
-            int attack = random.Next(2, 6);   // Random attack between 2 and 5
+            int strength = random.Next(2, 6);   // Random strength between 2 and 5
 
             if (theme != null)
             {
@@ -255,11 +255,11 @@ Return a JSON object where each key is the enemy name and the value is an object
                 }
                 else if (theme.Contains("fire", StringComparison.OrdinalIgnoreCase))
                 {
-                    attack += 2;
+                    strength += 2;
                 }
             }
 
-            return new Enemy(name, description, shortDescription, health, attack);
+            return new Enemy(name, description, shortDescription, health, strength);
         }
 
         /// <summary>
