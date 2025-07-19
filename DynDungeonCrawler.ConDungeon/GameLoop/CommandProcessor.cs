@@ -273,14 +273,13 @@ namespace DynDungeonCrawler.ConDungeon.GameLoop
                             {
                                 // Display a thematic chest opening story with the new dramatic sentence-by-sentence display
                                 string openingStory = dungeon.GetRandomChestOpeningStory();
-                                await ui.WriteSlowlyBySentenceAsync($"[italic yellow]{openingStory}[/]");
-                                ui.WriteLine();
+                                await ui.WriteSlowlyBySentenceAsync($"[italic]{openingStory}[/]");
 
                                 // Actually open the chest and award treasure
                                 chestEntity.Open();
                                 int value = chestEntity.ContainedTreasure?.Value ?? 0;
                                 player.AddWealth(value);
-                                ui.WriteLine($"[bold green]You find treasure worth {value} coins![/]");
+                                ui.WriteLine($"[bold green]You find treasure worth [gold1]{value}[/] coins![/]");
                             }
                             break;
                         }

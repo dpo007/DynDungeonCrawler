@@ -268,7 +268,7 @@ namespace DynDungeonCrawler.Engine.Helpers.UI
             WriteRule();
 
             // Use Spectre.Console emojis for name, health, and money
-            string status = $"[bold white]:bust_in_silhouette: {EscapeMarkup(name)}[/]   [bold green]:beating_heart: Health:[/] {health}   [bold yellow]:money_bag: Money:[/] {money}";
+            string status = $"[bold white]:bust_in_silhouette: {EscapeMarkup(name)}[/]   [bold green]:beating_heart: Health:[/] {health}   [gold1]:money_bag: Money:[/] {money}";
             int consoleWidth = Console.WindowWidth;
             int visibleLength = GetVisibleLength(status);
             int padLeft = Math.Max(0, (consoleWidth - visibleLength) / 2);
