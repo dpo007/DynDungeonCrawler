@@ -17,6 +17,7 @@ namespace DynDungeonCrawler.Engine.Classes
     {
         private readonly Room[,] grid;
         private readonly List<Room> rooms = new List<Room>();
+        private List<string>? chestOpeningStories = null;
 
         private int width;
         private int height;
@@ -69,6 +70,29 @@ namespace DynDungeonCrawler.Engine.Classes
             grid = new Room[width, height];
 
             _logger.Log($"Dungeon space initialized with maximum dimensions of {width}x{height}.");
+        }
+
+        /// <summary>
+        /// Gets or sets the collection of chest opening story descriptions.
+        /// </summary>
+        public IReadOnlyList<string>? ChestOpeningStories
+        {
+            get => chestOpeningStories;
+            set => chestOpeningStories = value?.ToList();
+        }
+
+        /// <summary>
+        /// Gets a random chest opening story or a default message if none are available.
+        /// </summary>
+        /// <returns>A string containing a chest opening story.</returns>
+        public string GetRandomChestOpeningStory()
+        {
+            if (chestOpeningStories == null || chestOpeningStories.Count == 0)
+            {
+                return "You open the chest with a satisfying click.";
+            }
+
+            return chestOpeningStories[Random.Shared.Next(chestOpeningStories.Count)];
         }
 
         /// <summary>

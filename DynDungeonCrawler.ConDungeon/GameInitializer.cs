@@ -1,6 +1,7 @@
 using DynDungeonCrawler.ConDungeon.Configuration;
 using DynDungeonCrawler.Engine.Classes;
 using DynDungeonCrawler.Engine.Configuration;
+using DynDungeonCrawler.Engine.Helpers.ContentGeneration;
 using DynDungeonCrawler.Engine.Helpers.LLM;
 using DynDungeonCrawler.Engine.Helpers.Logging;
 using DynDungeonCrawler.Engine.Helpers.UI;
@@ -87,6 +88,25 @@ namespace DynDungeonCrawler.ConDungeon
             ui.WriteLine($"Dungeon Theme: \"[white]{dungeon.Theme}[/]\"");
             ui.WriteLine($"Total Rooms: [yellow]{dungeon.Rooms.Count}[/]");
             ui.WriteLine();
+
+            // Generate chest opening stories
+            ui.WriteLine("Generating immersive content for your adventure...");
+            await ui.ShowSpinnerAsync(
+                "[italic]Creating chest opening narratives...[/]",
+                async () =>
+                {
+                    // Default to 5 stories, but could be configured in settings in the future
+                    int storyCount = 5;
+                    List<string> stories = await ChestOpeningStoryProvider.GenerateChestOpeningStoriesAsync(
+                        dungeon.Theme,
+                        llmClient,
+                        logger,
+                        storyCount);
+
+                    dungeon.ChestOpeningStories = stories;
+                    return true;
+                }
+            );
 
             // Player name and gender
             ui.Write("Enter your adventurer's name [gray](or press Enter to generate one)[/]: ");

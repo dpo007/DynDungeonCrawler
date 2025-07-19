@@ -46,7 +46,7 @@ namespace DynDungeonCrawler.ConDungeon.GameLoop
             else if (cmdChar == 'l')
             {
                 // Show menu of things to look at
-                await HandleLookCommandAsync(ui, player);
+                await HandleLookCommandAsync(ui, logger, llmClient, dungeon, player);
             }
             else if (cmdChar == 'i')
             {
@@ -143,9 +143,17 @@ namespace DynDungeonCrawler.ConDungeon.GameLoop
         /// including each entity in the room (but not the room itself).
         /// </summary>
         /// <param name="ui">The user interface for I/O operations.</param>
+        /// <param name="logger">Logger for diagnostic and error messages.</param>
+        /// <param name="llmClient">The LLM client for generating content.</param>
+        /// <param name="dungeon">The dungeon instance containing the game state.</param>
         /// <param name="player">The current player.</param>
         /// <returns>A task that completes when the look operation is finished.</returns>
-        private static async Task HandleLookCommandAsync(IUserInterface ui, Adventurer player)
+        private static async Task HandleLookCommandAsync(
+            IUserInterface ui,
+            ILogger logger,
+            ILLMClient llmClient,
+            Dungeon dungeon,
+            Adventurer player)
         {
             if (player.CurrentRoom == null)
             {
@@ -254,10 +262,16 @@ namespace DynDungeonCrawler.ConDungeon.GameLoop
                         }
                         else
                         {
+                            // Display a thematic chest opening story
+                            string openingStory = dungeon.GetRandomChestOpeningStory();
+                            ui.WriteLine($"[italic yellow]{openingStory}[/]");
+                            ui.WriteLine();
+
+                            // Actually open the chest and award treasure
                             chestEntity.Open();
                             int value = chestEntity.ContainedTreasure?.Value ?? 0;
                             player.AddWealth(value);
-                            ui.WriteLine($"[bold green]You open the chest and find treasure worth {value} coins![/]");
+                            ui.WriteLine($"[bold green]You find treasure worth {value} coins![/]");
                         }
                     }
                     else
