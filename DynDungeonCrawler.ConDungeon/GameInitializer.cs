@@ -23,7 +23,7 @@ namespace DynDungeonCrawler.ConDungeon
         public static async Task<(IUserInterface? ui, ILogger? logger, ILLMClient? llmClient, Dungeon? dungeon, Adventurer? player)> InitializeGameAsync()
         {
             IUserInterface ui = new SpectreConsoleUserInterface();
-            ui.WriteLine("*** [bold]Dynamic Dungeon Crawler![/] ***");
+            ui.WriteRule("*** [bold]Dynamic Dungeon Crawler![/] ***");
 
             ConDungeonSettings settings = ConDungeonSettings.Load();
             LLMSettings llmSettings = LLMSettings.Load();
@@ -85,6 +85,7 @@ namespace DynDungeonCrawler.ConDungeon
             string filePath = settings.DungeonFilePath ?? "DungeonExports/MyDungeon.json";
             Dungeon dungeon = Dungeon.LoadFromJson(filePath, llmClient, logger);
             ui.WriteLine("[dim]Dungeon loaded successfully.[/]");
+            ui.WriteLine();
             ui.WriteLine($"Dungeon Theme: \"[white]{dungeon.Theme}[/]\"");
             ui.WriteLine($"Total Rooms: [yellow]{dungeon.Rooms.Count}[/]");
             ui.WriteLine();
@@ -95,7 +96,6 @@ namespace DynDungeonCrawler.ConDungeon
                 "[italic]Creating chest opening narratives...[/]",
                 async () =>
                 {
-                    // Default to 5 stories, but could be configured in settings in the future
                     int storyCount = 5;
                     List<string> stories = await ChestOpeningStoryProvider.GenerateChestOpeningStoriesAsync(
                         dungeon.Theme,
@@ -107,6 +107,7 @@ namespace DynDungeonCrawler.ConDungeon
                     return true;
                 }
             );
+            ui.WriteLine();
 
             // Player name and gender
             ui.Write("Enter your adventurer's name [gray](or press Enter to generate one)[/]: ");
