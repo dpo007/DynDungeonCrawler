@@ -224,6 +224,10 @@ namespace DynDungeonCrawler.ConDungeon.GameLoop
                 return;
             }
 
+            // Clear screen and show status bar before showing entity details
+            ui.Clear();
+            ui.UpdateStatus(player.Health, player.Wealth, player.Name);
+
             // Otherwise, show the selected item's details
             (string name, string description, string color, Entity entity) selected = lookables[selectedIndex];
             ui.WriteLine();
@@ -235,6 +239,12 @@ namespace DynDungeonCrawler.ConDungeon.GameLoop
             {
                 string chestState = chestEntity.IsOpened ? "Opened" : (chestEntity.IsLocked ? "Locked" : "Unlocked");
                 ui.WriteLine($"{selected.description}\n\nStatus: [violet]{chestState}[/]");
+            }
+            else if (selected.entity is Enemy enemyEntity)
+            {
+                ui.WriteLine(selected.description);
+                ui.WriteLine();
+                ui.WriteLine($"Stats: [red]Health[/]: {enemyEntity.Health}, [red]Strength[/]: {enemyEntity.Strength}");
             }
             else
             {
