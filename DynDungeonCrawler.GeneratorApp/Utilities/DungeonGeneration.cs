@@ -392,13 +392,13 @@ namespace DynDungeonCrawler.GeneratorApp.Utilities
         {
             // Generate a list of enemy types based on the dungeon theme
             List<EnemyTypeInfo> enemyTypes = await EnemyFactory.GenerateEnemyTypesAsync(theme, llmClient, logger);
-            
+
             // Use a thread-local Random instance to avoid contention in parallel processing
             ThreadLocal<Random> threadLocalRandom = new ThreadLocal<Random>(() => new Random(Guid.NewGuid().GetHashCode()));
 
             // Generate all enemies first, storing them in a list
             List<Enemy> allEnemies = new List<Enemy>();
-            
+
             // Create enemies based on probabilities in rooms
             foreach (Room room in rooms)
             {
@@ -409,7 +409,7 @@ namespace DynDungeonCrawler.GeneratorApp.Utilities
                 {
                     // Add up to MaxEnemiesPerRoom enemies (decreasing odds for each)
                     int chestsAdded = 0; // Track this for chance adjustment
-                    
+
                     // Check if there's a chest (similar to original logic)
                     for (int i = 0; i < MaxChestsPerRoom; i++)
                     {
@@ -418,7 +418,7 @@ namespace DynDungeonCrawler.GeneratorApp.Utilities
                             chestsAdded++;
                         }
                     }
-                    
+
                     double[] enemyChances = { 0.10, 0.03, 0.01 }; // Extend as needed for more than 3
                     for (int i = 0; i < MaxEnemiesPerRoom; i++)
                     {
@@ -449,10 +449,10 @@ namespace DynDungeonCrawler.GeneratorApp.Utilities
 
             // Find the strongest enemy based on the Strength property
             Enemy strongestEnemy = allEnemies.OrderByDescending(e => e.Strength).First();
-            
+
             // Remove the strongest enemy from the general pool to avoid duplicating the exact same enemy
             allEnemies.Remove(strongestEnemy);
-            
+
             logger.Log($"Identified strongest enemy: '{strongestEnemy.Name}' with Strength: {strongestEnemy.Strength}");
 
             // Now place treasure chests in normal rooms
@@ -486,10 +486,10 @@ namespace DynDungeonCrawler.GeneratorApp.Utilities
                 // Create and place the magical lock pick
                 MagicalLockPick lockPick = LockPickFactory.CreateMagicalLockPick();
                 lockPickRoom.AddEntity(lockPick);
-                
+
                 // Place the strongest enemy in the same room as the magical lock pick
                 lockPickRoom.AddEntity(strongestEnemy);
-                
+
                 logger.Log($"Magical Lock Pick and strongest enemy '{strongestEnemy.Name}' (Strength: {strongestEnemy.Strength}) added to room at ({lockPickRoom.X}, {lockPickRoom.Y}).");
                 Console.WriteLine($"A magical lock pick has been placed in room at coordinates ({lockPickRoom.X}, {lockPickRoom.Y}) along with the strongest enemy '{strongestEnemy.Name}'.");
             }
@@ -507,9 +507,9 @@ namespace DynDungeonCrawler.GeneratorApp.Utilities
                 for (int i = 0; i < random.Next(1, 4); i++) // 1-3 additional enemies of same type
                 {
                     Enemy similarEnemy = EnemyFactory.CreateEnemy(
-                        strongestEnemyType.Name, 
-                        strongestEnemyType.Description, 
-                        strongestEnemyType.ShortDescription, 
+                        strongestEnemyType.Name,
+                        strongestEnemyType.Description,
+                        strongestEnemyType.ShortDescription,
                         theme);
                     allEnemies.Add(similarEnemy);
                 }

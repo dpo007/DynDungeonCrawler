@@ -45,3 +45,13 @@
 - Direct use of `Console.ReadLine()` or `Console.WriteLine()` — always use `IUserInterface`  
 - Mixing UI, AI, or serialization logic into core engine or data models  
 - Writing raw/unstructured JSON — always define and use DTO classes  
+
+---
+
+## 📄 README Maintenance
+
+- The `README.md` **must be kept up to date** as the project evolves  
+  - Update it when **features are added or removed**  
+  - Reflect **changes in folder structure or project layout**  
+  - Revise the **goal or roadmap sections** when milestones are achieved or plans change  
+- Treat the README as a living document for developers, contributors, and future maintainers  
