@@ -6,6 +6,9 @@ using DynDungeonCrawler.Engine.Interfaces;
 
 namespace DynDungeonCrawler.GeneratorApp.Utilities
 {
+    /// <summary>
+    /// Provides static methods for dungeon generation and population.
+    /// </summary>
     public static class DungeonGeneration
     {
         /// <summary>
@@ -19,6 +22,7 @@ namespace DynDungeonCrawler.GeneratorApp.Utilities
         /// <param name="llmClient">An AI client used to generate room descriptions.</param>
         /// <param name="logger">Logger instance for diagnostic and progress messages.</param>
         /// <param name="settings">The application settings, including entity placement probabilities.</param>
+        /// <param name="ui">Optional user interface for visual feedback. If null, no visual feedback is provided.</param>
         /// <returns>A Task that, when completed, returns the fully generated Dungeon instance.</returns>
         public static async Task<Dungeon> GenerateDungeon(
             int width,
@@ -26,7 +30,8 @@ namespace DynDungeonCrawler.GeneratorApp.Utilities
             string theme,
             ILLMClient llmClient,
             ILogger logger,
-            GeneratorAppSettings settings)
+            GeneratorAppSettings settings,
+            IUserInterface? ui = null)
         {
             // Create the dungeon instance and initialize the grid
             Dungeon dungeon = new Dungeon(width, height, theme, llmClient, logger);
@@ -375,13 +380,15 @@ namespace DynDungeonCrawler.GeneratorApp.Utilities
         /// <param name="logger">Logger for progress and entity addition messages.</param>
         /// <param name="random">Random generator for entity placement.</param>
         /// <param name="settings">The application settings, including entity placement probabilities.</param>
+        /// <param name="ui">Optional user interface for visual feedback. If null, no visual feedback is provided.</param>
         public static async Task PopulateRoomContentsAsync(
             List<Room> rooms,
             string theme,
             ILLMClient llmClient,
             ILogger logger,
             Random random,
-            GeneratorAppSettings settings)
+            GeneratorAppSettings settings,
+            IUserInterface? ui = null)
         {
             // STEP 1: Generate set of enemies to be used throughout
             logger.Log("Generating enemy types for the dungeon...");
@@ -442,7 +449,16 @@ namespace DynDungeonCrawler.GeneratorApp.Utilities
             lockPickRoom.AddEntity(strongestEnemy);
 
             logger.Log($"Magical Lock Pick and strongest enemy '{strongestEnemy.Name}' (Strength: {strongestEnemy.Strength}) added to room at ({lockPickRoom.X}, {lockPickRoom.Y}).");
-            Console.WriteLine($"A magical lock pick has been placed in room at coordinates ({lockPickRoom.X}, {lockPickRoom.Y}) along with the strongest enemy '{strongestEnemy.Name}'.");
+
+            // Use UI if available, otherwise fall back to console
+            if (ui != null)
+            {
+                ui.WriteLine($"[bold cyan]A magical lock pick[/] has been placed in room at coordinates ([bold]{lockPickRoom.X}[/], [bold]{lockPickRoom.Y}[/]) along with the strongest enemy '[bold magenta]{strongestEnemy.Name}[/]'.");
+            }
+            else
+            {
+                logger.Log($"A magical lock pick has been placed in room at coordinates ({lockPickRoom.X}, {lockPickRoom.Y}) along with the strongest enemy '{strongestEnemy.Name}'.");
+            }
 
             // STEP 4: For rooms with chests, use the defined odds to determine if an enemy should be added
             logger.Log("Adding enemies to rooms with chests based on defined odds...");

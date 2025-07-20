@@ -4,6 +4,7 @@ using DynDungeonCrawler.Engine.Constants;
 using DynDungeonCrawler.Engine.Helpers.ContentGeneration;
 using DynDungeonCrawler.Engine.Helpers.LLM;
 using DynDungeonCrawler.Engine.Helpers.Logging;
+using DynDungeonCrawler.Engine.Helpers.UI;
 using DynDungeonCrawler.Engine.Interfaces;
 using DynDungeonCrawler.GeneratorApp.Utilities;
 
@@ -11,20 +12,34 @@ namespace DynDungeonCrawler.GeneratorApp
 {
     internal class DungeonGeneratorApp
     {
+        private static IUserInterface _ui = null!;
+
         private static async Task Main(string[] args)
         {
+            // Initialize UI
+            _ui = new SpectreConsoleUserInterface();
+            _ui.Clear();
+            _ui.WriteRule("[bold cyan]Dynamic Dungeon Generator[/]");
+
             // Load settings
-            GeneratorAppSettings settings = GeneratorAppSettings.Load();
+            GeneratorAppSettings settings = _ui.ShowSpinnerAsync(
+                "Loading configuration...",
+                () => Task.FromResult(GeneratorAppSettings.Load())
+            ).Result;
+
             LLMSettings llmSettings;
             try
             {
-                llmSettings = LLMSettings.Load();
+                llmSettings = _ui.ShowSpinnerAsync(
+                    "Loading LLM settings...",
+                    () => Task.FromResult(LLMSettings.Load())
+                ).Result;
             }
             catch (InvalidOperationException ex)
             {
-                Console.WriteLine($"Error: {ex.Message}");
-                Console.WriteLine("Press any key to exit.");
-                Console.ReadKey();
+                _ui.WriteLine($"[bold red]Error:[/] {ex.Message}");
+                _ui.WriteLine("Press any key to exit.");
+                await _ui.ReadKeyAsync();
                 return;
             }
 
@@ -45,101 +60,151 @@ namespace DynDungeonCrawler.GeneratorApp
             string[] validProviders = { "OpenAI", "Azure", "Ollama", "Dummy" };
             try
             {
-                switch ((llmSettings.LLMProvider ?? "OpenAI").ToLowerInvariant())
-                {
-                    case "openai":
-                        llmClient = new OpenAIHelper(httpClient, llmSettings.OpenAIApiKey);
-                        break;
-
-                    case "azure":
-                        llmClient = new AzureOpenAIHelper(
-                            httpClient,
-                            llmSettings.AzureOpenAIApiKey,
-                            llmSettings.AzureOpenAIEndpoint,
-                            llmSettings.AzureOpenAIDeployment
-                        );
-                        break;
-
-                    case "ollama":
-                        llmClient = new OllamaAIHelper(
-                            httpClient,
-                            llmSettings.OllamaEndpoint,
-                            llmSettings.OllamaModel
-                        );
-                        break;
-
-                    case "dummy":
-                        llmClient = new DummyLLMClient();
-                        break;
-
-                    default:
-                        throw new ArgumentException($"Unknown LLM provider: {llmSettings.LLMProvider}. Valid choices: {string.Join(", ", validProviders)}");
-                }
+                llmClient = _ui.ShowSpinnerAsync(
+                    $"Initializing {llmSettings.LLMProvider ?? "AI"} client...",
+                    () => Task.FromResult(CreateLLMClient(httpClient, llmSettings, validProviders))
+                ).Result;
             }
             catch (ArgumentException ex)
             {
-                Console.WriteLine(ex.Message);
-                Console.WriteLine("Press any key to exit.");
-                Console.ReadKey();
+                _ui.WriteLine($"[bold red]Error:[/] {ex.Message}");
+                _ui.WriteLine("Press any key to exit.");
+                await _ui.ReadKeyAsync();
                 return;
             }
 
             // Get dungeon theme from user
+            _ui.WriteRule("[bold green]Theme Selection[/]");
+
             string? dungeonTheme = null;
             while (true)
             {
-                Console.Write("Enter a theme for the dungeon (or press Enter for a random one): ");
-                dungeonTheme = Console.ReadLine();
+                _ui.Write("Enter a theme for the dungeon ([grey]or press Enter for a random one[/]): ");
+                dungeonTheme = await _ui.ReadLineAsync();
+
                 if (string.IsNullOrWhiteSpace(dungeonTheme))
                 {
-                    // Use DungeonThemeProvider for a random theme
-                    dungeonTheme = await DungeonThemeProvider.GetRandomThemeAsync(llmClient, logger);
+                    // Use spinner for random theme generation
+                    dungeonTheme = await _ui.ShowSpinnerAsync(
+                        "Generating random dungeon theme...",
+                        () => DungeonThemeProvider.GetRandomThemeAsync(llmClient, logger)
+                    );
 
+                    _ui.WriteLine($"[bold cyan]Using random theme:[/] {dungeonTheme}");
                     logger.Log($"[Info] Using random theme: {dungeonTheme}");
                     break;
                 }
+
                 if (dungeonTheme.Length > 255)
                 {
-                    Console.WriteLine("Theme must be 255 characters or fewer. Please try again.\n");
+                    _ui.WriteLine("[bold red]Theme must be 255 characters or fewer. Please try again.[/]");
                     continue;
                 }
                 break;
             }
 
             // Initialize the dungeon with the specified theme
-            Console.WriteLine($"Initializing dungeon with theme: {dungeonTheme}");
-            Dungeon dungeon = await DungeonGeneration.GenerateDungeon(
-                DungeonDefaults.MaxDungeonWidth,
-                DungeonDefaults.MaxDungeonHeight,
-                dungeonTheme,
-                llmClient,
-                logger,
-                settings);
+            _ui.WriteRule("[bold cyan]Dungeon Generation[/]");
+            _ui.WriteLine($"Initializing dungeon with theme: [bold yellow]{dungeonTheme}[/]");
+
+            Dungeon dungeon = await _ui.ShowSpinnerAsync<Dungeon>(
+                "Generating dungeon layout...",
+                () => DungeonGeneration.GenerateDungeon(
+                    DungeonDefaults.MaxDungeonWidth,
+                    DungeonDefaults.MaxDungeonHeight,
+                    dungeonTheme,
+                    llmClient,
+                    logger,
+                    settings,
+                    _ui)
+            );
 
             // Populate rooms with treasure chests and enemies
-            Console.WriteLine("Populating rooms with treasure and enemies...");
-            await DungeonGeneration.PopulateRoomContentsAsync(
-                  dungeon.Rooms.ToList(),
-                  dungeonTheme,
-                  llmClient,
-                  logger,
-                  Random.Shared,
-                  settings);
+            await _ui.ShowSpinnerAsync<object>(
+                "Populating rooms with treasure and enemies...",
+                async () =>
+                {
+                    await DungeonGeneration.PopulateRoomContentsAsync(
+                        dungeon.Rooms.ToList(),
+                        dungeonTheme,
+                        llmClient,
+                        logger,
+                        Random.Shared,
+                        settings,
+                        _ui);
+                    return null!;
+                }
+            );
 
-            // Print maps
-            Console.WriteLine("\nDungeon Map (Paths Only):");
-            dungeon.PrintDungeonMap(showEntities: false); // Basic view: Entrance/Exit/Path only
+            // Create a dungeon renderer that uses our UI
+            DungeonRenderer renderer = new DungeonRenderer(_ui);
 
-            Console.WriteLine("\nDungeon Map (With Entities):");
-            dungeon.PrintDungeonMap(showEntities: true); // Detailed view: showing treasure and enemies
+            // Print maps using the renderer
+            _ui.WriteRule("[bold magenta]Dungeon Map (Paths Only)[/]");
+            renderer.RenderDungeon(dungeon, showEntities: false);
 
-            // Export dungeon (rooms + entities) to JSON
-            string exportPath = settings.DungeonFilePath ?? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DungeonExports", "MyDungeon.json");
-            Directory.CreateDirectory(Path.GetDirectoryName(exportPath)!);
-            dungeon.SaveToJson(exportPath);
+            _ui.WriteRule("[bold magenta]Dungeon Map (With Entities)[/]");
+            renderer.RenderDungeon(dungeon, showEntities: true);
 
-            Console.WriteLine($"\nDungeon saved to {exportPath}");
-            Console.ReadKey();
+            // Export dungeon to JSON with spinner
+            string exportPath = settings.DungeonFilePath ??
+                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DungeonExports", "MyDungeon.json");
+
+            await _ui.ShowSpinnerAsync<object>(
+                "Saving dungeon to file...",
+                () =>
+                {
+                    Directory.CreateDirectory(Path.GetDirectoryName(exportPath)!);
+                    dungeon.SaveToJson(exportPath);
+                    return Task.FromResult<object>(null!);
+                }
+            );
+
+            // Show completion message
+            _ui.WriteLine();
+            _ui.WriteSpecialMessage($"Dungeon saved to {exportPath}", center: true, writeLine: true);
+            _ui.WriteLine("[grey]Press any key to exit...[/]");
+            await _ui.ReadKeyAsync();
+        }
+
+        /// <summary>
+        /// Creates an LLM client based on the specified settings.
+        /// </summary>
+        /// <param name="httpClient">The HTTP client to use for API calls.</param>
+        /// <param name="llmSettings">The LLM settings.</param>
+        /// <param name="validProviders">Array of valid provider names.</param>
+        /// <returns>An initialized LLM client.</returns>
+        /// <exception cref="ArgumentException">Thrown when an invalid provider is specified.</exception>
+        private static ILLMClient CreateLLMClient(HttpClient httpClient, LLMSettings llmSettings, string[] validProviders)
+        {
+            switch ((llmSettings.LLMProvider ?? "OpenAI").ToLowerInvariant())
+            {
+                case "openai":
+                    return new OpenAIHelper(httpClient, llmSettings.OpenAIApiKey);
+
+                case "azure":
+                    return new AzureOpenAIHelper(
+                        httpClient,
+                        llmSettings.AzureOpenAIApiKey,
+                        llmSettings.AzureOpenAIEndpoint,
+                        llmSettings.AzureOpenAIDeployment
+                    );
+
+                case "ollama":
+                    return new OllamaAIHelper(
+                        httpClient,
+                        llmSettings.OllamaEndpoint,
+                        llmSettings.OllamaModel
+                    );
+
+                case "dummy":
+                    return new DummyLLMClient();
+
+                default:
+                    throw new ArgumentException(
+                        $"Unknown LLM provider: {llmSettings.LLMProvider}. Valid choices: {string.Join(", ", validProviders)}"
+                    );
+            }
         }
     }
 }
