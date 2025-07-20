@@ -1,4 +1,5 @@
-﻿using DynDungeonCrawler.Engine.Interfaces;
+﻿using DynDungeonCrawler.Engine.Data;
+using DynDungeonCrawler.Engine.Interfaces;
 
 namespace DynDungeonCrawler.Engine.Classes
 {
@@ -13,7 +14,7 @@ namespace DynDungeonCrawler.Engine.Classes
     {
         public int Health { get; set; }
         public int Strength { get; set; }
-        public int Armour { get; set; }
+        public int Defense { get; set; }
         public int Wealth { get; private set; }
         public List<Entity> Inventory { get; private set; }
         public Room? CurrentRoom { get; set; }
@@ -25,7 +26,7 @@ namespace DynDungeonCrawler.Engine.Classes
         {
             Health = 100;
             Strength = 5;
-            Armour = 0;
+            Defense = 0;
             Wealth = 0;
             Inventory = new List<Entity>();
             CurrentRoom = null;
@@ -166,6 +167,20 @@ namespace DynDungeonCrawler.Engine.Classes
             }
 
             return false; // Entity was not found in the room's contents
+        }
+
+        /// <summary>
+        /// Converts the adventurer to a data object for serialization.
+        /// </summary>
+        /// <returns>An EntityData object representing the adventurer.</returns>
+        public override EntityData ToEntityData()
+        {
+            EntityData data = base.ToEntityData();
+            data.Health = Health;
+            data.Strength = Strength;
+            data.Defense = Defense;
+            data.Wealth = Wealth;
+            return data;
         }
     }
 }

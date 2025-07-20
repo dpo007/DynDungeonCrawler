@@ -17,10 +17,17 @@ namespace DynDungeonCrawler.Engine.Data
         public TreasureType? TreasureType { get; set; }
         public int? TreasureValue { get; set; }
 
-        // Enemy specific properties
+        // Enemy and Adventurer shared properties
         public int? Health { get; set; }
 
         public int? Strength { get; set; }
+
+        // Adventurer specific properties
+        public int? Defense { get; set; }
+
+        public int? Wealth { get; set; }
+
+        // Enemy specific properties
         public int MoneyReward { get; set; } = 0;
 
         /// <summary>
@@ -55,6 +62,26 @@ namespace DynDungeonCrawler.Engine.Data
 
                 case EntityType.MagicalLockPick:
                     entity = new MagicalLockPick(Name);
+                    break;
+
+                case EntityType.Adventurer:
+                    entity = new Adventurer(Name);
+                    if (Health.HasValue)
+                    {
+                        ((Adventurer)entity).Health = Health.Value;
+                    }
+                    if (Strength.HasValue)
+                    {
+                        ((Adventurer)entity).Strength = Strength.Value;
+                    }
+                    if (Defense.HasValue)
+                    {
+                        ((Adventurer)entity).Defense = Defense.Value;
+                    }
+                    if (Wealth.HasValue && Wealth.Value > 0)
+                    {
+                        ((Adventurer)entity).AddWealth(Wealth.Value);
+                    }
                     break;
 
                 default:
