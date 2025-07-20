@@ -32,6 +32,17 @@ The engine is highly configurable, supports multiple LLM providers, and features
   - Treasure Chests receive LLM-generated detailed and short descriptions, inspired by their room context
   - Easily extensible for new entity types: Bosses, Keys, NPCs, Magical Items, etc.
 
+- **Combat System**
+  - Turn-based combat encounters with enemies
+  - Player chooses which enemy to attack when multiple are present
+  - Actions include Attack, Defend, and Attempt to Flee
+  - Combat outcomes: victory, defeat, or escape
+  - Detailed combat messages and stat updates
+
+- **Console UI Powered by Spectre.Console**
+  - Rich, interactive console experience using [Spectre.Console](https://github.com/spectreconsole/spectre.console)
+  - Styled prompts, pick lists, rules, and color-coded output for enhanced gameplay
+
 - **AI (LLM) Integration**
   - **OpenAI** and **Azure OpenAI**: Generate fantasy names, descriptions, and content based on dungeon themes
   - **Ollama Compatibility**: Switch to local LLMs via the `ILLMClient` abstraction
@@ -56,7 +67,7 @@ The engine is highly configurable, supports multiple LLM providers, and features
 
 - **Interactive Console Dungeon Crawler**
   - Playable console game: load a dungeon, create an adventurer, and explore room by room
-  - Player movement, inventory, and room/entity interaction
+  - Player movement, inventory, room/entity interaction, and turn-based combat
   - Room descriptions and names generated on-the-fly as you explore
 
 - **Settings and Configuration**
@@ -70,6 +81,29 @@ The engine is highly configurable, supports multiple LLM providers, and features
   - Pluggable logging via the `ILogger` interface
   - Console and file logging included; easily extensible for other targets
   - Logs key events: dungeon generation steps, entity placement, LLM usage, and errors
+
+---
+
+## ⚔️ Combat System
+
+- Engage in turn-based combat encounters with enemies found in dungeon rooms.
+- If multiple enemies are present, you select which one to attack or examine.
+- Combat actions include:
+  - **Attack:** Deal damage to the selected enemy, with chances for critical hits and dodges.
+  - **Defend:** Temporarily boost your defense to reduce incoming damage next turn.
+  - **Attempt to Flee:** Try to escape combat, with success based on your current health and chance.
+- Combat proceeds in alternating turns between player and enemy.
+- Detailed combat messages inform you of attack results, defense, and outcomes.
+- Victory awards loot and removes the defeated enemy; defeat ends the game.
+- You can also choose to attack an enemy directly from the room or after examining them with the Look command.
+
+---
+
+## 🖥️ Console UI
+
+- The interactive console apps use [Spectre.Console](https://github.com/spectreconsole/spectre.console) for rich, styled output and input.
+- Features include color-coded messages, pick lists, rules, and enhanced prompts for a modern console experience.
+- All input and output is handled via the `IUserInterface` abstraction, making it easy to extend or swap out UI implementations.
 
 ---
 
@@ -175,7 +209,9 @@ All these settings can be customized in the `generatorapp.settings.json` file, w
 - **Move between rooms, view descriptions, interact with treasures and enemies**
 - **Room descriptions are generated on demand as you explore**
 - **Inventory and basic player stats supported**
+- **Turn-based combat system: select which enemy to attack, choose actions (attack, defend, flee), and view detailed combat outcomes**
 - **Game ends on player death or escape**
+- **Rich console UI powered by [Spectre.Console](https://github.com/spectreconsole/spectre.console)**
 
 > The ConDungeon project is fully modular, with separate classes for game initialization, input handling, command processing, room rendering, and the main game loop.
 
@@ -232,7 +268,9 @@ All these settings can be customized in the `generatorapp.settings.json` file, w
 
 - **Interactive Play:**  
   Run the ConDungeon app, load a generated dungeon, create or generate an adventurer, and explore room by room.  
-  Room descriptions and names are generated as you explore, and you can interact with treasures and enemies.
+  Room descriptions and names are generated as you explore, and you can interact with treasures and enemies.  
+  Engage in turn-based combat with enemies, select your target, and choose your actions each round.  
+  Enjoy a modern console experience powered by [Spectre.Console](https://github.com/spectreconsole/spectre.console).
 
 - **WPF Map Viewer:**  
   Use the MapViewer app to load a dungeon JSON file and view the map in two modes (paths only, with entities).  
@@ -240,7 +278,7 @@ All these settings can be customized in the `generatorapp.settings.json` file, w
 
 ---
 
-> **Project Status:** Foundational systems complete — now featuring interactive exploration, graphical map viewing, and LLM-powered content generation. Expanding into deeper gameplay mechanics, AI-driven storytelling, and worldbuilding next! 🚀
+> **Project Status:** Foundational systems complete — now featuring interactive exploration, graphical map viewing, LLM-powered content generation, and a robust combat system. Expanding into deeper gameplay mechanics, AI-driven storytelling, and worldbuilding next! 🚀
 
 ---
 
