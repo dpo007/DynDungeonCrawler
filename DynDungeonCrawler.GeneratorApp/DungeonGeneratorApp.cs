@@ -20,6 +20,7 @@ namespace DynDungeonCrawler.GeneratorApp
             _ui = new SpectreConsoleUserInterface();
             _ui.Clear();
             _ui.WriteRule("[bold cyan]Dynamic Dungeon Generator[/]");
+            _ui.WriteLine();
 
             // Load settings
             GeneratorAppSettings settings = _ui.ShowSpinnerAsync(
@@ -102,6 +103,7 @@ namespace DynDungeonCrawler.GeneratorApp
                 }
                 break;
             }
+            _ui.WriteLine();
 
             // Initialize the dungeon with the specified theme
             _ui.WriteRule("[bold cyan]Dungeon Generation[/]");
@@ -135,6 +137,15 @@ namespace DynDungeonCrawler.GeneratorApp
                     return null!;
                 }
             );
+            _ui.WriteLine();
+
+            // Show dungeon summary
+            _ui.WriteLine($"Total Rooms: [bold yellow]{dungeon.Rooms.Count}[/]");
+            int totalEnemies = dungeon.Rooms.Sum(r => r.Contents.Count(e => e.Type == EntityType.Enemy));
+            _ui.WriteLine($"Total Enemies: [bold yellow]{totalEnemies}[/]");
+            int totalTreasure = dungeon.Rooms.Sum(r => r.Contents.Count(e => e.Type == EntityType.TreasureChest));
+            _ui.WriteLine($"Total Treasure Chests: [bold yellow]{totalTreasure}[/]");
+            _ui.WriteLine();
 
             // Create a dungeon renderer that uses our UI
             DungeonRenderer renderer = new DungeonRenderer(_ui);
@@ -142,6 +153,7 @@ namespace DynDungeonCrawler.GeneratorApp
             // Print maps using the renderer
             _ui.WriteRule("[bold magenta]Dungeon Map (Paths Only)[/]");
             renderer.RenderDungeon(dungeon, showEntities: false);
+            _ui.WriteLine();
 
             _ui.WriteRule("[bold magenta]Dungeon Map (With Entities)[/]");
             renderer.RenderDungeon(dungeon, showEntities: true);
