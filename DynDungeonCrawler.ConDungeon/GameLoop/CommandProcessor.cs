@@ -1,4 +1,5 @@
 using DynDungeonCrawler.Engine.Classes;
+using DynDungeonCrawler.Engine.Classes.Combat;
 using DynDungeonCrawler.Engine.Factories;
 using DynDungeonCrawler.Engine.Helpers.ContentGeneration;
 using DynDungeonCrawler.Engine.Interfaces;
@@ -7,6 +8,8 @@ namespace DynDungeonCrawler.ConDungeon.GameLoop
 {
     internal static class CommandProcessor
     {
+        private static CombatService? _combatService;
+
         /// <summary>
         /// Asynchronously processes the player's command input, updating game state and handling actions such as movement,
         /// looking around, viewing inventory, or exiting the game. Also manages invalid commands and ensures
@@ -31,6 +34,9 @@ namespace DynDungeonCrawler.ConDungeon.GameLoop
             Adventurer player,
             List<string> directions)
         {
+            // Initialize combat service if needed
+            _combatService ??= new CombatService(ui, logger);
+
             // Null check player current room (to avoid NullReferenceException)
             if (player.CurrentRoom == null)
             {
@@ -67,8 +73,13 @@ namespace DynDungeonCrawler.ConDungeon.GameLoop
                 ui.WriteLine("[dim italic]Press any key to continue...[/]");
                 await ui.ReadKeyAsync(intercept: true, hideCursor: true);
                 ui.Clear();
-                ui.UpdateStatus(player.Health, player.Wealth, player.Name);
+                ui.UpdateStatus(player.Name, player.Strength, player.Defense, player.Health);
                 return true; // Continue the loop to allow further commands
+            }
+            else if (cmdChar == 'a')
+            {
+                // Attack/interact with enemy if present in the room
+                await HandleAttackCommandAsync(ui, logger, llmClient, dungeon, player);
             }
             else if (directions.Contains(cmdChar.ToString().ToUpper()))
             {
@@ -124,7 +135,7 @@ namespace DynDungeonCrawler.ConDungeon.GameLoop
                     player.CurrentRoom = nextRoom;
                     player.VisitedRoomIds.Add(nextRoom.Id);
                     ui.Clear();
-                    ui.UpdateStatus(player.Health, player.Wealth, player.Name);
+                    ui.UpdateStatus(player.Name, player.Strength, player.Defense, player.Health);
                 }
                 else
                 {
@@ -136,6 +147,115 @@ namespace DynDungeonCrawler.ConDungeon.GameLoop
                 ui.WriteLine("[bold red]Invalid command.[/] Please try again.");
             }
             return true;
+        }
+
+        /// <summary>
+        /// Handles the Attack command by initiating combat with an enemy in the current room.
+        /// </summary>
+        /// <param name="ui">The user interface for I/O operations.</param>
+        /// <param name="logger">Logger for diagnostic and error messages.</param>
+        /// <param name="llmClient">The LLM client for generating content.</param>
+        /// <param name="dungeon">The dungeon instance containing the game state.</param>
+        /// <param name="player">The current player.</param>
+        /// <returns>A task that completes when the combat operation is finished.</returns>
+        private static async Task HandleAttackCommandAsync(
+            IUserInterface ui,
+            ILogger logger,
+            ILLMClient llmClient,
+            Dungeon dungeon,
+            Adventurer player)
+        {
+            if (player.CurrentRoom == null)
+            {
+                ui.WriteLine("[bold red]Error:[/] Current room is null.");
+                ui.WriteLine();
+                ui.Write("[dim]Press any key to continue...[/]");
+                await ui.ReadKeyAsync();
+                ui.Clear();
+                return;
+            }
+
+            // Find enemies in the current room
+            List<Enemy> enemies = player.CurrentRoom.Contents.OfType<Enemy>().ToList();
+
+            if (enemies.Count == 0)
+            {
+                ui.WriteLine("[dim]There are no enemies to attack in this room.[/]");
+                ui.WriteLine();
+                ui.Write("[dim]Press any key to continue...[/]");
+                await ui.ReadKeyAsync();
+                ui.Clear();
+                ui.UpdateStatus(player.Name, player.Strength, player.Defense, player.Health);
+                return;
+            }
+
+            // If only one enemy, engage directly
+            if (enemies.Count == 1)
+            {
+                Enemy enemy = enemies[0];
+                await InitiateCombatAsync(ui, logger, player, enemy);
+            }
+            else
+            {
+                // Multiple enemies, let player choose
+                List<(string name, string description, string color, Enemy enemy)> combatables =
+                    enemies.Select(e => (e.Name, e.Description, "red", e)).ToList();
+
+                int selectedIndex = await ui.ShowPickListAsync(
+                    prompt: "Which enemy do you want to attack?",
+                    items: combatables,
+                    displaySelector: item => item.name,
+                    colorSelector: item => item.color,
+                    cancelPrompt: "Cancel");
+
+                if (selectedIndex == -1)
+                {
+                    ui.Clear();
+                    ui.UpdateStatus(player.Name, player.Strength, player.Defense, player.Health);
+                    return;
+                }
+
+                Enemy selectedEnemy = combatables[selectedIndex].enemy;
+                await InitiateCombatAsync(ui, logger, player, selectedEnemy);
+            }
+        }
+
+        /// <summary>
+        /// Initiates combat between the player and an enemy.
+        /// </summary>
+        /// <param name="ui">The user interface for I/O operations.</param>
+        /// <param name="logger">Logger for diagnostic and error messages.</param>
+        /// <param name="player">The player adventurer.</param>
+        /// <param name="enemy">The enemy to fight.</param>
+        /// <returns>A task that completes when combat is finished.</returns>
+        private static async Task InitiateCombatAsync(
+            IUserInterface ui,
+            ILogger logger,
+            Adventurer player,
+            Enemy enemy)
+        {
+            if (_combatService == null)
+            {
+                logger.Log("Combat service not initialized");
+                return;
+            }
+
+            // Execute combat
+            CombatSummary result = await _combatService.ExecuteCombatAsync(player, enemy);
+
+            // Process combat results
+            if (result.Outcome == CombatOutcome.PlayerVictory)
+            {
+                // Remove defeated enemy from room
+                if (player.CurrentRoom != null)
+                {
+                    player.CurrentRoom.Contents.Remove(enemy);
+                }
+            }
+
+            // Update UI after combat
+            ui.Clear();
+            ui.UpdateStatus(player.Name, player.Strength, player.Defense, player.Health);
         }
 
         /// <summary>
@@ -220,7 +340,7 @@ namespace DynDungeonCrawler.ConDungeon.GameLoop
                 ui.Write("[dim]Press any key to continue...[/]");
                 await ui.ReadKeyAsync();
                 ui.Clear();
-                ui.UpdateStatus(player.Health, player.Wealth, player.Name);
+                ui.UpdateStatus(player.Name, player.Strength, player.Defense, player.Health);
                 return;
             }
 
@@ -236,13 +356,13 @@ namespace DynDungeonCrawler.ConDungeon.GameLoop
             if (selectedIndex == -1)
             {
                 ui.Clear();
-                ui.UpdateStatus(player.Health, player.Wealth, player.Name);
+                ui.UpdateStatus(player.Name, player.Strength, player.Defense, player.Health);
                 return;
             }
 
             // Clear screen and show status bar before showing entity details
             ui.Clear();
-            ui.UpdateStatus(player.Health, player.Wealth, player.Name);
+            ui.UpdateStatus(player.Name, player.Strength, player.Defense, player.Health);
 
             // Otherwise, show the selected item's details
             (string name, string description, string color, Entity entity) selected = lookables[selectedIndex];
@@ -376,7 +496,36 @@ namespace DynDungeonCrawler.ConDungeon.GameLoop
             {
                 ui.WriteLine(selected.description);
                 ui.WriteLine();
-                ui.WriteLine($"Stats: [red]Health[/]: {enemyEntity.Health}, [red]Strength[/]: {enemyEntity.Strength}");
+                ui.WriteLine($"Stats: [red]Health[/]: {enemyEntity.Health}, [red]Strength[/]: {enemyEntity.Strength}, [blue]Defense[/]: {enemyEntity.Defense}");
+                ui.WriteLine();
+
+                // Option to attack the enemy
+                ui.Write("[bold]Attack this enemy?[/] [[[green]Y[/]]]es / [[[red]N[/]]]o [gray](default: N)[/]: ");
+                string keyStr = await ui.ReadKeyAsync(intercept: true);
+
+                if (keyStr.Equals("Y", StringComparison.OrdinalIgnoreCase))
+                {
+                    ui.WriteLine("[green]Y[/]");
+                    ui.WriteLine();
+
+                    // Initiate combat with this enemy
+                    if (_combatService != null)
+                    {
+                        await InitiateCombatAsync(ui, logger, player, enemyEntity);
+                    }
+                    else
+                    {
+                        ui.WriteLine("[red]Combat system not initialized.[/]");
+                        ui.WriteLine();
+                        ui.Write("[dim]Press any key to continue...[/]");
+                        await ui.ReadKeyAsync();
+                    }
+                }
+                else
+                {
+                    ui.WriteLine("[red]N[/]");
+                    ui.WriteLine("You decide not to attack the enemy.");
+                }
             }
             else if (selected.entity is MagicalLockPick lockPickEntity)
             {
@@ -413,7 +562,7 @@ namespace DynDungeonCrawler.ConDungeon.GameLoop
             ui.Write("[dim]Press any key to continue...[/]");
             await ui.ReadKeyAsync();
             ui.Clear();
-            ui.UpdateStatus(player.Health, player.Wealth, player.Name);
+            ui.UpdateStatus(player.Name, player.Strength, player.Defense, player.Health);
         }
     }
 }

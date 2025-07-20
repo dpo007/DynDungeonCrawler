@@ -142,10 +142,30 @@ namespace DynDungeonCrawler.Engine.Helpers.UI
             string BuildRainbowMarkup(string t, int o, int padLeft)
             {
                 string result = new string(' ', padLeft);
+                bool inMarkup = false;
+                int colorIndex = o;
                 for (int i = 0; i < t.Length; i++)
                 {
-                    string color = rainbowColors[(o + i) % rainbowColors.Length];
-                    result += $"[{color}]{t[i]}[/]";
+                    char c = t[i];
+                    if (c == '[')
+                    {
+                        inMarkup = true;
+                        result += c;
+                    }
+                    else if (c == ']')
+                    {
+                        inMarkup = false;
+                        result += c;
+                    }
+                    else if (inMarkup)
+                    {
+                        result += c;
+                    }
+                    else
+                    {
+                        string color = rainbowColors[colorIndex++ % rainbowColors.Length];
+                        result += $"[{color}]{c}[/]";
+                    }
                 }
                 return result;
             }
@@ -254,7 +274,7 @@ namespace DynDungeonCrawler.Engine.Helpers.UI
         /// <param name="health">Player's current health.</param>
         /// <param name="money">Player's current money.</param>
         /// <param name="name">Player's name.</param>
-        public void UpdateStatus(int health, int money, string name)
+        public void UpdateStatus(string name, int strength, int defense, int health)
         {
             int origLeft = Console.CursorLeft;
             int origTop = Console.CursorTop;
@@ -267,8 +287,8 @@ namespace DynDungeonCrawler.Engine.Helpers.UI
 
             WriteRule();
 
-            // Use Spectre.Console emojis for name, health, and money
-            string status = $"[bold white]:bust_in_silhouette: {EscapeMarkup(name)}[/]   [bold green]:beating_heart: Health:[/] {health}   [gold1]:money_bag: Money:[/] {money}";
+            // Use Spectre.Console emojis for name, strength, defense, health
+            string status = $"[bold white]:bust_in_silhouette: {EscapeMarkup(name)}[/]   [bold yellow]:flexed_biceps: Strength:[/] {strength}   [bold blue]:shield:  Defense:[/] {defense}   [bold green]:beating_heart: Health:[/] {health}";
             int consoleWidth = Console.WindowWidth;
             int visibleLength = GetVisibleLength(status);
             int padLeft = Math.Max(0, (consoleWidth - visibleLength) / 2);

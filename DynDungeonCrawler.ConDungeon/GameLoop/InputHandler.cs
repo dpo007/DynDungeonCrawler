@@ -16,11 +16,19 @@ namespace DynDungeonCrawler.ConDungeon.GameLoop
         public static async Task<char> HandleInputAsync(IUserInterface ui, List<string> directions, Adventurer player)
         {
             bool hasEntities = player.CurrentRoom != null && player.CurrentRoom.Contents.Count > 0;
+            bool hasEnemies = player.CurrentRoom != null && player.CurrentRoom.Contents.Any(e => e is Enemy);
+
             string directionsPrompt = directions.Count > 0 ? string.Join("[dim]/[/]", directions) : "";
             string prompt = $"Enter command (move [[[bold]{directionsPrompt}[/]]]";
+
             if (hasEntities)
             {
                 prompt += ", [[[bold]L[/]]]ook";
+            }
+
+            if (hasEnemies)
+            {
+                prompt += ", [[[bold]A[/]]]ttack";
             }
 
             prompt += ", [[[bold]I[/]]]nventory, e[[[bold]X[/]]]it): ";
@@ -42,7 +50,8 @@ namespace DynDungeonCrawler.ConDungeon.GameLoop
                     cmdChar == 'x' ||
                     cmdChar == 'i' ||
                     directions.Contains(cmdChar.ToString().ToUpper()) ||
-                    (hasEntities && cmdChar == 'l');
+                    (hasEntities && cmdChar == 'l') ||
+                    (hasEnemies && cmdChar == 'a');
 
                 if (isValid)
                 {

@@ -85,12 +85,13 @@
         Task<T> ShowSpinnerAsync<T>(string message, Func<Task<T>> operation);
 
         /// <summary>
-        /// Updates the player's status at the top of the UI, showing name, health and money.
+        /// Updates the player's status at the top of the UI, showing name, strength, defense, and health.
         /// </summary>
-        /// <param name="health">Player's current health.</param>
-        /// <param name="money">Player's current money.</param>
         /// <param name="name">Player's name.</param>
-        void UpdateStatus(int health, int money, string name);
+        /// <param name="strength">Player's current strength.</param>
+        /// <param name="defense">Player's current defense.</param>
+        /// <param name="health">Player's current health.</param>
+        void UpdateStatus(string name, int strength, int defense, int health);
 
         /// <summary>
         /// Displays text one sentence at a time with pauses between sentences for dramatic effect.

@@ -1,11 +1,18 @@
 ﻿using DynDungeonCrawler.Engine.Data;
+using DynDungeonCrawler.Engine.Interfaces;
 
 namespace DynDungeonCrawler.Engine.Classes
 {
-    public class Enemy : Entity
+    public class Enemy : Entity, ICombatable
     {
         public int Health { get; set; }
         public int Strength { get; set; }
+
+        /// <summary>
+        /// Gets the defense value of the enemy, used to reduce incoming damage.
+        /// </summary>
+        public int Defense { get; set; }
+
         public int MoneyReward { get; private set; } = 0;
 
         private static readonly Random random = Random.Shared;
@@ -30,6 +37,7 @@ namespace DynDungeonCrawler.Engine.Classes
             ShortDescription = shortDescription;
             Health = health;
             Strength = strength;
+            Defense = GenerateDefense(strength);
             MoneyReward = GenerateMoneyReward();
         }
 
@@ -53,7 +61,14 @@ namespace DynDungeonCrawler.Engine.Classes
             ShortDescription = shortDescription;
             Health = health;
             Strength = strength;
+            Defense = GenerateDefense(strength);
             MoneyReward = moneyReward;
+        }
+
+        private static int GenerateDefense(int strength)
+        {
+            // Defense is typically around 30-50% of strength, with some randomness
+            return (int)(strength * (0.3 + (random.NextDouble() * 0.2)));
         }
 
         private static int GenerateMoneyReward()
@@ -83,6 +98,7 @@ namespace DynDungeonCrawler.Engine.Classes
             EntityData data = base.ToEntityData();
             data.Health = Health;
             data.Strength = Strength;
+            data.Defense = Defense;
             data.MoneyReward = MoneyReward;
             return data;
         }

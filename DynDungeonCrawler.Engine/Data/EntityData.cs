@@ -22,9 +22,10 @@ namespace DynDungeonCrawler.Engine.Data
 
         public int? Strength { get; set; }
 
-        // Adventurer specific properties
+        // Enemy and Adventurer specific properties
         public int? Defense { get; set; }
 
+        // Adventurer specific properties
         public int? Wealth { get; set; }
 
         // Enemy specific properties
@@ -48,6 +49,12 @@ namespace DynDungeonCrawler.Engine.Data
                         Health ?? 10,
                         Strength ?? 2,
                         MoneyReward);
+
+                    // Set defense explicitly if it was provided
+                    if (Defense.HasValue)
+                    {
+                        ((Enemy)entity).Defense = Defense.Value;
+                    }
                     break;
 
                 case EntityType.TreasureChest:

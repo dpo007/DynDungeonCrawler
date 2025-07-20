@@ -267,7 +267,7 @@ namespace DynDungeonCrawler.Engine.Helpers.UI
         /// <param name="health">Player's current health.</param>
         /// <param name="money">Player's current money.</param>
         /// <param name="name">Player's name.</param>
-        public void UpdateStatus(int health, int money, string name)
+        public void UpdateStatus(string name, int strength, int defense, int health)
         {
             int origLeft = Console.CursorLeft;
             int origTop = Console.CursorTop;
@@ -280,8 +280,8 @@ namespace DynDungeonCrawler.Engine.Helpers.UI
 
             WriteRule();
 
-            // Status line: name, health, and money spaced evenly, no hyphen after name
-            string status = $"{name}   Health: {health}   Money: {money}";
+            // Status line: name, strength, defense, health spaced evenly
+            string status = $"{name}   Strength: {strength}   Defense: {defense}   Health: {health}";
             WriteLine(status, center: true);
 
             WriteRule();

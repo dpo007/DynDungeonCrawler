@@ -10,7 +10,7 @@ namespace DynDungeonCrawler.Engine.Classes
         Female
     }
 
-    public class Adventurer : Entity
+    public class Adventurer : Entity, ICombatable
     {
         public int Health { get; set; }
         public int Strength { get; set; }
@@ -21,6 +21,11 @@ namespace DynDungeonCrawler.Engine.Classes
         public Room? PreviousRoom { get; set; }
         public HashSet<Guid> VisitedRoomIds { get; } = new();
 
+        /// <summary>
+        /// Gets a value indicating whether the adventurer is in a defensive stance.
+        /// </summary>
+        public bool IsDefending { get; private set; }
+
         public Adventurer(string name)
             : base(EntityType.Adventurer, name)
         {
@@ -30,6 +35,7 @@ namespace DynDungeonCrawler.Engine.Classes
             Wealth = 0;
             Inventory = new List<Entity>();
             CurrentRoom = null;
+            IsDefending = false;
         }
 
         public Adventurer(string name, Room currentRoom) : this(name)
@@ -80,6 +86,15 @@ namespace DynDungeonCrawler.Engine.Classes
 
             // Clean up the name (remove quotes, trim whitespace)
             return name?.Trim(' ', '\"', '\n', '\r') ?? "Adventurer";
+        }
+
+        /// <summary>
+        /// Sets the adventurer's defending status.
+        /// </summary>
+        /// <param name="isDefending">True to enter defensive stance; false to exit it.</param>
+        public void SetDefendingStatus(bool isDefending)
+        {
+            IsDefending = isDefending;
         }
 
         /// <summary>
