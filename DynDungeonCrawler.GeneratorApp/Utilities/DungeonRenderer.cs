@@ -33,63 +33,6 @@ namespace DynDungeonCrawler.GeneratorApp.Utilities
             // Find the room containing the magical lock pick
             Room? lockPickRoom = dungeon.Rooms.FirstOrDefault(r => r.Contents.Any(e => e.Type == EntityType.MagicalLockPick));
 
-            // Render legend
-            if (_useConsoleColors)
-            {
-                _ui.WriteLine("Map Legend:");
-                Console.ForegroundColor = ConsoleColor.Green;
-                _ui.WriteLine(" E - Entrance");
-                Console.ForegroundColor = ConsoleColor.Red;
-                _ui.WriteLine(" X - Exit");
-                if (showEntities)
-                {
-                    Console.ForegroundColor = ConsoleColor.Cyan;
-                    _ui.WriteLine(" T - Treasure");
-                    Console.ForegroundColor = ConsoleColor.Magenta;
-                    _ui.WriteLine(" @ - Enemy");
-                    Console.ForegroundColor = ConsoleColor.Yellow;
-                    _ui.WriteLine(" & - Treasure & Enemy");
-                }
-                else
-                {
-                    Console.ForegroundColor = ConsoleColor.Yellow;
-                    _ui.WriteLine(" ^ > v < - Main Path Direction");
-                }
-                Console.ForegroundColor = ConsoleColor.Gray;
-                _ui.WriteLine(" # - Room");
-                Console.ForegroundColor = ConsoleColor.DarkGray;
-                _ui.WriteLine(" . - Empty Space");
-
-                // Show example of highlighted room
-                Console.Write(" ");
-                Console.BackgroundColor = ConsoleColor.DarkYellow;
-                Console.ForegroundColor = ConsoleColor.White;
-                Console.Write(" ");
-                Console.ResetColor();
-                _ui.WriteLine(" - Room with Magical Lock Pick");
-            }
-            else
-            {
-                // Fallback: plain text legend
-                _ui.WriteLine("Map Legend:");
-                _ui.WriteLine(" E - Entrance");
-                _ui.WriteLine(" X - Exit");
-                if (showEntities)
-                {
-                    _ui.WriteLine(" T - Treasure");
-                    _ui.WriteLine(" @ - Enemy");
-                    _ui.WriteLine(" & - Treasure & Enemy");
-                }
-                else
-                {
-                    _ui.WriteLine(" ^ > v < - Main Path Direction");
-                }
-                _ui.WriteLine(" # - Room");
-                _ui.WriteLine(" . - Empty Space");
-                _ui.WriteLine(" [X] - Room with Magical Lock Pick (X varies by room type)");
-            }
-            _ui.WriteLine();
-
             // Get map cells using dungeon's helper method
             MapCellInfo[,] cells = dungeon.GetMapCells(showEntities);
             int mapWidth = cells.GetLength(0);
@@ -213,6 +156,65 @@ namespace DynDungeonCrawler.GeneratorApp.Utilities
 
                 // End the line
                 _ui.WriteLine();
+            }
+
+            // Add a blank line after the map
+            _ui.WriteLine();
+
+            // Render legend AFTER the map
+            if (_useConsoleColors)
+            {
+                _ui.WriteLine("Map Legend:");
+                Console.ForegroundColor = ConsoleColor.Green;
+                _ui.WriteLine(" E - Entrance");
+                Console.ForegroundColor = ConsoleColor.Red;
+                _ui.WriteLine(" X - Exit");
+                if (showEntities)
+                {
+                    Console.ForegroundColor = ConsoleColor.Cyan;
+                    _ui.WriteLine(" T - Treasure");
+                    Console.ForegroundColor = ConsoleColor.Magenta;
+                    _ui.WriteLine(" @ - Enemy");
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    _ui.WriteLine(" & - Treasure & Enemy");
+                }
+                else
+                {
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    _ui.WriteLine(" ^ > v < - Main Path Direction");
+                }
+                Console.ForegroundColor = ConsoleColor.Gray;
+                _ui.WriteLine(" # - Room");
+                Console.ForegroundColor = ConsoleColor.DarkGray;
+                _ui.WriteLine(" . - Empty Space");
+
+                // Show example of highlighted room
+                Console.Write(" ");
+                Console.BackgroundColor = ConsoleColor.DarkYellow;
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.Write(" ");
+                Console.ResetColor();
+                _ui.WriteLine(" - Room with Magical Lock Pick");
+            }
+            else
+            {
+                // Fallback: plain text legend
+                _ui.WriteLine("Map Legend:");
+                _ui.WriteLine(" E - Entrance");
+                _ui.WriteLine(" X - Exit");
+                if (showEntities)
+                {
+                    _ui.WriteLine(" T - Treasure");
+                    _ui.WriteLine(" @ - Enemy");
+                    _ui.WriteLine(" & - Treasure & Enemy");
+                }
+                else
+                {
+                    _ui.WriteLine(" ^ > v < - Main Path Direction");
+                }
+                _ui.WriteLine(" # - Room");
+                _ui.WriteLine(" . - Empty Space");
+                _ui.WriteLine(" [X] - Room with Magical Lock Pick (X varies by room type)");
             }
         }
     }
