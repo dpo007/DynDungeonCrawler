@@ -166,11 +166,11 @@ namespace DynDungeonCrawler.ConDungeon.Combat
         public async Task<CombatAction> GetPlayerActionAsync(CombatState state)
         {
             _ui.WriteLine("[bold white]Your turn![/] Choose an action:");
-            _ui.WriteLine("  [bold red]1[/] - [cyan]Attack[/]");
-            _ui.WriteLine("  [bold blue]2[/] - [green]Defend[/] (reduce incoming damage next turn)");
-            _ui.WriteLine("  [bold yellow]3[/] - [magenta]Attempt to flee[/]");
+            _ui.WriteLine("  [red3_1]1[/] - Attack");
+            _ui.WriteLine("  [steelblue1]2[/] - Defend (reduce incoming damage next turn)");
+            _ui.WriteLine("  [yellow1]3[/] - Attempt to flee");
             _ui.WriteLine();
-            _ui.Write("Enter choice [1-3]: ");
+            _ui.Write("Enter choice [[[bold]1-3[/]]]: ");
 
             string? input = await _ui.ReadLineAsync();
             _ui.WriteLine();
