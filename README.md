@@ -3,120 +3,35 @@
 ![Made with C#](https://img.shields.io/badge/Made%20with-C%23-239120)
 ![.NET](https://img.shields.io/badge/.NET-9.0-blueviolet)
 
-**DynDungeonCrawler** is a modular C#/.NET 9 solution for procedural dungeon generation, interactive console exploration, and graphical map visualization.  
-It creates complex, solvable dungeon layouts, populates them with AI-generated enemies and treasures, and exports structured JSON for integration into games, visualization tools, or other projects.  
-The engine is highly configurable, supports multiple LLM providers, and features robust logging and configuration management.
+**DynDungeonCrawler** is a modular C#/.NET 9 solution for procedural dungeon generation, interactive console exploration, and graphical map visualization. It creates complex, solvable dungeon layouts, populates them with AI-generated enemies and treasures, and exports structured JSON for integration into games, visualization tools, or other projects. The engine is highly configurable, supports multiple LLM providers, and features robust logging and configuration management.
 
 ---
 
-## 🌟 Key Features
+## 🌟 Core Features
 
-- **Procedural Dungeon Generation**
-  - Guaranteed solvable main path from Entrance ➔ Exit
-  - Randomized side branches and optional loops for replayability
-  - Configurable maximum dungeon size and minimum path length
-
-- **Room System**
-  - Distinct room types: Entrance, Exit, Normal
-  - Each room has a unique GUID for external linking
-  - 4-way connectivity (north, south, east, west)
-  - LLM-powered room descriptions generated on demand or in batch
-
-- **Entity & Loot System**
-  - Supports Enemies, Treasure Chests, Magical Lock Picks, and more (extensible)
-  - All entities derive from the abstract base class `Entity` and are created via factories (`EntityFactory`, `EnemyFactory`, `TreasureChestFactory`, `LockPickFactory`, etc.)
-  - Each entity has a Name, Description, Type, and unique ID
-  - Randomized placement of entities in appropriate rooms
-  - Treasure Chests contain randomly generated loot (Money, Gold, Jewels)
-  - Loot value scales with rarity; some chests may be locked
-  - Treasure Chests receive LLM-generated detailed and short descriptions, inspired by their room context
-  - Easily extensible for new entity types: Bosses, Keys, NPCs, Magical Items, etc.
-
-- **Combat System**
-  - UI-agnostic combat logic through the `ICombatPresenter` interface
-  - Multiple UI implementations (Spectre.Console, plain text, future HTML support)
-  - Turn-based combat encounters with enemies
-  - Player chooses which enemy to attack when multiple are present
-  - Actions include Attack, Defend, and Attempt to Flee
-  - Combat outcomes: victory, defeat, or escape
-  - Detailed combat messages and stat updates
-
-- **Console UI Powered by Spectre.Console**
-  - Rich, interactive console experience using [Spectre.Console](https://github.com/spectreconsole/spectre.console)
-  - Styled prompts, pick lists, rules, and color-coded output for enhanced gameplay
-
-- **AI (LLM) Integration**
-  - **OpenAI** and **Azure OpenAI**: Generate fantasy names, descriptions, and content based on dungeon themes
-  - **Ollama Compatibility**: Switch to local LLMs via the `ILLMClient` abstraction
-  - Used for enemies, rooms, adventurers, and dynamic world flavor
-  - Efficient batching and parallelization for LLM calls (rooms and treasure chests)
-  - Robust error handling and JSON validation for all LLM-generated content
-
-- **Serialization and Export**
-  - Full dungeon (rooms, entities, connections) serialized to JSON
-  - Structured DTOs (`DungeonData`, `RoomData`, `EntityData`) separate runtime logic from export format
-
-- **Console Map Visualization**
-  - Dual-mode console printer:
-    - Basic structural view (Entrance, Exit, Paths)
-    - Detailed entity view (Treasures and Enemies)
-  - Color-coded map legend for clarity
-
-- **Graphical Map Viewer**
-  - WPF-based tool for visualizing dungeons from JSON files
-  - Color-coded display for rooms, paths, treasures, and enemies
-  - Synchronized vertical and horizontal scrolling between map views
-
-- **Interactive Console Dungeon Crawler**
-  - Playable console game: load a dungeon, create an adventurer, and explore room by room
-  - Player movement, inventory, room/entity interaction, and turn-based combat
-  - Room descriptions and names generated on-the-fly as you explore
-
-- **Settings and Configuration**
-  - Centralized LLM settings in `DynDungeonCrawler.Engine/Configuration/LLMSettings.cs` and `settings.json` (API keys, provider selection, etc.)
-  - Each app manages its own settings file (e.g., `condugeon.settings.json` for ConDungeon, `generatorapp.settings.json` for GeneratorApp) for app-specific paths and options
-  - Customizable entity placement probabilities in GeneratorApp (chest spawn chance, enemy chances, etc.)
-  - All settings files are auto-generated and validated at startup; missing or invalid fields prompt user action
-  - LLM settings are validated and shared across all projects via the engine
-
-- **Robust Logging**
-  - Pluggable logging via the `ILogger` interface
-  - Console and file logging included; easily extensible for other targets
-  - Logs key events: dungeon generation steps, entity placement, LLM usage, and errors
-
----
-
-## ⚔️ Combat System
-
-- **UI-Agnostic Architecture**:
-  - Core combat logic in `CombatService` completely separated from UI concerns
-  - `ICombatPresenter` interface enforces proper UI implementation
-  - Multiple presenter implementations for different UI styles
-
-- **Available Presenters**:
-  - **SpectreConsoleCombatPresenter**: Rich, colorful markup for Spectre.Console UI
-  - **PlainConsoleCombatPresenter**: Basic text without special formatting
-  - Extensible for future UIs (HTML, Unity, custom renderers)
-
-- **Combat Features**:
-  - Engage in turn-based combat encounters with enemies found in dungeon rooms
-  - If multiple enemies are present, you select which one to attack or examine
-  - Combat actions include:
-    - **Attack:** Deal damage to the selected enemy, with chances for critical hits and dodges
-    - **Defend:** Temporarily boost your defense to reduce incoming damage next turn
-    - **Attempt to Flee:** Try to escape combat, with success based on your current health and chance
-  - Combat proceeds in alternating turns between player and enemy
-  - Detailed combat messages inform you of attack results, defense, and outcomes
-  - Victory awards loot and removes the defeated enemy; defeat ends the game
-  - You can also choose to attack an enemy directly from the room or after examining them with the Look command
-
----
-
-## 🖥️ Console UI
-
-- The interactive console apps use [Spectre.Console](https://github.com/spectreconsole/spectre.console) for rich, styled output and input.
-- Features include color-coded messages, pick lists, rules, and enhanced prompts for a modern console experience.
-- All input and output is handled via the `IUserInterface` abstraction, making it easy to extend or swap out UI implementations.
+- **Procedural Dungeon Generation:**
+  - Solvable main path, randomized branches, configurable size and path length
+- **Room & Entity System:**
+  - Distinct room types, unique GUIDs, 4-way connectivity
+  - Extensible entities: Enemies, Treasure Chests, Magical Lock Picks, etc.
+  - Entity factories and randomized placement
+- **Combat System:**
+  - UI-agnostic, turn-based combat via `ICombatPresenter`
+  - Multiple UI implementations (Spectre.Console, plain text)
+  - Actions: Attack, Defend, Flee; detailed outcomes
+- **Console & Graphical UI:**
+  - Rich console experience with [Spectre.Console](https://github.com/spectreconsole/spectre.console)
+  - WPF map viewer for dungeon JSON files
+- **AI (LLM) Integration:**
+  - OpenAI, Azure OpenAI, Ollama support via `ILLMClient`
+  - Generates names, descriptions, and content for rooms, entities, and adventurers
+  - Efficient batching, parallelization, and robust error handling
+- **Serialization & Export:**
+  - Full dungeon exported to JSON via DTOs
+- **Settings & Configuration:**
+  - Centralized and app-specific settings, auto-generated and validated
+- **Robust Logging:**
+  - Pluggable via `ILogger`, logs key events and errors
 
 ---
 
@@ -129,130 +44,22 @@ The engine is highly configurable, supports multiple LLM providers, and features
 | **DynDungeonCrawler.ConDungeon**         | Interactive console dungeon crawler: play through a generated dungeon    |
 | **DynDungeonCrawler.MapViewer**          | WPF graphical map viewer: load and visualize dungeon JSON files          |
 
-**DynDungeonCrawler.Engine Project Folders**:
-
-| Folder                       | Purpose                                                                                  |
-|:-----------------------------|:----------------------------------------------------------------------------------------|
-| `Classes/`                   | Core dungeon, room, entity, adventurer, enemy, treasure, magical item, lock pick types   |
-| `Classes/Combat/`            | Combat system components: actions, state management, and UI-agnostic logic               |
-| `Configuration/`             | Engine and LLM settings management                                                      |
-| `Constants/`                 | Default values for dungeon generation and LLM prompts                                   |
-| `Data/`                      | Data transfer objects for dungeon import/export                                         |
-| `Factories/`                 | Entity creation logic (EnemyFactory, EntityFactory, TreasureChestFactory, LockPickFactory, etc.) |
-| `Helpers/ContentGeneration/` | Content generation utilities (room descriptions, themes, adventurer save, chest stories) |
-| `Helpers/LLM/`               | LLM integration helpers (OpenAI, Azure, Ollama, JSON cleaning, dummy client)            |
-| `Helpers/Logging/`           | Logging utilities (ConsoleLogger, FileLogger, DebugLogger, MutedLogger)                 |
-| `Helpers/UI/`                | Console and UI helpers (SpectreConsoleUserInterface, ConsoleUserInterface)              |
-| `Interfaces/`                | Abstractions for LLM, logging, UI, and combat presentation                             |
-
-**DynDungeonCrawler.ConDungeon Project Folders**:
-
-| Folder / File         | Purpose                                                                                  |
-|:----------------------|:----------------------------------------------------------------------------------------|
-| `Combat/`             | Combat UI implementations (SpectreConsoleCombatPresenter, PlainConsoleCombatPresenter)  |
-| `Configuration/`      | Project-specific settings management                                                    |
-| `ConDungeon.cs`       | Application entry point and main loop wiring                                            |
-| `GameInitializer.cs`  | Game setup and initialization logic                                                    |
-| `GameLoop/`           | Game loop logic: input handling, command processing, room rendering, main loop         |
-
-**DynDungeonCrawler.GeneratorApp Project Folders**:
-
-| Folder           | Purpose                                                                                  |
-|:-----------------|:----------------------------------------------------------------------------------------|
-| `Utilities/`     | General utilities for dungeon generation and app logic                                   |
-
-**DynDungeonCrawler.GeneratorApp Settings**:
-
-| Setting                     | Purpose                                                       | Default Value |
-|:----------------------------|:--------------------------------------------------------------|:--------------|
-| `MaxChestsPerRoom`          | Maximum treasure chests per room                              | 1             |
-| `MaxEnemiesPerRoom`         | Maximum enemies per room                                      | 2             |
-| `ChestSpawnChance`          | Probability (0-1) of a chest spawning in a room               | 0.10 (10%)    |
-| `ChestLockChance`           | Probability (0-1) of a chest being locked                     | 0.30 (30%)    |
-| `ChestRoomFirstEnemyChance` | Probability (0-1) of first enemy in a room with a chest       | 0.40 (40%)    |
-| `ChestRoomSecondEnemyChance`| Probability (0-1) of second enemy in a room with a chest      | 0.05 (5%)     |
-| `EmptyRoomFirstEnemyChance` | Probability (0-1) of first enemy in a room without a chest    | 0.10 (10%)    |
-| `EmptyRoomSecondEnemyChance`| Probability (0-1) of second enemy in a room without a chest   | 0.03 (3%)     |
-| `StrongestEnemyMinStrength` | Minimum strength for the enemy guarding the magical lock pick | 20            |
-
-All these settings can be customized in the `generatorapp.settings.json` file, which is automatically created or updated when the application runs.
-
-**DynDungeonCrawler.MapViewer Project Folders**:
-
-| File / Folder         | Purpose                                                                                  |
-|:----------------------|:----------------------------------------------------------------------------------------|
-| `MainWindow.xaml`     | Main WPF map viewer window                                                              |
-| `MainWindow.xaml.cs`  | Map viewer logic                                                                        |
-| `App.xaml`            | WPF application definition                                                              |
-| `App.xaml.cs`         | WPF application startup logic                                                          |
-
 ---
 
-## 🤖 LLM (AI) Integration
+## 🔑 Key Components
 
-- **Provider Abstraction:**  
-  The engine uses the `ILLMClient` interface to abstract all LLM interactions.
-  - **OpenAI**: Built-in support via API key
-  - **Azure OpenAI**: Native support via endpoint, deployment name, and key
-  - **Ollama**: Easily switch to local LLMs (such as Llama 3) by implementing the interface
-- **Usage:**  
-  LLMs are used to generate enemy names and descriptions, room descriptions, treasure chest descriptions, and adventurer names
-- **Batching and Parallelization:**  
-  Room and treasure chest descriptions are generated in batches, with parallel LLM calls and automatic JSON validation/retry
-- **Configuration:**  
-  Centralized LLM settings in the engine; app-specific settings for file paths and options
-
----
-
-## 📝 Logging
-
-- **ILogger Interface:**  
-  All logging is routed through the `ILogger` interface
-- **ConsoleLogger and FileLogger:**  
-  Console and file logging implementations included
-- **Extensibility:**  
-  Swap in your own logger (file, remote, etc.) by implementing `ILogger`
-- **Coverage:**  
-  Logs dungeon generation steps, entity placement, LLM requests/responses, and errors
-
----
-
-## 🕹️ Interactive Console Dungeon Crawler
-
-- **Play through a generated dungeon in the console**
-- **Create or generate an adventurer (with LLM-powered names)**
-- **Move between rooms, view descriptions, interact with treasures and enemies**
-- **Room descriptions are generated on demand as you explore**
-- **Inventory and basic player stats supported**
-- **Turn-based combat system: select which enemy to attack, choose actions (attack, defend, flee), and view detailed combat outcomes**
-- **Game ends on player death or escape**
-- **Rich console UI powered by [Spectre.Console](https://github.com/spectreconsole/spectre.console)**
-
-> The ConDungeon project is fully modular, with separate classes for game initialization, input handling, command processing, room rendering, and the main game loop.
-
----
-
-## 🖼️ WPF Map Viewer
-
-- **Load and visualize dungeon JSON files in a graphical interface**
-- **View maps in two modes: paths only, or with entities**
-- **Color-coded display for rooms, paths, treasures, and enemies**
-- **Synchronized vertical and horizontal scrolling between map views**
-- **Horizontal scrolling appears only when needed**
-
----
-
-## 🚀 Future Goals
-
-- Expanded entity types (Bosses, Keys, NPCs, Magical Items, Lock Picks, etc.)
-- More advanced procedural room and entity description generation
-- Dungeon biomes and theming (lava caves, ice caverns, ancient ruins)
-- Graphical front-end rendering (Unity, WebGL, custom renderers)
-- Enhanced save/load systems (partial or full dungeons)
-- Minimap and smarter pathfinding
-- Interactive events (traps, puzzles, lore drops)
-- Full Ollama and other LLM provider support in UI
-- Additional combat presenter implementations for different UI frameworks
+- **Procedural Generation:**
+  - Generates complex, solvable dungeons with replayable layouts
+- **Room & Entity System:**
+  - Unique rooms, extensible entities, LLM-powered descriptions
+- **Combat System:**
+  - Turn-based, UI-agnostic, supports multiple presenters
+- **UI Implementation:**
+  - Console UI (Spectre.Console), graphical WPF map viewer
+- **LLM Integration:**
+  - Abstracted via `ILLMClient`, supports OpenAI, Azure, Ollama
+- **Settings & Logging:**
+  - Centralized config, robust logging via `ILogger`
 
 ---
 
@@ -278,19 +85,25 @@ All these settings can be customized in the `generatorapp.settings.json` file, w
 
 ## 🗺️ Example Usage
 
-- **Dungeon Generation:**  
-  Run the generator app, enter a dungeon theme, and export a dungeon to JSON.  
-  View two map modes: structure-only and with entities.
+- **Dungeon Generation:**
+  - Run the generator app, enter a dungeon theme, and export a dungeon to JSON. View map modes: structure-only and with entities.
+- **Interactive Play:**
+  - Run the ConDungeon app, load a generated dungeon, create or generate an adventurer, and explore room by room. Room descriptions and names are generated as you explore, and you can interact with treasures and enemies. Engage in turn-based combat with enemies, select your target, and choose your actions each round.
+- **WPF Map Viewer:**
+  - Use the MapViewer app to load a dungeon JSON file and view the map in two modes (paths only, with entities). Maps are color-coded and support synchronized scrolling.
 
-- **Interactive Play:**  
-  Run the ConDungeon app, load a generated dungeon, create or generate an adventurer, and explore room by room.  
-  Room descriptions and names are generated as you explore, and you can interact with treasures and enemies.  
-  Engage in turn-based combat with enemies, select your target, and choose your actions each round.  
-  Enjoy a modern console experience powered by [Spectre.Console](https://github.com/spectreconsole/spectre.console).
+---
 
-- **WPF Map Viewer:**  
-  Use the MapViewer app to load a dungeon JSON file and view the map in two modes (paths only, with entities).  
-  Maps are color-coded and support synchronized scrolling.
+## 🚀 Future Goals
+
+- Expanded entity types (Bosses, Keys, NPCs, Magical Items, Lock Picks, etc.)
+- Advanced procedural description generation
+- Dungeon biomes and theming
+- Graphical front-end rendering (Unity, WebGL, etc.)
+- Enhanced save/load systems
+- Minimap and smarter pathfinding
+- Interactive events (traps, puzzles, lore drops)
+- Additional combat presenter implementations
 
 ---
 
