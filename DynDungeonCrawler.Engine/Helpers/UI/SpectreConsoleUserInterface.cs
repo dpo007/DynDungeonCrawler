@@ -1,4 +1,5 @@
-﻿using DynDungeonCrawler.Engine.Interfaces;
+﻿using DynDungeonCrawler.Engine.Classes;
+using DynDungeonCrawler.Engine.Interfaces;
 using DynDungeonCrawler.Engine.Models;
 using Spectre.Console;
 using System.Text.RegularExpressions;
@@ -174,11 +175,58 @@ namespace DynDungeonCrawler.Engine.Helpers.UI
             string temp = markup.Replace("[[", "\uFFF0").Replace("]]", "\uFFF1");
             // Remove Spectre.Console markup tags: [tag]...[/], [tag], [/tag]
             string noMarkup = System.Text.RegularExpressions.Regex.Replace(temp, @"\[[^\]]*\]", "");
-            // Remove Spectre.Console emoji shortcodes: :emoji_name:
-            noMarkup = System.Text.RegularExpressions.Regex.Replace(noMarkup, @":([a-zA-Z0-9_]+):", "");
+            // Replace Spectre.Console emoji shortcodes with Unicode
+            noMarkup = ReplaceSpectreEmojis(noMarkup);
             // Restore placeholders to single brackets
             noMarkup = noMarkup.Replace("\uFFF0", "[").Replace("\uFFF1", "]");
-            return noMarkup.Length;
+            // Calculate display width (count double-width chars)
+            int width = 0;
+            foreach (System.Text.Rune rune in noMarkup.EnumerateRunes())
+            {
+                // Most emojis and CJK chars are double-width
+                width += RuneDisplayWidth(rune);
+            }
+            return width;
+        }
+
+        // Map Spectre.Console emoji shortcodes to Unicode
+        private static string ReplaceSpectreEmojis(string input)
+        {
+            // Add more mappings as needed
+            Dictionary<string, string> emojiMap = new Dictionary<string, string>
+            {
+                { ":bust_in_silhouette:", "\U0001F464" },
+                { ":flexed_biceps:", "\U0001F4AA" },
+                { ":shield:", "\U0001F6E1" },
+                { ":beating_heart:", "\U0001F493" },
+                { ":money_bag:", "\U0001F4B0" }
+            };
+            return System.Text.RegularExpressions.Regex.Replace(input, @":([a-zA-Z0-9_]+):", m =>
+            {
+                if (emojiMap.TryGetValue(m.Value, out string emoji))
+                {
+                    return emoji;
+                }
+
+                return string.Empty; // Remove unknown emoji shortcodes
+            });
+        }
+
+        // Returns display width for a Unicode rune (emoji, CJK, etc.)
+        private static int RuneDisplayWidth(System.Text.Rune rune)
+        {
+            // Most emojis and CJK chars are double-width
+            // Use Unicode ranges for emoji and CJK
+            int codepoint = rune.Value;
+            if ((codepoint >= 0x1F300 && codepoint <= 0x1FAFF) || // Emoji
+                (codepoint >= 0x1100 && codepoint <= 0x115F) ||   // Hangul Jamo
+                (codepoint >= 0x2E80 && codepoint <= 0xA4CF) ||   // CJK
+                (codepoint >= 0xAC00 && codepoint <= 0xD7A3))     // Hangul Syllables
+            {
+                return 2;
+            }
+            // Most other chars are single-width
+            return 1;
         }
 
         // Special output
@@ -317,14 +365,12 @@ namespace DynDungeonCrawler.Engine.Helpers.UI
 
         // Status update
         /// <summary>
-        /// Updates the player's status at the top-left of the console, showing name, health, and money between two rules.
+        /// Updates the player's status at the top-left of the console, showing name, strength, defense, HP, and coins between two rules.
         /// Only moves and restores the cursor position if the current position is not (0,0).
         /// Uses Spectre.Console emojis for visual clarity.
         /// </summary>
-        /// <param name="health">Player's current health.</param>
-        /// <param name="money">Player's current money.</param>
-        /// <param name="name">Player's name.</param>
-        public void UpdateStatus(string name, int strength, int defense, int health)
+        /// <param name="player">The Adventurer whose status to display.</param>
+        public void UpdateStatus(Adventurer player)
         {
             int origLeft = Console.CursorLeft;
             int origTop = Console.CursorTop;
@@ -337,8 +383,8 @@ namespace DynDungeonCrawler.Engine.Helpers.UI
 
             WriteRule();
 
-            // Use Spectre.Console emojis for name, strength, defense, health
-            string status = $"[bold white]:bust_in_silhouette: {EscapeMarkup(name)}[/]   [bold yellow]:flexed_biceps: Strength:[/] {strength}   [bold blue]:shield:  Defense:[/] {defense}   [bold green]:beating_heart: Health:[/] {health}";
+            // Use Spectre.Console emojis for name, strength, defense, HP, coins
+            string status = $"[bold white]:bust_in_silhouette: {EscapeMarkup(player.Name)}[/]   [bold yellow]:flexed_biceps: Strength:[/] {player.Strength}   [bold blue]:shield:  Defense:[/] {player.Defense}   [bold green]:beating_heart: HP:[/] {player.Health}   [bold gold1]:money_bag: Coins:[/] {player.Wealth}";
             int consoleWidth = Console.WindowWidth;
             int visibleLength = GetVisibleLength(status);
             int padLeft = Math.Max(0, (consoleWidth - visibleLength) / 2);

@@ -1,4 +1,5 @@
-﻿using DynDungeonCrawler.Engine.Models;
+﻿using DynDungeonCrawler.Engine.Classes;
+using DynDungeonCrawler.Engine.Models;
 
 namespace DynDungeonCrawler.Engine.Interfaces
 {
@@ -100,13 +101,10 @@ namespace DynDungeonCrawler.Engine.Interfaces
         Task<T> ShowSpinnerAsync<T>(string message, Func<Task<T>> operation);
 
         /// <summary>
-        /// Updates the player's status at the top of the UI, showing name, strength, defense, and health.
+        /// Updates the player's status at the top of the UI, showing name, strength, defense, HP, and coins.
         /// </summary>
-        /// <param name="name">Player's name.</param>
-        /// <param name="strength">Player's current strength.</param>
-        /// <param name="defense">Player's current defense.</param>
-        /// <param name="health">Player's current health.</param>
-        void UpdateStatus(string name, int strength, int defense, int health);
+        /// <param name="player">The Adventurer whose status to display.</param>
+        void UpdateStatus(Adventurer player);
 
         /// <summary>
         /// Displays text one sentence at a time with pauses between sentences for dramatic effect.

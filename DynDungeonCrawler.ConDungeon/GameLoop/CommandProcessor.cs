@@ -74,7 +74,7 @@ namespace DynDungeonCrawler.ConDungeon.GameLoop
                 ui.WriteLine("[dim italic]Press any key to continue...[/]");
                 await ui.ReadKeyAsync(intercept: true, hideCursor: true);
                 ui.Clear();
-                ui.UpdateStatus(player.Name, player.Strength, player.Defense, player.Health);
+                ui.UpdateStatus(player);
                 return true; // Continue the loop to allow further commands
             }
             else if (cmdChar == 'a')
@@ -136,7 +136,7 @@ namespace DynDungeonCrawler.ConDungeon.GameLoop
                     player.CurrentRoom = nextRoom;
                     player.VisitedRoomIds.Add(nextRoom.Id);
                     ui.Clear();
-                    ui.UpdateStatus(player.Name, player.Strength, player.Defense, player.Health);
+                    ui.UpdateStatus(player);
                 }
                 else
                 {
@@ -186,7 +186,7 @@ namespace DynDungeonCrawler.ConDungeon.GameLoop
                 ui.Write("[dim]Press any key to continue...[/]");
                 await ui.ReadKeyAsync();
                 ui.Clear();
-                ui.UpdateStatus(player.Name, player.Strength, player.Defense, player.Health);
+                ui.UpdateStatus(player);
                 return;
             }
 
@@ -212,7 +212,7 @@ namespace DynDungeonCrawler.ConDungeon.GameLoop
                 if (selectedIndex == -1)
                 {
                     ui.Clear();
-                    ui.UpdateStatus(player.Name, player.Strength, player.Defense, player.Health);
+                    ui.UpdateStatus(player);
                     return;
                 }
 
@@ -261,7 +261,7 @@ namespace DynDungeonCrawler.ConDungeon.GameLoop
 
             // Update UI after combat
             ui.Clear();
-            ui.UpdateStatus(player.Name, player.Strength, player.Defense, player.Health);
+            ui.UpdateStatus(player);
         }
 
         /// <summary>
@@ -346,7 +346,7 @@ namespace DynDungeonCrawler.ConDungeon.GameLoop
                 ui.Write("[dim]Press any key to continue...[/]");
                 await ui.ReadKeyAsync();
                 ui.Clear();
-                ui.UpdateStatus(player.Name, player.Strength, player.Defense, player.Health);
+                ui.UpdateStatus(player);
                 return;
             }
 
@@ -362,13 +362,13 @@ namespace DynDungeonCrawler.ConDungeon.GameLoop
             if (selectedIndex == -1)
             {
                 ui.Clear();
-                ui.UpdateStatus(player.Name, player.Strength, player.Defense, player.Health);
+                ui.UpdateStatus(player);
                 return;
             }
 
             // Clear screen and show status bar before showing entity details
             ui.Clear();
-            ui.UpdateStatus(player.Name, player.Strength, player.Defense, player.Health);
+            ui.UpdateStatus(player);
 
             // Otherwise, show the selected item's details
             (string name, string description, string color, Entity entity) selected = lookables[selectedIndex];
@@ -595,7 +595,7 @@ namespace DynDungeonCrawler.ConDungeon.GameLoop
             ui.Write("[dim]Press any key to continue...[/]");
             await ui.ReadKeyAsync();
             ui.Clear();
-            ui.UpdateStatus(player.Name, player.Strength, player.Defense, player.Health);
+            ui.UpdateStatus(player);
         }
     }
 }

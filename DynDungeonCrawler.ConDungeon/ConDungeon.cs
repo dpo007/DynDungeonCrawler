@@ -16,7 +16,7 @@ namespace DynDungeonCrawler.ConDungeon
         private static void ClearAndShowStatus(IUserInterface ui, Adventurer player)
         {
             ui.Clear();
-            ui.UpdateStatus(player.Name, player.Strength, player.Defense, player.Health);
+            ui.UpdateStatus(player);
         }
 
         /// <summary>

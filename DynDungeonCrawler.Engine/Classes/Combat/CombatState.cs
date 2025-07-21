@@ -121,12 +121,15 @@ namespace DynDungeonCrawler.Engine.Classes.Combat
                 outcome = CombatOutcome.Ongoing;
             }
 
+            Adventurer? playerEntity = Player as Adventurer;
+
             return new CombatSummary(
                 outcome,
                 TurnCount,
                 Player.Health,
                 Enemy.Health,
-                Enemy is Enemy enemyEntity ? enemyEntity.MoneyReward : 0
+                Enemy is Enemy enemyEntity ? enemyEntity.MoneyReward : 0,
+                playerEntity
             );
         }
     }

@@ -29,7 +29,7 @@ namespace DynDungeonCrawler.ConDungeon.Combat
         public async Task DisplayCombatStartAsync(Adventurer player, Enemy enemy)
         {
             _ui.Clear();
-            _ui.UpdateStatus(player.Name, player.Strength, player.Defense, player.Health);
+            _ui.UpdateStatus(player);
             _ui.WriteRule("COMBAT");
             _ui.WriteLine($"{enemy.Name} prepares to attack!");
             _ui.WriteLine();
@@ -52,7 +52,7 @@ namespace DynDungeonCrawler.ConDungeon.Combat
             // Update player status bar
             if (state.Player is Adventurer player)
             {
-                _ui.UpdateStatus(player.Name, player.Strength, player.Defense, player.Health);
+                _ui.UpdateStatus(player);
             }
 
             _ui.WriteRule("COMBAT");
@@ -89,9 +89,18 @@ namespace DynDungeonCrawler.ConDungeon.Combat
             _ui.Clear();
 
             // Assuming we still have access to the player through context
-            if (summary.PlayerRemainingHealth >= 0)
+            if (summary.PlayerRemainingHealth >= 0 && summary.Player != null)
             {
-                _ui.UpdateStatus("Player", 0, 0, summary.PlayerRemainingHealth); // Simplified status
+                _ui.UpdateStatus(summary.Player);
+            }
+            else if (summary.PlayerRemainingHealth >= 0)
+            {
+                Adventurer fallback = new Adventurer("Player");
+                fallback.Health = summary.PlayerRemainingHealth;
+                fallback.Strength = 0;
+                fallback.Defense = 0;
+                // Wealth is read-only, so skip assignment
+                _ui.UpdateStatus(fallback);
             }
 
             _ui.WriteRule("COMBAT OVER");

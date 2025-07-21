@@ -1,3 +1,4 @@
+using DynDungeonCrawler.Engine.Classes;
 using DynDungeonCrawler.Engine.Interfaces;
 using DynDungeonCrawler.Engine.Models;
 using System.Text.RegularExpressions;
@@ -282,14 +283,11 @@ namespace DynDungeonCrawler.Engine.Helpers.UI
         }
 
         /// <summary>
-        /// Updates the player's status at the top-left of the console, showing name, health, and money between two rules.
+        /// Updates the player's status at the top-left of the console, showing name, strength, defense, HP, and coins between two rules.
         /// Only moves and restores the cursor position if the current position is not (0,0).
         /// </summary>
-        /// <param name="name">Player's name.</param>
-        /// <param name="strength">Player's current strength.</param>
-        /// <param name="defense">Player's current defense.</param>
-        /// <param name="health">Player's current health.</param>
-        public void UpdateStatus(string name, int strength, int defense, int health)
+        /// <param name="player">The Adventurer whose status to display.</param>
+        public void UpdateStatus(Adventurer player)
         {
             int origLeft = Console.CursorLeft;
             int origTop = Console.CursorTop;
@@ -302,8 +300,8 @@ namespace DynDungeonCrawler.Engine.Helpers.UI
 
             WriteRule();
 
-            // Status line: name, strength, defense, health spaced evenly
-            string status = $"{name}   Strength: {strength}   Defense: {defense}   Health: {health}";
+            // Status line: name, strength, defense, HP, coins spaced evenly
+            string status = $"{player.Name}   Strength: {player.Strength}   Defense: {player.Defense}   HP: {player.Health}   Coins: {player.Wealth}";
             WriteLine(status, center: true);
 
             WriteRule();

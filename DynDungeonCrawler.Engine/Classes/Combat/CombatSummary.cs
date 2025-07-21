@@ -31,6 +31,11 @@ namespace DynDungeonCrawler.Engine.Classes.Combat
         public int MoneyReward { get; }
 
         /// <summary>
+        /// Gets the player involved in the combat (may be null if unavailable).
+        /// </summary>
+        public Adventurer? Player { get; }
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="CombatSummary"/> class.
         /// </summary>
         /// <param name="outcome">The outcome of the combat.</param>
@@ -38,18 +43,21 @@ namespace DynDungeonCrawler.Engine.Classes.Combat
         /// <param name="playerRemainingHealth">The player's remaining health.</param>
         /// <param name="enemyRemainingHealth">The enemy's remaining health.</param>
         /// <param name="moneyReward">The money reward for defeating the enemy.</param>
+        /// <param name="player">The player involved in the combat.</param>
         public CombatSummary(
             CombatOutcome outcome,
             int turnCount,
             int playerRemainingHealth,
             int enemyRemainingHealth,
-            int moneyReward)
+            int moneyReward,
+            Adventurer? player = null)
         {
             Outcome = outcome;
             TurnCount = turnCount;
             PlayerRemainingHealth = playerRemainingHealth;
             EnemyRemainingHealth = enemyRemainingHealth;
             MoneyReward = moneyReward;
+            Player = player;
         }
 
         /// <summary>
