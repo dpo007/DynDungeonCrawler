@@ -1,4 +1,5 @@
 ﻿using DynDungeonCrawler.Engine.Interfaces;
+using DynDungeonCrawler.Engine.Models;
 using Spectre.Console;
 using System.Text.RegularExpressions;
 
@@ -39,6 +40,55 @@ namespace DynDungeonCrawler.Engine.Helpers.UI
                 : new Rule() { Style = Style.Parse("grey dim") };
 
             AnsiConsole.Write(rule);
+        }
+
+        /// <summary>
+        /// Writes a game message with appropriate styling based on message type.
+        /// Applies Spectre.Console markup based on the message type.
+        /// </summary>
+        /// <param name="message">The game message to write.</param>
+        /// <param name="center">Whether to center the message horizontally in the output view.</param>
+        public void WriteMessage(GameMessage message, bool center = false)
+        {
+            string formattedText = FormatMessageForSpectre(message);
+            WriteLine(formattedText, center);
+        }
+
+        /// <summary>
+        /// Writes multiple game messages in sequence.
+        /// </summary>
+        /// <param name="messages">The collection of game messages to write.</param>
+        public void WriteMessages(IEnumerable<GameMessage> messages)
+        {
+            foreach (GameMessage message in messages)
+            {
+                WriteMessage(message);
+            }
+        }
+
+        /// <summary>
+        /// Formats a GameMessage for Spectre.Console with appropriate markup.
+        /// </summary>
+        /// <param name="message">The game message to format.</param>
+        /// <returns>A formatted string with Spectre.Console markup.</returns>
+        private string FormatMessageForSpectre(GameMessage message)
+        {
+            return message.Type switch
+            {
+                UIMessageType.Error => $"[bold red]{EscapeMarkup(message.Content)}[/]",
+                UIMessageType.Success => $"[bold green]{EscapeMarkup(message.Content)}[/]",
+                UIMessageType.Emphasis => $"[bold]{EscapeMarkup(message.Content)}[/]",
+                UIMessageType.Header => $"[underline bold]{EscapeMarkup(message.Content)}[/]",
+                UIMessageType.CombatAction => $"[blue]{EscapeMarkup(message.Content)}[/]",
+                UIMessageType.CombatCritical => $"[bold yellow]{EscapeMarkup(message.Content)}[/]",
+                UIMessageType.PlayerStatus => $"[green]{EscapeMarkup(message.Content)}[/]",
+                UIMessageType.EnemyStatus => $"[red]{EscapeMarkup(message.Content)}[/]",
+                UIMessageType.ItemInfo => $"[cyan]{EscapeMarkup(message.Content)}[/]",
+                UIMessageType.Help => $"[grey italic]{EscapeMarkup(message.Content)}[/]",
+                UIMessageType.RoomDescription => $"[dim]{EscapeMarkup(message.Content)}[/]",
+                UIMessageType.System => $"[grey]{EscapeMarkup(message.Content)}[/]",
+                _ => EscapeMarkup(message.Content)
+            };
         }
 
         public void Clear() => AnsiConsole.Clear();

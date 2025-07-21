@@ -373,116 +373,143 @@ namespace DynDungeonCrawler.ConDungeon.GameLoop
             // For TreasureChest, prompt to open
             if (selected.entity is TreasureChest chestEntity)
             {
-                string chestState = chestEntity.IsOpened ? "Opened" : (chestEntity.IsLocked ? "Locked" : "Unlocked");
-                ui.WriteLine($"{selected.description}\n\nStatus: [violet]{chestState}[/]");
-                ui.WriteLine();
+                // Update the chest's guarded status based on current room enemies
+                List<Enemy> enemies = player.CurrentRoom.GetEnemies();
+                chestEntity.UpdateGuardedStatus(enemies.Count > 0);
 
-                // Prompt to open chest if not already opened
+                string chestStatusMessage = chestEntity.GetStatusMessage(enemies);
+                ui.WriteLine($"{selected.description}");
+                ui.WriteLine();
+                ui.WriteLine(chestStatusMessage);
+
+                // Prompt to open chest if not already opened and not guarded
                 if (!chestEntity.IsOpened)
                 {
-                    // Check if chest is locked and player has a magical lock pick
-                    bool hasLockPick = false;
-                    MagicalLockPick? lockPick = null;
-
-                    if (chestEntity.IsLocked)
+                    // Check if chest is guarded by enemies
+                    if (chestEntity.IsGuarded)
                     {
-                        lockPick = player.Inventory.OfType<MagicalLockPick>().FirstOrDefault();
-                        hasLockPick = lockPick != null;
-
-                        if (hasLockPick)
-                        {
-                            ui.WriteLine($"You have a [purple]{lockPick!.Name}[/] in your inventory that could unlock this chest.");
-                            ui.WriteLine();
-                        }
+                        // Don't show additional redundant messages - the status message above already explains the situation
                     }
-
-                    // Present open options
-                    if (chestEntity.IsLocked && hasLockPick)
+                    else
                     {
-                        ui.Write($"[bold]Use [purple]{lockPick!.Name}[/] to unlock chest?[/] [[[green]Y[/]]]es / [[[red]N[/]]]o [gray](default: N)[/]: ");
-                        string keyStr = await ui.ReadKeyAsync(intercept: true);
+                        // Check if chest is locked and player has a magical lock pick
+                        bool hasLockPick = false;
+                        MagicalLockPick? lockPick = null;
 
-                        if (keyStr.Equals("Y", StringComparison.OrdinalIgnoreCase))
+                        if (chestEntity.IsLocked)
                         {
-                            ui.WriteLine("[green]Y[/]");
-                            ui.WriteLine();
+                            lockPick = player.Inventory.OfType<MagicalLockPick>().FirstOrDefault();
+                            hasLockPick = lockPick != null;
 
-                            // Use the lock pick to unlock the chest
-                            bool success = lockPick.UseOn(chestEntity);
-
-                            if (success)
+                            if (hasLockPick)
                             {
-                                string unlockMessage = "[italic]You insert the magical pick into the lock. The runes along its surface glow with arcane energy, and with a satisfying click, the chest unlocks.[/]";
-                                await ui.WriteSlowlyBySentenceAsync(unlockMessage, pauseMs: 1500);
+                                ui.WriteLine($"You have a [purple]{lockPick!.Name}[/] in your inventory that could unlock this chest.");
+                                ui.WriteLine();
+                            }
+                        }
+
+                        // Present open options
+                        if (chestEntity.IsLocked && hasLockPick)
+                        {
+                            ui.Write($"[bold]Use [purple]{lockPick!.Name}[/] to unlock chest?[/] [[[green]Y[/]]]es / [[[red]N[/]]]o [gray](default: N)[/]: ");
+                            string keyStr = await ui.ReadKeyAsync(intercept: true);
+
+                            if (keyStr.Equals("Y", StringComparison.OrdinalIgnoreCase))
+                            {
+                                ui.WriteLine("[green]Y[/]");
                                 ui.WriteLine();
 
-                                // Ask if they want to open the now unlocked chest
-                                ui.Write("[bold]Open the unlocked chest?[/] [[[green]Y[/]]]es / [[[red]N[/]]]o [gray](default: N)[/]: ");
-                                keyStr = await ui.ReadKeyAsync(intercept: true);
+                                // Use the lock pick to unlock the chest
+                                bool success = lockPick.UseOn(chestEntity);
 
-                                if (keyStr.Equals("Y", StringComparison.OrdinalIgnoreCase))
+                                if (success)
                                 {
-                                    ui.WriteLine("[green]Y[/]");
+                                    string unlockMessage = "[italic]You insert the magical pick into the lock. The runes along its surface glow with arcane energy, and with a satisfying click, the chest unlocks.[/]";
+                                    await ui.WriteSlowlyBySentenceAsync(unlockMessage, pauseMs: 1500);
                                     ui.WriteLine();
 
-                                    // Display a thematic chest opening story
-                                    string openingStory = dungeon.GetRandomChestOpeningStory();
-                                    await ui.WriteSlowlyBySentenceAsync($"[italic]{openingStory}[/]");
+                                    // Ask if they want to open the now unlocked chest
+                                    ui.Write("[bold]Open the unlocked chest?[/] [[[green]Y[/]]]es / [[[red]N[/]]]o [gray](default: N)[/]: ");
+                                    keyStr = await ui.ReadKeyAsync(intercept: true);
 
-                                    // Open the chest and award treasure
-                                    chestEntity.Open();
-                                    int value = chestEntity.ContainedTreasure?.Value ?? 0;
-                                    player.AddWealth(value);
-                                    ui.WriteLine($"[bold green]You find treasure worth [gold1]{value}[/] coins![/]");
+                                    if (keyStr.Equals("Y", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        ui.WriteLine("[green]Y[/]");
+                                        ui.WriteLine();
+
+                                        try
+                                        {
+                                            // Display a thematic chest opening story
+                                            string openingStory = dungeon.GetRandomChestOpeningStory();
+                                            await ui.WriteSlowlyBySentenceAsync($"[italic]{openingStory}[/]");
+
+                                            // Open the chest and award treasure
+                                            chestEntity.Open();
+                                            int value = chestEntity.ContainedTreasure?.Value ?? 0;
+                                            player.AddWealth(value);
+                                            ui.WriteLine($"[bold green]You find treasure worth [gold1]{value}[/] coins![/]");
+                                        }
+                                        catch (InvalidOperationException ex)
+                                        {
+                                            ui.WriteLine($"[bold red]{ex.Message}[/]");
+                                        }
+                                    }
+                                    else
+                                    {
+                                        ui.WriteLine("[red]N[/]");
+                                        ui.WriteLine("You decide not to open the chest yet.");
+                                    }
                                 }
                                 else
                                 {
-                                    ui.WriteLine("[red]N[/]");
-                                    ui.WriteLine("You decide not to open the chest yet.");
+                                    ui.WriteLine("[red]For some reason, the magical lock pick doesn't work on this chest.[/]");
                                 }
                             }
                             else
                             {
-                                ui.WriteLine("[red]For some reason, the magical lock pick doesn't work on this chest.[/]");
+                                ui.WriteLine("[red]N[/]");
+                                ui.WriteLine("You decide not to use the magical lock pick.");
                             }
                         }
                         else
                         {
-                            ui.WriteLine("[red]N[/]");
-                            ui.WriteLine("You decide not to use the magical lock pick.");
-                        }
-                    }
-                    else
-                    {
-                        // Standard open prompt for unlocked chests
-                        ui.Write("[bold]Open chest?[/] [[[green]Y[/]]]es / [[[red]N[/]]]o [gray](default: N)[/]: ");
-                        string keyStr = await ui.ReadKeyAsync(intercept: true);
+                            // Standard open prompt for unlocked chests
+                            ui.Write("[bold]Open chest?[/] [[[green]Y[/]]]es / [[[red]N[/]]]o [gray](default: N)[/]: ");
+                            string keyStr = await ui.ReadKeyAsync(intercept: true);
 
-                        if (string.IsNullOrEmpty(keyStr) || keyStr == "\r" || keyStr == "\n" || keyStr.Equals("N", StringComparison.OrdinalIgnoreCase))
-                        {
-                            ui.WriteLine("[red]N[/]");
-                            ui.WriteLine("You decide not to open the chest.");
-                        }
-                        else if (keyStr.Equals("Y", StringComparison.OrdinalIgnoreCase))
-                        {
-                            ui.WriteLine("[green]Y[/]");
-                            ui.WriteLine();
-
-                            if (chestEntity.IsLocked)
+                            if (string.IsNullOrEmpty(keyStr) || keyStr == "\r" || keyStr == "\n" || keyStr.Equals("N", StringComparison.OrdinalIgnoreCase))
                             {
-                                ui.WriteLine("[bold red]The chest is locked. You cannot open it.[/]");
+                                ui.WriteLine("[red]N[/]");
+                                ui.WriteLine("You decide not to open the chest.");
                             }
-                            else
+                            else if (keyStr.Equals("Y", StringComparison.OrdinalIgnoreCase))
                             {
-                                // Display a thematic chest opening story with the new dramatic sentence-by-sentence display
-                                string openingStory = dungeon.GetRandomChestOpeningStory();
-                                await ui.WriteSlowlyBySentenceAsync($"[italic]{openingStory}[/]");
+                                ui.WriteLine("[green]Y[/]");
+                                ui.WriteLine();
 
-                                // Actually open the chest and award treasure
-                                chestEntity.Open();
-                                int value = chestEntity.ContainedTreasure?.Value ?? 0;
-                                player.AddWealth(value);
-                                ui.WriteLine($"[bold green]You find treasure worth [gold1]{value}[/] coins![/]");
+                                if (chestEntity.IsLocked)
+                                {
+                                    ui.WriteLine("[bold red]The chest is locked. You cannot open it.[/]");
+                                }
+                                else
+                                {
+                                    try
+                                    {
+                                        // Display a thematic chest opening story with the new dramatic sentence-by-sentence display
+                                        string openingStory = dungeon.GetRandomChestOpeningStory();
+                                        await ui.WriteSlowlyBySentenceAsync($"[italic]{openingStory}[/]");
+
+                                        // Actually open the chest and award treasure
+                                        chestEntity.Open();
+                                        int value = chestEntity.ContainedTreasure?.Value ?? 0;
+                                        player.AddWealth(value);
+                                        ui.WriteLine($"[bold green]You find treasure worth [gold1]{value}[/] coins![/]");
+                                    }
+                                    catch (InvalidOperationException ex)
+                                    {
+                                        ui.WriteLine($"[bold red]{ex.Message}[/]");
+                                    }
+                                }
                             }
                         }
                     }

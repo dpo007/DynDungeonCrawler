@@ -14,6 +14,7 @@ namespace DynDungeonCrawler.Engine.Data
         public bool? IsLocked { get; set; }
 
         public bool? IsOpened { get; set; }
+        public bool? IsGuarded { get; set; }
         public TreasureType? TreasureType { get; set; }
         public int? TreasureValue { get; set; }
 
@@ -64,6 +65,12 @@ namespace DynDungeonCrawler.Engine.Data
                     if (IsOpened == true)
                     {
                         ((TreasureChest)entity).Open();
+                    }
+
+                    // Handle guarded state
+                    if (IsGuarded.HasValue)
+                    {
+                        ((TreasureChest)entity).UpdateGuardedStatus(IsGuarded.Value);
                     }
                     break;
 

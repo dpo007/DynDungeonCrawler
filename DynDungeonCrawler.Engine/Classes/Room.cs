@@ -59,7 +59,7 @@
 
         /// <summary>
         /// Adds an Entity to the room, enforcing validation rules.
-        /// Throws an exception if the entity is null or if an entity with the same ID already exists in the room.
+        /// Automatically updates treasure chest guarded status after adding the entity.
         /// </summary>
         /// <param name="entity">The Entity to add to the room.</param>
         /// <exception cref="ArgumentNullException">Thrown if the entity is null.</exception>
@@ -75,11 +75,15 @@
                 }
 
                 Contents.Add(entity);
+
+                // Update treasure chest guarded status after adding entity
+                UpdateTreasureChestGuardedStatus();
             }
         }
 
         /// <summary>
         /// Removes an Entity from the room by its ID.
+        /// Automatically updates treasure chest guarded status after removing the entity.
         /// </summary>
         /// <param name="entityId">The unique identifier of the Entity to remove.</param>
         /// <returns>True if the Entity was found and removed; otherwise, false.</returns>
@@ -90,8 +94,13 @@
                 Entity? entity = Contents.FirstOrDefault(e => e.Id == entityId);
                 if (entity != null)
                 {
-                    Contents.Remove(entity);
-                    return true;
+                    bool removed = Contents.Remove(entity);
+                    if (removed)
+                    {
+                        // Update treasure chest guarded status after removing entity
+                        UpdateTreasureChestGuardedStatus();
+                    }
+                    return removed;
                 }
                 return false;
             }
@@ -99,6 +108,7 @@
 
         /// <summary>
         /// Removes an Entity from the room by its object reference.
+        /// Automatically updates treasure chest guarded status after removing the entity.
         /// </summary>
         /// <param name="entity">The Entity object to remove.</param>
         /// <returns>True if the Entity was found and removed; otherwise, false.</returns>
@@ -111,7 +121,68 @@
 
             lock (_contentsLock)
             {
-                return Contents.Remove(entity);
+                bool removed = Contents.Remove(entity);
+                if (removed)
+                {
+                    // Update treasure chest guarded status after removing entity
+                    UpdateTreasureChestGuardedStatus();
+                }
+                return removed;
+            }
+        }
+
+        /// <summary>
+        /// Updates the guarded status of all treasure chests in the room based on the presence of enemies.
+        /// Should be called whenever entities are added or removed from the room.
+        /// </summary>
+        private void UpdateTreasureChestGuardedStatus()
+        {
+            // Check if there are any enemies in the room
+            bool hasEnemies = Contents.Any(entity => entity.Type == EntityType.Enemy);
+
+            // Update all treasure chests in the room
+            List<TreasureChest> treasureChests = Contents.OfType<TreasureChest>().ToList();
+            foreach (TreasureChest chest in treasureChests)
+            {
+                chest.UpdateGuardedStatus(hasEnemies);
+            }
+        }
+
+        /// <summary>
+        /// Gets all treasure chests in the room that are currently being guarded by enemies.
+        /// </summary>
+        /// <returns>A list of guarded treasure chests.</returns>
+        public List<TreasureChest> GetGuardedTreasureChests()
+        {
+            lock (_contentsLock)
+            {
+                return Contents.OfType<TreasureChest>()
+                              .Where(chest => chest.IsGuarded)
+                              .ToList();
+            }
+        }
+
+        /// <summary>
+        /// Gets all enemies currently in the room.
+        /// </summary>
+        /// <returns>A list of enemies in the room.</returns>
+        public List<Enemy> GetEnemies()
+        {
+            lock (_contentsLock)
+            {
+                return Contents.OfType<Enemy>().ToList();
+            }
+        }
+
+        /// <summary>
+        /// Checks if the room has any living enemies present.
+        /// </summary>
+        /// <returns>True if enemies are present; otherwise, false.</returns>
+        public bool HasEnemies()
+        {
+            lock (_contentsLock)
+            {
+                return Contents.Any(entity => entity.Type == EntityType.Enemy);
             }
         }
 

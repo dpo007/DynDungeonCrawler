@@ -1,4 +1,5 @@
-﻿using DynDungeonCrawler.Engine.Interfaces;
+using DynDungeonCrawler.Engine.Interfaces;
+using DynDungeonCrawler.Engine.Models;
 using System.Text.RegularExpressions;
 
 namespace DynDungeonCrawler.Engine.Helpers.UI
@@ -39,9 +40,6 @@ namespace DynDungeonCrawler.Engine.Helpers.UI
             }
         }
 
-        // Legacy overload for compatibility
-        public void WriteLine(string message) => WriteLine(message, false);
-
         public void WriteLine() => Console.WriteLine();
 
         public void WriteRule(string? text = null)
@@ -74,7 +72,30 @@ namespace DynDungeonCrawler.Engine.Helpers.UI
             }
         }
 
-        // Async implementations (preparing for HTML UI comatability)
+        /// <summary>
+        /// Writes a game message with appropriate styling based on message type.
+        /// For plain console implementation, no markup is applied - just the content.
+        /// </summary>
+        /// <param name="message">The game message to write.</param>
+        /// <param name="center">Whether to center the message horizontally in the output view.</param>
+        public void WriteMessage(GameMessage message, bool center = false)
+        {
+            // Plain console implementation - no markup, just content
+            WriteLine(message.Content, center);
+        }
+
+        /// <summary>
+        /// Writes multiple game messages in sequence.
+        /// </summary>
+        /// <param name="messages">The collection of game messages to write.</param>
+        public void WriteMessages(IEnumerable<GameMessage> messages)
+        {
+            foreach (GameMessage message in messages)
+            {
+                WriteMessage(message);
+            }
+        }
+
         public Task<string> ReadLineAsync() => Task.FromResult(Console.ReadLine() ?? string.Empty);
 
         public Task<string> ReadKeyAsync(bool intercept = false, bool hideCursor = false)
@@ -264,9 +285,10 @@ namespace DynDungeonCrawler.Engine.Helpers.UI
         /// Updates the player's status at the top-left of the console, showing name, health, and money between two rules.
         /// Only moves and restores the cursor position if the current position is not (0,0).
         /// </summary>
-        /// <param name="health">Player's current health.</param>
-        /// <param name="money">Player's current money.</param>
         /// <param name="name">Player's name.</param>
+        /// <param name="strength">Player's current strength.</param>
+        /// <param name="defense">Player's current defense.</param>
+        /// <param name="health">Player's current health.</param>
         public void UpdateStatus(string name, int strength, int defense, int health)
         {
             int origLeft = Console.CursorLeft;
@@ -313,7 +335,7 @@ namespace DynDungeonCrawler.Engine.Helpers.UI
             cleanText = Regex.Replace(cleanText, @":[a-zA-Z0-9_]+:", ""); // Remove emoji shortcodes
 
             // Split text into sentences using regex to handle various end-of-sentence punctuation
-            string pattern = @"(\.|\!|\?|…)(\s+|$)";
+            string pattern = @"(\.|\!|\?|�)(\s+|$)";
             List<string> sentences = new List<string>();
 
             int startIndex = 0;

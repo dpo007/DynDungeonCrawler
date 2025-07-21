@@ -1,4 +1,6 @@
-﻿namespace DynDungeonCrawler.Engine.Interfaces
+﻿using DynDungeonCrawler.Engine.Models;
+
+namespace DynDungeonCrawler.Engine.Interfaces
 {
     /// <summary>
     /// Abstraction for user input and output operations, allowing different UI implementations (console, GUI, web, etc.).
@@ -28,6 +30,19 @@
         /// </summary>
         /// <param name="text">Optional text to display in the rule.</param>
         void WriteRule(string? text = null);
+
+        /// <summary>
+        /// Writes a game message with appropriate styling based on message type.
+        /// </summary>
+        /// <param name="message">The game message to write.</param>
+        /// <param name="center">Whether to center the message horizontally in the output view.</param>
+        void WriteMessage(GameMessage message, bool center = false);
+
+        /// <summary>
+        /// Writes multiple game messages in sequence.
+        /// </summary>
+        /// <param name="messages">The collection of game messages to write.</param>
+        void WriteMessages(IEnumerable<GameMessage> messages);
 
         /// <summary>
         /// Reads a line of input from the user asynchronously.

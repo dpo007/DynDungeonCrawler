@@ -39,45 +39,17 @@ namespace DynDungeonCrawler.ConDungeon.GameLoop
             {
                 ui.WriteLine();
                 ui.WriteLine("You notice the following things in the room:");
+
                 foreach (Entity entity in player.CurrentRoom.Contents)
                 {
-                    switch (entity)
-                    {
-                        case TreasureChest chest:
-                            string displayDesc = !string.IsNullOrWhiteSpace(chest.ShortDescription)
-                                ? chest.ShortDescription
-                                : "A chest of treasures.";
-
-                            if (!string.IsNullOrWhiteSpace(displayDesc))
-                            {
-                                ui.WriteLine($"[dim]-[/] [bold]{chest.Name}[/]: {displayDesc}");
-                            }
-                            else
-                            {
-                                ui.WriteLine($"[dim]-[/] [bold]{chest.Name}[/]");
-                            }
-                            break;
-
-                        default:
-                            string entityDesc = !string.IsNullOrWhiteSpace(entity.ShortDescription)
-                                ? entity.ShortDescription
-                                : entity.Description;
-                            if (!string.IsNullOrWhiteSpace(entityDesc))
-                            {
-                                ui.WriteLine($"[dim]-[/] [bold]{entity.Name}[/]: {entityDesc}");
-                            }
-                            else
-                            {
-                                ui.WriteLine($"[dim]-[/] [bold]{entity.Name}[/]");
-                            }
-                            break;
-                    }
+                    string formattedEntityText = CreateEntityText(entity);
+                    ui.WriteLine(formattedEntityText);
                 }
             }
 
             ui.WriteLine();
 
-            // Show direction room was entred from (if available)
+            // Show direction room was entered from (if available)
             if (player.PreviousRoom == null)
             {
                 ui.WriteRule();
@@ -91,6 +63,60 @@ namespace DynDungeonCrawler.ConDungeon.GameLoop
                 }
             }
             ui.WriteLine();
+        }
+
+        /// <summary>
+        /// Creates appropriately formatted text for displaying an entity in the room with Spectre.Console markup.
+        /// </summary>
+        /// <param name="entity">The entity to create formatted text for.</param>
+        /// <returns>A formatted string with Spectre.Console markup for the entity.</returns>
+        private static string CreateEntityText(Entity entity)
+        {
+            string entityDesc;
+            string markupColor;
+            string nameMarkup;
+
+            switch (entity)
+            {
+                case TreasureChest chest:
+                    entityDesc = !string.IsNullOrWhiteSpace(chest.ShortDescription)
+                        ? chest.ShortDescription
+                        : "A chest of treasures.";
+                    markupColor = "gold3_1";
+                    nameMarkup = $"[bold {markupColor}]{chest.Name}[/]";
+                    break;
+
+                case Enemy enemy:
+                    entityDesc = !string.IsNullOrWhiteSpace(enemy.ShortDescription)
+                        ? enemy.ShortDescription
+                        : enemy.Description;
+                    markupColor = "red";
+                    nameMarkup = $"[bold {markupColor}]{enemy.Name}[/]";
+                    break;
+
+                case MagicalLockPick lockPick:
+                    entityDesc = !string.IsNullOrWhiteSpace(lockPick.ShortDescription)
+                        ? lockPick.ShortDescription
+                        : lockPick.Description;
+                    markupColor = "purple";
+                    nameMarkup = $"[bold {markupColor}]{lockPick.Name}[/]";
+                    break;
+
+                default:
+                    entityDesc = !string.IsNullOrWhiteSpace(entity.ShortDescription)
+                        ? entity.ShortDescription
+                        : entity.Description;
+                    markupColor = "cyan1";
+                    nameMarkup = $"[bold {markupColor}]{entity.Name}[/]";
+                    break;
+            }
+
+            // Format the final output with Spectre.Console markup
+            string content = !string.IsNullOrWhiteSpace(entityDesc)
+                ? $"[dim]-[/] {nameMarkup}: {entityDesc}"
+                : $"[dim]-[/] {nameMarkup}";
+
+            return content;
         }
 
         /// <summary>
