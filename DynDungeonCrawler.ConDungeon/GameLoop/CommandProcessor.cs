@@ -1,3 +1,4 @@
+using DynDungeonCrawler.ConDungeon.Combat;
 using DynDungeonCrawler.Engine.Classes;
 using DynDungeonCrawler.Engine.Classes.Combat;
 using DynDungeonCrawler.Engine.Factories;
@@ -35,7 +36,7 @@ namespace DynDungeonCrawler.ConDungeon.GameLoop
             List<string> directions)
         {
             // Initialize combat service if needed
-            _combatService ??= new CombatService(ui, logger);
+            _combatService ??= new CombatService(logger);
 
             // Null check player current room (to avoid NullReferenceException)
             if (player.CurrentRoom == null)
@@ -240,8 +241,13 @@ namespace DynDungeonCrawler.ConDungeon.GameLoop
                 return;
             }
 
-            // Execute combat
-            CombatSummary result = await _combatService.ExecuteCombatAsync(player, enemy);
+            // Create the appropriate combat presenter based on UI implementation
+            ICombatPresenter presenter = ui.GetType().Name.Contains("Spectre")
+                ? new SpectreConsoleCombatPresenter(ui)
+                : new PlainConsoleCombatPresenter(ui);
+
+            // Execute combat with the presenter
+            CombatSummary result = await _combatService.ExecuteCombatAsync(player, enemy, presenter);
 
             // Process combat results
             if (result.Outcome == CombatOutcome.PlayerVictory)

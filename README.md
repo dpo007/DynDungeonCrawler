@@ -33,6 +33,8 @@ The engine is highly configurable, supports multiple LLM providers, and features
   - Easily extensible for new entity types: Bosses, Keys, NPCs, Magical Items, etc.
 
 - **Combat System**
+  - UI-agnostic combat logic through the `ICombatPresenter` interface
+  - Multiple UI implementations (Spectre.Console, plain text, future HTML support)
   - Turn-based combat encounters with enemies
   - Player chooses which enemy to attack when multiple are present
   - Actions include Attack, Defend, and Attempt to Flee
@@ -86,16 +88,27 @@ The engine is highly configurable, supports multiple LLM providers, and features
 
 ## ⚔️ Combat System
 
-- Engage in turn-based combat encounters with enemies found in dungeon rooms.
-- If multiple enemies are present, you select which one to attack or examine.
-- Combat actions include:
-  - **Attack:** Deal damage to the selected enemy, with chances for critical hits and dodges.
-  - **Defend:** Temporarily boost your defense to reduce incoming damage next turn.
-  - **Attempt to Flee:** Try to escape combat, with success based on your current health and chance.
-- Combat proceeds in alternating turns between player and enemy.
-- Detailed combat messages inform you of attack results, defense, and outcomes.
-- Victory awards loot and removes the defeated enemy; defeat ends the game.
-- You can also choose to attack an enemy directly from the room or after examining them with the Look command.
+- **UI-Agnostic Architecture**:
+  - Core combat logic in `CombatService` completely separated from UI concerns
+  - `ICombatPresenter` interface enforces proper UI implementation
+  - Multiple presenter implementations for different UI styles
+
+- **Available Presenters**:
+  - **SpectreConsoleCombatPresenter**: Rich, colorful markup for Spectre.Console UI
+  - **PlainConsoleCombatPresenter**: Basic text without special formatting
+  - Extensible for future UIs (HTML, Unity, custom renderers)
+
+- **Combat Features**:
+  - Engage in turn-based combat encounters with enemies found in dungeon rooms
+  - If multiple enemies are present, you select which one to attack or examine
+  - Combat actions include:
+    - **Attack:** Deal damage to the selected enemy, with chances for critical hits and dodges
+    - **Defend:** Temporarily boost your defense to reduce incoming damage next turn
+    - **Attempt to Flee:** Try to escape combat, with success based on your current health and chance
+  - Combat proceeds in alternating turns between player and enemy
+  - Detailed combat messages inform you of attack results, defense, and outcomes
+  - Victory awards loot and removes the defeated enemy; defeat ends the game
+  - You can also choose to attack an enemy directly from the room or after examining them with the Look command
 
 ---
 
@@ -121,6 +134,7 @@ The engine is highly configurable, supports multiple LLM providers, and features
 | Folder                       | Purpose                                                                                  |
 |:-----------------------------|:----------------------------------------------------------------------------------------|
 | `Classes/`                   | Core dungeon, room, entity, adventurer, enemy, treasure, magical item, lock pick types   |
+| `Classes/Combat/`            | Combat system components: actions, state management, and UI-agnostic logic               |
 | `Configuration/`             | Engine and LLM settings management                                                      |
 | `Constants/`                 | Default values for dungeon generation and LLM prompts                                   |
 | `Data/`                      | Data transfer objects for dungeon import/export                                         |
@@ -129,7 +143,17 @@ The engine is highly configurable, supports multiple LLM providers, and features
 | `Helpers/LLM/`               | LLM integration helpers (OpenAI, Azure, Ollama, JSON cleaning, dummy client)            |
 | `Helpers/Logging/`           | Logging utilities (ConsoleLogger, FileLogger, DebugLogger, MutedLogger)                 |
 | `Helpers/UI/`                | Console and UI helpers (SpectreConsoleUserInterface, ConsoleUserInterface)              |
-| `Interfaces/`                | Abstractions for LLM, logging, and UI                                                   |
+| `Interfaces/`                | Abstractions for LLM, logging, UI, and combat presentation                             |
+
+**DynDungeonCrawler.ConDungeon Project Folders**:
+
+| Folder / File         | Purpose                                                                                  |
+|:----------------------|:----------------------------------------------------------------------------------------|
+| `Combat/`             | Combat UI implementations (SpectreConsoleCombatPresenter, PlainConsoleCombatPresenter)  |
+| `Configuration/`      | Project-specific settings management                                                    |
+| `ConDungeon.cs`       | Application entry point and main loop wiring                                            |
+| `GameInitializer.cs`  | Game setup and initialization logic                                                    |
+| `GameLoop/`           | Game loop logic: input handling, command processing, room rendering, main loop         |
 
 **DynDungeonCrawler.GeneratorApp Project Folders**:
 
@@ -152,15 +176,6 @@ The engine is highly configurable, supports multiple LLM providers, and features
 | `StrongestEnemyMinStrength` | Minimum strength for the enemy guarding the magical lock pick | 20            |
 
 All these settings can be customized in the `generatorapp.settings.json` file, which is automatically created or updated when the application runs.
-
-**DynDungeonCrawler.ConDungeon Project Folders**:
-
-| Folder / File         | Purpose                                                                                  |
-|:----------------------|:----------------------------------------------------------------------------------------|
-| `Configuration/`      | Project-specific settings management                                                    |
-| `ConDungeon.cs`       | Application entry point and main loop wiring                                            |
-| `GameInitializer.cs`  | Game setup and initialization logic                                                    |
-| `GameLoop/`           | Game loop logic: input handling, command processing, room rendering, main loop         |
 
 **DynDungeonCrawler.MapViewer Project Folders**:
 
@@ -237,6 +252,7 @@ All these settings can be customized in the `generatorapp.settings.json` file, w
 - Minimap and smarter pathfinding
 - Interactive events (traps, puzzles, lore drops)
 - Full Ollama and other LLM provider support in UI
+- Additional combat presenter implementations for different UI frameworks
 
 ---
 
@@ -278,7 +294,7 @@ All these settings can be customized in the `generatorapp.settings.json` file, w
 
 ---
 
-> **Project Status:** Foundational systems complete — now featuring interactive exploration, graphical map viewing, LLM-powered content generation, and a robust combat system. Expanding into deeper gameplay mechanics, AI-driven storytelling, and worldbuilding next! 🚀
+> **Project Status:** Foundational systems complete — now featuring interactive exploration, graphical map viewing, LLM-powered content generation, and a robust combat system with UI separation. Expanding into deeper gameplay mechanics, AI-driven storytelling, and worldbuilding next! 🚀
 
 ---
 

@@ -7,18 +7,15 @@ namespace DynDungeonCrawler.Engine.Classes.Combat
     /// </summary>
     public class CombatService
     {
-        private readonly IUserInterface _ui;
         private readonly ILogger _logger;
         private static readonly Random _random = Random.Shared;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CombatService"/> class.
         /// </summary>
-        /// <param name="ui">The user interface for input/output interactions.</param>
         /// <param name="logger">Logger for diagnostic and debug messages.</param>
-        public CombatService(IUserInterface ui, ILogger logger)
+        public CombatService(ILogger logger)
         {
-            _ui = ui ?? throw new ArgumentNullException(nameof(ui));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -27,45 +24,36 @@ namespace DynDungeonCrawler.Engine.Classes.Combat
         /// </summary>
         /// <param name="player">The player combatant.</param>
         /// <param name="enemy">The enemy combatant.</param>
+        /// <param name="presenter">The combat presenter that handles UI interactions.</param>
         /// <returns>A combat summary with the final outcome.</returns>
-        public async Task<CombatSummary> ExecuteCombatAsync(Adventurer player, Enemy enemy)
+        public async Task<CombatSummary> ExecuteCombatAsync(
+            Adventurer player,
+            Enemy enemy,
+            ICombatPresenter presenter)
         {
             _logger.Log($"Combat initiated: {player.Name} vs {enemy.Name}");
 
             CombatState state = new(player, enemy);
 
-            // Display combat start message
-            _ui.Clear();
-            _ui.UpdateStatus(player.Name, player.Strength, player.Defense, player.Health);
-            _ui.WriteRule("COMBAT");
-            _ui.WriteLine($"{enemy.Name} prepares to attack!");
-            _ui.WriteLine();
-            _ui.WriteLine($"{enemy.ShortDescription}");
-            _ui.WriteLine();
-            _ui.WriteLine($"Enemy stats: Health: {enemy.Health}, Strength: {enemy.Strength}");
-            _ui.WriteLine();
-            _ui.WriteLine("Press any key to begin combat...");
-            await _ui.ReadKeyAsync(intercept: true, hideCursor: true);
+            // Display combat start message through the presenter
+            await presenter.DisplayCombatStartAsync(player, enemy);
 
             // Main combat loop
             while (state.IsCombatActive)
             {
-                _ui.Clear();
-                _ui.UpdateStatus(player.Name, player.Strength, player.Defense, player.Health);
-                _ui.WriteRule("COMBAT");
+                await presenter.DisplayCombatStateAsync(state);
 
-                // Display enemy stats
-                _ui.WriteLine($"Fighting {enemy.Name} - Health: {enemy.Health}");
-                _ui.WriteLine();
-
-                await ExecuteTurnAsync(state);
-
-                // Show combat messages
-                foreach (string message in state.CombatMessages)
+                if (state.IsPlayerTurn)
                 {
-                    _ui.WriteLine(message);
+                    await ExecutePlayerTurnAsync(state, presenter);
                 }
-                _ui.WriteLine();
+                else
+                {
+                    ExecuteEnemyTurn(state);
+                }
+
+                // Show combat messages through presenter
+                await presenter.DisplayCombatMessagesAsync(state.CombatMessages);
 
                 // Break if combat is over
                 if (!state.IsCombatActive)
@@ -74,82 +62,42 @@ namespace DynDungeonCrawler.Engine.Classes.Combat
                 }
 
                 // Wait for player to continue to next turn
-                _ui.WriteLine("Press any key for next turn...");
-                await _ui.ReadKeyAsync(intercept: true, hideCursor: true);
+                await presenter.WaitForContinueAsync();
 
                 // Advance to next turn
                 state.NextTurn();
             }
 
-            // Combat complete, display outcome
-            _ui.Clear();
-            _ui.UpdateStatus(player.Name, player.Strength, player.Defense, player.Health);
-            _ui.WriteRule("COMBAT OVER");
-            _ui.WriteLine();
-
+            // Get combat summary
             CombatSummary summary = state.GetSummary();
 
-            if (summary.Outcome == CombatOutcome.PlayerVictory)
+            // Handle rewards for victory
+            if (summary.Outcome == CombatOutcome.PlayerVictory && summary.MoneyReward > 0)
             {
-                // Use plain messages - let the UI implementation handle any formatting
-                string victoryMessage = $"You have defeated the {enemy.Name}!";
-                _ui.WriteLine(victoryMessage, center: true);
-
-                // Award money if any
-                if (summary.MoneyReward > 0)
-                {
-                    player.AddWealth(summary.MoneyReward);
-                    _ui.WriteLine($"You found {summary.MoneyReward} coins on the defeated enemy!");
-                }
-            }
-            else if (summary.Outcome == CombatOutcome.PlayerDefeat)
-            {
-                _ui.WriteLine($"You have been defeated by the {enemy.Name}!");
+                player.AddWealth(summary.MoneyReward);
             }
 
-            _ui.WriteLine();
-            _ui.WriteLine("Press any key to continue...");
-            await _ui.ReadKeyAsync(intercept: true, hideCursor: true);
+            // Display combat summary through presenter
+            await presenter.DisplayCombatSummaryAsync(summary);
 
             _logger.Log($"Combat completed: {summary.Outcome}, Player health: {summary.PlayerRemainingHealth}, Enemy health: {summary.EnemyRemainingHealth}");
             return summary;
         }
 
         /// <summary>
-        /// Executes a single turn of combat.
+        /// Executes the player's turn in combat, getting action choice from the presenter.
         /// </summary>
         /// <param name="state">The current combat state.</param>
-        private async Task ExecuteTurnAsync(CombatState state)
+        /// <param name="presenter">The combat presenter that handles UI interactions.</param>
+        private async Task ExecutePlayerTurnAsync(CombatState state, ICombatPresenter presenter)
         {
-            if (state.IsPlayerTurn)
-            {
-                await ExecutePlayerTurnAsync(state);
-            }
-            else
-            {
-                ExecuteEnemyTurn(state);
-            }
-        }
+            // Get the player's action choice from the presenter
+            CombatAction action = await presenter.GetPlayerActionAsync(state);
 
-        /// <summary>
-        /// Executes the player's turn in combat, including action selection.
-        /// </summary>
-        /// <param name="state">The current combat state.</param>
-        private async Task ExecutePlayerTurnAsync(CombatState state)
-        {
-            _ui.WriteLine("Your turn! Choose an action:");
-            _ui.WriteLine("  1 - Attack");
-            _ui.WriteLine("  2 - Defend (reduce incoming damage next turn)");
-            _ui.WriteLine("  3 - Attempt to flee");
-            _ui.WriteLine();
-            _ui.Write("Enter choice [1-3]: ");
-
-            string? input = await _ui.ReadLineAsync();
-            _ui.WriteLine();
-
-            switch (input?.Trim())
+            // Process the player's action
+            switch (action.Type)
             {
-                case "1":
+                case CombatActionType.Attack:
                     // Attack
                     CombatResult attackResult = AttackTarget(state.Player, state.Enemy);
                     state.RecordResult(attackResult);
@@ -178,9 +126,8 @@ namespace DynDungeonCrawler.Engine.Classes.Combat
                     }
                     break;
 
-                case "2":
+                case CombatActionType.Defend:
                     // Defend (will be handled in enemy turn)
-                    // For simplicity, we'll implement a temporary defense boost
                     if (state.Player is Adventurer player)
                     {
                         player.SetDefendingStatus(true);
@@ -189,7 +136,7 @@ namespace DynDungeonCrawler.Engine.Classes.Combat
                     }
                     break;
 
-                case "3":
+                case CombatActionType.Flee:
                     // Attempt to flee
                     double fleeChance = 0.4; // 40% base chance
 
@@ -203,13 +150,11 @@ namespace DynDungeonCrawler.Engine.Classes.Combat
                     {
                         state.AddMessage("You successfully flee from combat!");
 
-                        // Set combat as no longer active, with fled outcome
+                        // Set combat as no longer active, with escaped outcome
                         if (state.Enemy is Enemy enemy)
                         {
                             enemy.Health = 0; // A hack to make combat end
                         }
-
-                        // CombatOutcome will be handled in GetSummary
                     }
                     else
                     {
